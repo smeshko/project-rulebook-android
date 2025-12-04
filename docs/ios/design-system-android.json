@@ -1,0 +1,422 @@
+{
+  "meta": {
+    "name": "Rulebook Design System",
+    "version": "1.0.0",
+    "description": "Design tokens exported from iOS for Android migration",
+    "platform": "android",
+    "exportedFrom": "project-rulebook-ios",
+    "exportDate": "2025-12-03"
+  },
+  "colors": {
+    "surface": {
+      "primary": {
+        "light": "#FFFFFF",
+        "dark": "#1C1C1E",
+        "description": "Primary surface for cards, buttons, main component backgrounds"
+      },
+      "secondary": {
+        "light": "#FFF9F0",
+        "dark": "#2C2C2E",
+        "description": "Secondary surface for screen backgrounds and containers (warm cream)"
+      },
+      "tertiary": {
+        "light": "#F5E6D3",
+        "dark": "#3A3A3C",
+        "description": "Tertiary surface for nested backgrounds and subtle elevation"
+      }
+    },
+    "content": {
+      "primary": {
+        "light": "#000000",
+        "dark": "#FFFFFF",
+        "description": "Primary content for text, icons, and borders"
+      },
+      "secondary": {
+        "light": "#000000B2",
+        "dark": "#FFFFFFB2",
+        "opacity": 0.7,
+        "description": "Secondary content for less prominent text and UI elements"
+      },
+      "tertiary": {
+        "light": "#00000066",
+        "dark": "#FFFFFF66",
+        "opacity": 0.4,
+        "description": "Tertiary content for disabled states and placeholder text"
+      }
+    },
+    "border": {
+      "primary": {
+        "light": "#000000",
+        "dark": "#000000",
+        "description": "Primary border color - bold borders in both themes"
+      }
+    },
+    "shadow": {
+      "color": {
+        "light": "#000000",
+        "dark": "#000000",
+        "description": "Shadow color for brutalist drop shadows"
+      }
+    },
+    "brutalist": {
+      "orange": {
+        "light": "#FF6B35",
+        "dark": "#FF8C5F",
+        "usage": "Game Overview sections"
+      },
+      "blue": {
+        "light": "#3498DB",
+        "dark": "#5DADE2",
+        "usage": "Setup Instructions"
+      },
+      "yellow": {
+        "light": "#FFD23F",
+        "dark": "#FFE066",
+        "usage": "First Round Walkthrough"
+      },
+      "purple": {
+        "light": "#7209B7",
+        "dark": "#9D4EDD",
+        "usage": "Advanced Rules"
+      },
+      "pink": {
+        "light": "#E91E63",
+        "dark": "#F06292",
+        "usage": "Share and social actions"
+      },
+      "secondary": {
+        "light": "#F7931E",
+        "dark": "#FFB74D",
+        "usage": "Library button"
+      },
+      "green": {
+        "light": "#2ECC71",
+        "dark": "#58D68D",
+        "usage": "Success states and checkboxes"
+      },
+      "red": {
+        "light": "#E74C3C",
+        "dark": "#EC7063",
+        "usage": "Error states and destructive actions"
+      },
+      "teal": {
+        "light": "#1ABC9C",
+        "dark": "#48C9B0",
+        "usage": "Alternative accent"
+      },
+      "gray": {
+        "light": "#95A5A6",
+        "dark": "#B2BEC3",
+        "usage": "Neutral UI elements"
+      }
+    },
+    "semantic": {
+      "error": {
+        "light": "#E74C3C",
+        "dark": "#EC7063",
+        "alias": "brutalist.red"
+      },
+      "warning": {
+        "light": "#FF6B35",
+        "dark": "#FF8C5F",
+        "alias": "brutalist.orange"
+      },
+      "success": {
+        "light": "#2ECC71",
+        "dark": "#58D68D",
+        "alias": "brutalist.green"
+      },
+      "info": {
+        "light": "#3498DB",
+        "dark": "#5DADE2",
+        "alias": "brutalist.blue"
+      }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "default": "System Default",
+      "monospace": "System Monospace",
+      "rounded": "System Rounded"
+    },
+    "fontWeight": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700,
+      "black": 900
+    },
+    "display": {
+      "largeTitle": {
+        "sizeSp": 34,
+        "weight": "bold",
+        "lineHeightSp": 41
+      },
+      "title": {
+        "sizeSp": 28,
+        "weight": "bold",
+        "lineHeightSp": 34
+      },
+      "title2": {
+        "sizeSp": 22,
+        "weight": "semibold",
+        "lineHeightSp": 28
+      },
+      "title3": {
+        "sizeSp": 20,
+        "weight": "medium",
+        "lineHeightSp": 25
+      }
+    },
+    "heading": {
+      "sectionHeader": {
+        "sizeSp": 22,
+        "weight": "semibold",
+        "lineHeightSp": 28
+      },
+      "subheader": {
+        "sizeSp": 20,
+        "weight": "medium",
+        "lineHeightSp": 25
+      },
+      "cardTitle": {
+        "sizeSp": 17,
+        "weight": "semibold",
+        "lineHeightSp": 22
+      }
+    },
+    "body": {
+      "body": {
+        "sizeSp": 17,
+        "weight": "regular",
+        "lineHeightSp": 22
+      },
+      "bodyEmphasized": {
+        "sizeSp": 17,
+        "weight": "medium",
+        "lineHeightSp": 22
+      },
+      "callout": {
+        "sizeSp": 16,
+        "weight": "regular",
+        "lineHeightSp": 21
+      },
+      "subheadline": {
+        "sizeSp": 15,
+        "weight": "regular",
+        "lineHeightSp": 20
+      }
+    },
+    "detail": {
+      "caption": {
+        "sizeSp": 12,
+        "weight": "regular",
+        "lineHeightSp": 16
+      },
+      "caption2": {
+        "sizeSp": 11,
+        "weight": "regular",
+        "lineHeightSp": 13
+      },
+      "footnote": {
+        "sizeSp": 13,
+        "weight": "regular",
+        "lineHeightSp": 18
+      }
+    },
+    "metadata": {
+      "metadata": {
+        "sizeSp": 15,
+        "weight": "medium",
+        "lineHeightSp": 20
+      },
+      "timestamp": {
+        "sizeSp": 12,
+        "weight": "medium",
+        "lineHeightSp": 16
+      },
+      "badge": {
+        "sizeSp": 11,
+        "weight": "bold",
+        "lineHeightSp": 13
+      }
+    },
+    "brutalist": {
+      "title": {
+        "sizeSp": 24,
+        "weight": "black"
+      },
+      "sectionTitle": {
+        "sizeSp": 16,
+        "weight": "black"
+      },
+      "caption": {
+        "sizeSp": 12,
+        "weight": "bold"
+      },
+      "buttonText": {
+        "sizeSp": 14,
+        "weight": "black"
+      },
+      "largeTitle": {
+        "sizeSp": 32,
+        "weight": "black",
+        "usage": "Modal headers"
+      }
+    },
+    "special": {
+      "priceDisplay": {
+        "sizeSp": 28,
+        "weight": "bold",
+        "design": "rounded",
+        "usage": "Prominent pricing"
+      },
+      "creditBalance": {
+        "sizeSp": 24,
+        "weight": "bold",
+        "design": "rounded",
+        "usage": "Wallet displays"
+      },
+      "iconXXL": {
+        "sizeSp": 80,
+        "weight": "regular",
+        "usage": "Decorative icons"
+      }
+    }
+  },
+  "spacing": {
+    "scale": {
+      "xs": { "valueDp": 4, "description": "Micro spacing between tight elements" },
+      "sm": { "valueDp": 8, "description": "Compact spacing, button padding" },
+      "md": { "valueDp": 16, "description": "Standard padding and margins" },
+      "lg": { "valueDp": 24, "description": "Section spacing" },
+      "xl": { "valueDp": 32, "description": "Extra-large spacing" },
+      "xxl": { "valueDp": 48, "description": "Extra-extra-large spacing" },
+      "xxxl": { "valueDp": 64, "description": "Extra-extra-extra-large spacing" }
+    },
+    "semantic": {
+      "cardPadding": { "valueDp": 16, "alias": "md" },
+      "sectionSpacing": { "valueDp": 24, "alias": "lg" },
+      "screenMargin": { "valueDp": 16, "alias": "md" },
+      "buttonPadding": { "valueDp": 8, "alias": "sm" },
+      "inputPadding": { "valueDp": 16, "alias": "md" }
+    },
+    "layout": {
+      "listItemSpacing": { "valueDp": 8, "alias": "sm" },
+      "stackSpacing": { "valueDp": 16, "alias": "md" },
+      "gridSpacing": { "valueDp": 16, "alias": "md" },
+      "tabBarHeight": { "valueDp": 83, "description": "iOS standard with safe area" }
+    },
+    "border": {
+      "standard": { "valueDp": 1, "description": "Standard border width" },
+      "thick": { "valueDp": 2, "description": "Thick border width" },
+      "separator": { "valueDp": 0.5, "description": "Separator width" }
+    },
+    "brutalist": {
+      "borderWidth": { "valueDp": 3, "description": "Hard, visible borders" },
+      "thickBorderWidth": { "valueDp": 4, "description": "Thick brutalist border" },
+      "standardBorderWidth": { "valueDp": 3, "description": "Standard brutalist border" },
+      "buttonPadding": { "valueDp": 20, "description": "Brutalist button padding" },
+      "iconRowPadding": { "valueDp": 72, "description": "Icon row padding (leading 16 + icon 40 + trailing 16)" },
+      "buttonControlPadding": { "valueDp": 12, "description": "Tighter button control padding" },
+      "paywallContentPadding": { "valueDp": 20, "description": "Paywall layout padding" }
+    }
+  },
+  "radius": {
+    "scale": {
+      "none": { "valueDp": 0, "description": "Sharp corners" },
+      "sm": { "valueDp": 8, "description": "Small radius" },
+      "md": { "valueDp": 12, "description": "Medium radius" },
+      "lg": { "valueDp": 16, "description": "Large radius" },
+      "xl": { "valueDp": 20, "description": "Extra-large radius" },
+      "pill": { "valueDp": 999, "description": "Fully rounded ends" }
+    },
+    "semantic": {
+      "standard": { "valueDp": 12, "alias": "md" },
+      "small": { "valueDp": 8, "alias": "sm" },
+      "large": { "valueDp": 16, "alias": "lg" },
+      "brutalist": { "valueDp": 0, "alias": "none", "description": "Hard edges, no rounding" }
+    }
+  },
+  "shadows": {
+    "offsets": {
+      "xsmall": { "valueDp": 4, "description": "Subtle elevation" },
+      "subtle": { "valueDp": 6, "description": "Collapsed state" },
+      "medium": { "valueDp": 8, "description": "Standard depth" },
+      "elevated": { "valueDp": 10, "description": "Expanded state" },
+      "large": { "valueDp": 12, "description": "Maximum elevation" },
+      "xlarge": { "valueDp": 16, "description": "Modal prominence" }
+    },
+    "style": {
+      "type": "brutalist",
+      "description": "Hard-edged shadows using offset rectangle technique (not blur-based)"
+    }
+  },
+  "animation": {
+    "duration": {
+      "quick": { "valueMs": 150, "description": "Button presses and quick interactions" },
+      "medium": { "valueMs": 300, "description": "Standard transitions" },
+      "long": { "valueMs": 600, "description": "Complex transitions and page changes" }
+    },
+    "easing": {
+      "standard": {
+        "type": "easeInOut",
+        "durationMs": 300
+      },
+      "spring": {
+        "type": "spring",
+        "response": 0.3,
+        "dampingFraction": 0.7
+      }
+    }
+  },
+  "icons": {
+    "sizes": {
+      "sm": { "valueDp": 16, "description": "Compact UI elements" },
+      "md": { "valueDp": 20, "description": "Standard icons" },
+      "lg": { "valueDp": 24, "description": "Prominent UI elements" },
+      "xl": { "valueDp": 32, "description": "Feature cards and headers" }
+    },
+    "weight": "medium"
+  },
+  "layout": {
+    "touchTargets": {
+      "minimum": { "valueDp": 44, "description": "Minimum for accessibility" },
+      "preferred": { "valueDp": 48, "description": "Preferred touch target" }
+    },
+    "dimensions": {
+      "maxContentWidth": { "valueDp": 768, "description": "Maximum content width for readability" },
+      "cardMinHeight": { "valueDp": 120, "description": "Minimum card height" },
+      "tabBarBaseHeight": { "valueDp": 60, "description": "Tab bar height excluding safe area" },
+      "indicatorSize": { "valueDp": 12, "description": "Progress indicator dot size" },
+      "prominentTabBarSpacing": { "valueDp": 100, "description": "Wide tab layout spacing" }
+    }
+  },
+  "buttonStyles": {
+    "brutalist": {
+      "pressedScale": 0.98,
+      "normalShadowOffset": { "valueDp": 4 },
+      "pressedShadowOffset": { "valueDp": 2 },
+      "mediumShadowOffset": { "valueDp": 6 }
+    }
+  },
+  "theme": {
+    "modes": ["system", "light", "dark"],
+    "defaultMode": "system"
+  },
+  "android": {
+    "notes": [
+      "Colors use ARGB hex format. For XML resources, use #AARRGGBB format.",
+      "Typography sizes are in sp (scaleable pixels) for accessibility.",
+      "Spacing, radius, and shadow values are in dp (density-independent pixels).",
+      "Brutalist shadows should be implemented as offset rectangles, not elevation/blur.",
+      "Font weights map to Android: regular=400, medium=500, semibold=600, bold=700, black=900",
+      "For Jetpack Compose, these tokens can be used directly with MaterialTheme customization."
+    ],
+    "resourceMapping": {
+      "colors": "res/values/colors.xml and res/values-night/colors.xml",
+      "dimensions": "res/values/dimens.xml",
+      "typography": "Typography.kt or res/font/ + res/values/styles.xml"
+    }
+  }
+}
