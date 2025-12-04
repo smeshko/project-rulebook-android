@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Rulebook</string>
+    <string name="shortcut_scan_game">Scan Game</string>
+    <string name="shortcut_scan_game_long">Scan a board game</string>
+</resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="scan_game"
+        android:enabled="true"
+        android:icon="@drawable/ic_camera"
+        android:shortcutShortLabel="@string/shortcut_scan_game"
+        android:shortcutLongLabel="@string/shortcut_scan_game_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.rulebook"
+            android:targetClass="com.rulebook.MainActivity"
+            android:data="rulebook://camera" />
+    </shortcut>
+</shortcuts>
