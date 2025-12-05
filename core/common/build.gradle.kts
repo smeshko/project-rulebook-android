@@ -8,4 +8,8 @@ android {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+
+    // Koin
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.core)
 }
