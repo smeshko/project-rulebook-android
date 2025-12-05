@@ -1,6 +1,7 @@
 package com.rulebook
 
 import android.app.Application
+import com.rulebook.di.appModules
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -14,9 +15,7 @@ class RulebookApplication : Application() {
         startKoin {
             androidLogger(Level.DEBUG)
             androidContext(this@RulebookApplication)
-            modules(
-                // TODO: Add Koin modules from each module
-            )
+            modules(appModules)
         }
     }
 }

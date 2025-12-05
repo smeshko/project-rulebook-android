@@ -1,0 +1,190 @@
+# Story 1.13: Result Wrapper & Error Handling
+
+Status: ready-for-dev
+
+## Linear Issue
+
+- **ID:** RULE-120
+- **URL:** https://linear.app/project-rulebook/issue/RULE-120/story-113-result-wrapper-and-error-handling
+
+## Story
+
+As a developer,
+I want the Result wrapper pattern implemented,
+So that errors are handled consistently across the app.
+
+## Acceptance Criteria
+
+1. **Given** the `core/common` module
+   **When** Result wrapper is implemented
+   **Then** sealed class exists:
+
+   ```kotlin
+   sealed class Result<out T> {
+       data class Success<T>(val data: T) : Result<T>()
+       data class Error(
+           val message: String,
+           val cause: Throwable? = null
+       ) : Result<Nothing>()
+   }
+   ```
+
+2. **And** extension functions exist:
+   - `Result.map()` - Transform success data
+   - `Result.onSuccess()` - Execute on success
+   - `Result.onError()` - Execute on error
+   - `Result.getOrNull()` - Get data or null
+
+3. **And** all repository operations return `Result<T>`
+
+## Tasks / Subtasks
+
+- [ ] Task 1: Create Result sealed class (AC: #1)
+  - [ ] Create sealed class Result<out T>
+  - [ ] Create Success data class with data: T
+  - [ ] Create Error data class with message and cause
+- [ ] Task 2: Create map() extension (AC: #2)
+  - [ ] Transform Success data while preserving Error
+  - [ ] Return new Result<R>
+- [ ] Task 3: Create onSuccess() extension (AC: #2)
+  - [ ] Execute action only on Success
+  - [ ] Return original Result for chaining
+- [ ] Task 4: Create onError() extension (AC: #2)
+  - [ ] Execute action only on Error
+  - [ ] Return original Result for chaining
+- [ ] Task 5: Create getOrNull() extension (AC: #2)
+  - [ ] Return data if Success
+  - [ ] Return null if Error
+- [ ] Task 6: Create additional utility extensions
+  - [ ] Create getOrDefault(default: T)
+  - [ ] Create getOrElse(onError: (Error) -> T)
+  - [ ] Create fold(onSuccess, onError)
+- [ ] Task 7: Create runCatching wrapper
+  - [ ] Create suspend fun safeCall<T>(block) -> Result<T>
+  - [ ] Catch exceptions and wrap in Result.Error
+  - [ ] Return Success on successful execution
+
+## Dev Notes
+
+### Implementation Pattern
+
+```kotlin
+sealed class Result<out T> {
+    data class Success<T>(val data: T) : Result<T>()
+    data class Error(
+        val message: String,
+        val cause: Throwable? = null
+    ) : Result<Nothing>()
+}
+
+inline fun <T, R> Result<T>.map(transform: (T) -> R): Result<R> =
+    when (this) {
+        is Result.Success -> Result.Success(transform(data))
+        is Result.Error -> this
+    }
+
+inline fun <T> Result<T>.onSuccess(action: (T) -> Unit): Result<T> {
+    if (this is Result.Success) action(data)
+    return this
+}
+
+inline fun <T> Result<T>.onError(action: (Result.Error) -> Unit): Result<T> {
+    if (this is Result.Error) action(this)
+    return this
+}
+
+fun <T> Result<T>.getOrNull(): T? =
+    when (this) {
+        is Result.Success -> data
+        is Result.Error -> null
+    }
+
+fun <T> Result<T>.getOrDefault(default: T): T =
+    when (this) {
+        is Result.Success -> data
+        is Result.Error -> null
+    } ?: default
+
+inline fun <T, R> Result<T>.fold(
+    onSuccess: (T) -> R,
+    onError: (Result.Error) -> R
+): R = when (this) {
+    is Result.Success -> onSuccess(data)
+    is Result.Error -> onError(this)
+}
+
+suspend fun <T> safeCall(block: suspend () -> T): Result<T> =
+    try {
+        Result.Success(block())
+    } catch (e: Exception) {
+        Result.Error(
+            message = e.localizedMessage ?: "Unknown error",
+            cause = e
+        )
+    }
+```
+
+### Usage Examples
+
+```kotlin
+// Repository operation
+class GameRepository(private val dao: GameDao) {
+    suspend fun getGame(id: String): Result<Game> = safeCall {
+        dao.getById(id)?.toDomain()
+            ?: throw NotFoundException("Game not found")
+    }
+}
+
+// ViewModel usage
+viewModelScope.launch {
+    repository.getGame(gameId)
+        .onSuccess { game ->
+            _uiState.update { it.copy(game = game) }
+        }
+        .onError { error ->
+            _uiState.update { it.copy(errorMessage = error.message) }
+        }
+}
+
+// Chained operations
+repository.getGame(gameId)
+    .map { game -> game.title }
+    .getOrDefault("Unknown")
+```
+
+### Error Message Guidelines
+
+- User-friendly error messages
+- Technical details in cause Throwable
+- Consistent message patterns across app
+
+| Error Type | Message Pattern |
+|------------|-----------------|
+| Network | "Unable to connect. Please check your connection." |
+| Not Found | "Game not found." |
+| API Error | "Something went wrong. Please try again." |
+| Parse Error | "Unable to process response." |
+
+### Project Structure Notes
+
+- Result is in core/common
+- All repository operations return Result<T>
+- safeCall wrapper for try-catch boilerplate
+
+### References
+
+- [Source: docs/architecture.md#Error Handling]
+- [Source: docs/architecture.md#State Management]
+- [Source: docs/prd.md#NFR10] - Graceful degradation on network failure
+
+## Dev Agent Record
+
+### Context Reference
+
+### Agent Model Used
+
+### Debug Log References
+
+### Completion Notes List
+
+### File List
