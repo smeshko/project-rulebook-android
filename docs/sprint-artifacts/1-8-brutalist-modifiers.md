@@ -1,6 +1,6 @@
 # Story 1.8: Brutalist Modifier Extensions
 
-Status: ready-for-dev
+Status: done
 
 ## Linear Issue
 
