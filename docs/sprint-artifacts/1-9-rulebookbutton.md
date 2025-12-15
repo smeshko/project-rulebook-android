@@ -1,6 +1,6 @@
 # Story 1.9: Core UI Components - RulebookButton
 
-Status: Ready for Review
+Status: done
 
 ## Linear Issue
 
