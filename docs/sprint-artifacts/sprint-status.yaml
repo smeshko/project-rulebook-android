@@ -105,7 +105,7 @@ development_status:
 
   # Story 1.13: Result Wrapper & Error Handling
   1-13-result-wrapper:
-    status: ready-for-dev
+    status: in-review
     linear_id: RULE-120
     linear_url: https://linear.app/project-rulebook/issue/RULE-120
     story_file: docs/sprint-artifacts/1-13-result-wrapper.md
