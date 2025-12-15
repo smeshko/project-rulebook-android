@@ -1,6 +1,6 @@
 # Story 1.12: Domain Models
 
-Status: in-review
+Status: done
 
 ## Linear Issue
 
