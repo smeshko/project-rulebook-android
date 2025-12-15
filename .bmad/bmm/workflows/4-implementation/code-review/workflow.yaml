@@ -1,7 +1,13 @@
 # Review Story Workflow
 name: code-review
-description: "Perform an ADVERSARIAL Senior Developer code review that finds 3-10 specific problems in every story. Challenges everything: code quality, test coverage, architecture compliance, security, performance. NEVER accepts 'looks good' - must find minimum issues and can auto-fix with user approval."
+description: "Perform an ADVERSARIAL Senior Developer code review that finds 3-10 specific problems in every story. Challenges everything: code quality, test coverage, architecture compliance, security, performance. NEVER accepts `looks good` - must find minimum issues and can auto-fix with user approval."
 author: "BMad"
+
+# Execution Mode
+# Set headless: true to run without step confirmations (for CLI/automation)
+# When headless, auto_fix_mode determines behavior: "report-only" (default), "fix", or "action-items"
+headless: false
+auto_fix_mode: "report-only"
 
 # Critical variables from config
 config_source: "{project-root}/.bmad/bmm/config.yaml"
