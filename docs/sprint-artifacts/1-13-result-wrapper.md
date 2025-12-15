@@ -59,10 +59,10 @@ So that errors are handled consistently across the app.
   - [x] Create getOrDefault(default: T)
   - [x] Create getOrElse(onError: (Error) -> T)
   - [x] Create fold(onSuccess, onError)
-- [ ] Task 7: Create runCatching wrapper
-  - [ ] Create suspend fun safeCall<T>(block) -> Result<T>
-  - [ ] Catch exceptions and wrap in Result.Error
-  - [ ] Return Success on successful execution
+- [x] Task 7: Create runCatching wrapper
+  - [x] Create suspend fun safeCall<T>(block) -> Result<T>
+  - [x] Catch exceptions and wrap in Result.Error
+  - [x] Return Success on successful execution
 
 ## Dev Notes
 
@@ -194,6 +194,7 @@ repository.getGame(gameId)
 - **Task 4 (2025-12-15):** Created onError() extension function. Executes action only on Error and returns original Result for chaining. Added 5 unit tests including cause handling.
 - **Task 5 (2025-12-15):** Created getOrNull() extension function. Returns data on Success, null on Error. Added 3 unit tests including nullable type handling.
 - **Task 6 (2025-12-15):** Created getOrDefault(), getOrElse(), and fold() utility extensions. Added 7 unit tests covering all utility functions.
+- **Task 7 (2025-12-15):** Created safeCall() suspend function wrapper. Catches exceptions and wraps in Result.Error with message and cause. Added 4 unit tests including suspend function support.
 
 ### File List
 - core/common/src/main/kotlin/com/rulebook/core/common/Result.kt (modified)

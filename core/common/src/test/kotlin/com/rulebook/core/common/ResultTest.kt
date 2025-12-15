@@ -1,5 +1,6 @@
 package com.rulebook.core.common
 
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -312,5 +313,50 @@ class ResultTest {
         )
 
         assertEquals("Success: 42", value)
+    }
+
+    // Task 7: safeCall Tests
+    @Test
+    fun `safeCall returns Success on successful execution`() = runTest {
+        val result = safeCall { "hello" }
+
+        assertTrue(result is Result.Success)
+        assertEquals("hello", (result as Result.Success).data)
+    }
+
+    @Test
+    fun `safeCall catches exception and returns Error`() = runTest {
+        val exception = RuntimeException("test error")
+
+        val result = safeCall<String> { throw exception }
+
+        assertTrue(result is Result.Error)
+        val error = result as Result.Error
+        assertEquals("test error", error.message)
+        assertEquals(exception, error.cause)
+    }
+
+    @Test
+    fun `safeCall handles null exception message`() = runTest {
+        val exception = RuntimeException()
+
+        val result = safeCall<String> { throw exception }
+
+        assertTrue(result is Result.Error)
+        val error = result as Result.Error
+        assertEquals("Unknown error", error.message)
+        assertEquals(exception, error.cause)
+    }
+
+    @Test
+    fun `safeCall works with suspend functions`() = runTest {
+        suspend fun suspendingFunction(): Int {
+            return 42
+        }
+
+        val result = safeCall { suspendingFunction() }
+
+        assertTrue(result is Result.Success)
+        assertEquals(42, (result as Result.Success).data)
     }
 }

@@ -78,3 +78,18 @@ inline fun <T, R> Result<T>.fold(
     is Result.Success -> onSuccess(data)
     is Result.Error -> onError(this)
 }
+
+/**
+ * Wraps a suspend function in a try-catch and returns a Result.
+ * On success, returns Result.Success with the value.
+ * On exception, returns Result.Error with the exception message and cause.
+ */
+suspend fun <T> safeCall(block: suspend () -> T): Result<T> =
+    try {
+        Result.Success(block())
+    } catch (e: Exception) {
+        Result.Error(
+            message = e.localizedMessage ?: "Unknown error",
+            cause = e
+        )
+    }
