@@ -1,9 +1,9 @@
 package com.rulebook.core.datastore.di
 
+import com.rulebook.core.datastore.RulebookPreferences
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val dataStoreModule = module {
-    // TODO: Add DataStore configuration in Story 1.4
-    // single { provideDataStore(get()) }
-    // single { RulebookPreferences(get()) }
+    single { RulebookPreferences(androidContext()) }
 }

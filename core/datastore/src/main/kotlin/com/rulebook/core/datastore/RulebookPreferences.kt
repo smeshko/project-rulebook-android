@@ -17,12 +17,12 @@ class RulebookPreferences(private val context: Context) {
 
     private object Keys {
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
-        val CREDITS_BALANCE = intPreferencesKey("credits_balance")
+        val CREDIT_BALANCE = intPreferencesKey("credit_balance")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
     }
 
-    val onboardingCompleted: Flow<Boolean> = context.dataStore.data
+    val hasCompletedOnboarding: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[Keys.ONBOARDING_COMPLETED] ?: false }
 
     suspend fun setOnboardingCompleted(completed: Boolean) {
@@ -31,12 +31,23 @@ class RulebookPreferences(private val context: Context) {
         }
     }
 
-    val creditsBalance: Flow<Int> = context.dataStore.data
-        .map { preferences -> preferences[Keys.CREDITS_BALANCE] ?: 0 }
+    val creditBalance: Flow<Int> = context.dataStore.data
+        .map { preferences -> preferences[Keys.CREDIT_BALANCE] ?: 0 }
 
-    suspend fun setCreditsBalance(balance: Int) {
+    suspend fun setCreditBalance(balance: Int) {
         context.dataStore.edit { preferences ->
-            preferences[Keys.CREDITS_BALANCE] = balance
+            preferences[Keys.CREDIT_BALANCE] = balance
+        }
+    }
+
+    val themeMode: Flow<ThemeMode> = context.dataStore.data
+        .map { preferences ->
+            ThemeMode.fromString(preferences[Keys.THEME_MODE])
+        }
+
+    suspend fun setThemeMode(mode: ThemeMode) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.THEME_MODE] = mode.name
         }
     }
 
