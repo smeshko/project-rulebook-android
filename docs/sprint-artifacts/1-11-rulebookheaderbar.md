@@ -1,6 +1,6 @@
 # Story 1.11: Core UI Components - RulebookHeaderBar
 
-Status: ready-for-dev
+Status: Ready for Review
 
 ## Linear Issue
 

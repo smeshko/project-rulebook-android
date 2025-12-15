@@ -91,7 +91,7 @@ development_status:
 
   # Story 1.11: Core UI Components - RulebookHeaderBar
   1-11-rulebookheaderbar:
-    status: ready-for-dev
+    status: in-review
     linear_id: RULE-118
     linear_url: https://linear.app/project-rulebook/issue/RULE-118
     story_file: docs/sprint-artifacts/1-11-rulebookheaderbar.md
@@ -113,7 +113,7 @@ development_status:
 summary:
   total_stories: 13
   done: 7
-  ready_for_dev: 6
+  ready_for_dev: 5
   in_progress: 0
-  in_review: 0
+  in_review: 1
   blocked: 0
