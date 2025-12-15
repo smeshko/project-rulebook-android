@@ -49,7 +49,7 @@ development_status:
 
   # Story 1.5: Network Client Configuration
   1-5-network-client-configuration:
-    status: ready-for-dev
+    status: in-review
     linear_id: RULE-112
     linear_url: https://linear.app/project-rulebook/issue/RULE-112
     story_file: docs/sprint-artifacts/1-5-network-client-configuration.md
@@ -113,7 +113,7 @@ development_status:
 summary:
   total_stories: 13
   done: 3
-  ready_for_dev: 10
+  ready_for_dev: 9
   in_progress: 0
-  in_review: 0
+  in_review: 1
   blocked: 0

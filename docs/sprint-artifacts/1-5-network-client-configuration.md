@@ -1,6 +1,6 @@
 # Story 1.5: Network Client Configuration
 
-Status: in-progress
+Status: Ready for Review
 
 ## Linear Issue
 
