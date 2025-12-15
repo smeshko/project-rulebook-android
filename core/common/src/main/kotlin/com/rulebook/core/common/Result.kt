@@ -11,3 +11,13 @@ sealed class Result<out T> {
         val cause: Throwable? = null
     ) : Result<Nothing>()
 }
+
+/**
+ * Transforms the data of a Success result while preserving Error.
+ * Returns a new Result with the transformed type.
+ */
+inline fun <T, R> Result<T>.map(transform: (T) -> R): Result<R> =
+    when (this) {
+        is Result.Success -> Result.Success(transform(data))
+        is Result.Error -> this
+    }

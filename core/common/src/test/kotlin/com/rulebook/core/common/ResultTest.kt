@@ -75,4 +75,48 @@ class ResultTest {
         }
         assertEquals("error", description2)
     }
+
+    // Task 2: map() Extension Tests
+    @Test
+    fun `map transforms Success data`() {
+        val result: Result<Int> = Result.Success(5)
+
+        val mapped = result.map { it * 2 }
+
+        assertTrue(mapped is Result.Success)
+        assertEquals(10, (mapped as Result.Success).data)
+    }
+
+    @Test
+    fun `map preserves Error without transformation`() {
+        val error: Result<Int> = Result.Error("error message")
+
+        val mapped = error.map { it * 2 }
+
+        assertTrue(mapped is Result.Error)
+        assertEquals("error message", (mapped as Result.Error).message)
+    }
+
+    @Test
+    fun `map can change result type`() {
+        val result: Result<Int> = Result.Success(42)
+
+        val mapped: Result<String> = result.map { "Number: $it" }
+
+        assertTrue(mapped is Result.Success)
+        assertEquals("Number: 42", (mapped as Result.Success).data)
+    }
+
+    @Test
+    fun `map preserves Error cause`() {
+        val cause = RuntimeException("original")
+        val error: Result<Int> = Result.Error("error", cause)
+
+        val mapped = error.map { it.toString() }
+
+        assertTrue(mapped is Result.Error)
+        val mappedError = mapped as Result.Error
+        assertEquals("error", mappedError.message)
+        assertEquals(cause, mappedError.cause)
+    }
 }
