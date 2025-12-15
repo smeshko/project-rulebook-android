@@ -70,7 +70,7 @@ development_status:
 
   # Story 1.8: Brutalist Modifier Extensions
   1-8-brutalist-modifiers:
-    status: ready-for-dev
+    status: done
     linear_id: RULE-115
     linear_url: https://linear.app/project-rulebook/issue/RULE-115
     story_file: docs/sprint-artifacts/1-8-brutalist-modifiers.md
