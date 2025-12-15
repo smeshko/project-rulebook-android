@@ -158,4 +158,54 @@ class ResultTest {
 
         assertTrue(returned === original)
     }
+
+    // Task 4: onError() Extension Tests
+    @Test
+    fun `onError executes action on Error`() {
+        var capturedMessage: String? = null
+        val result: Result<String> = Result.Error("error message")
+
+        result.onError { capturedMessage = it.message }
+
+        assertEquals("error message", capturedMessage)
+    }
+
+    @Test
+    fun `onError does not execute action on Success`() {
+        var executed = false
+        val result: Result<String> = Result.Success("success")
+
+        result.onError { executed = true }
+
+        assertEquals(false, executed)
+    }
+
+    @Test
+    fun `onError returns original Result for chaining`() {
+        val original: Result<Int> = Result.Error("error")
+
+        val returned = original.onError { }
+
+        assertTrue(returned === original)
+    }
+
+    @Test
+    fun `onError preserves Success for chaining`() {
+        val original: Result<Int> = Result.Success(42)
+
+        val returned = original.onError { }
+
+        assertTrue(returned === original)
+    }
+
+    @Test
+    fun `onError receives Error with cause`() {
+        val cause = RuntimeException("original")
+        var capturedCause: Throwable? = null
+        val result: Result<String> = Result.Error("error", cause)
+
+        result.onError { capturedCause = it.cause }
+
+        assertEquals(cause, capturedCause)
+    }
 }
