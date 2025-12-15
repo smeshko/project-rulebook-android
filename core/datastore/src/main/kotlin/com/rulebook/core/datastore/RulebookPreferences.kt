@@ -13,36 +13,89 @@ import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "rulebook_preferences")
 
+/**
+ * Manages user preferences using DataStore.
+ *
+ * Provides reactive [Flow] access to preferences and suspend functions for updates.
+ * All preferences have sensible defaults when not yet set.
+ *
+ * @param context Application context for DataStore access. Must be Application context
+ *                to avoid memory leaks.
+ */
 class RulebookPreferences(private val context: Context) {
 
-    private object Keys {
+    /**
+     * Preference keys used for DataStore storage.
+     * Internal visibility for testing purposes.
+     */
+    internal object Keys {
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
-        val CREDITS_BALANCE = intPreferencesKey("credits_balance")
+        val CREDIT_BALANCE = intPreferencesKey("credit_balance")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
     }
 
-    val onboardingCompleted: Flow<Boolean> = context.dataStore.data
+    /**
+     * Flow of onboarding completion status.
+     * Default: `false`
+     */
+    val hasCompletedOnboarding: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[Keys.ONBOARDING_COMPLETED] ?: false }
 
+    /**
+     * Sets the onboarding completion status.
+     */
     suspend fun setOnboardingCompleted(completed: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[Keys.ONBOARDING_COMPLETED] = completed
         }
     }
 
-    val creditsBalance: Flow<Int> = context.dataStore.data
-        .map { preferences -> preferences[Keys.CREDITS_BALANCE] ?: 0 }
+    /**
+     * Flow of current credit balance.
+     * Default: `0`
+     */
+    val creditBalance: Flow<Int> = context.dataStore.data
+        .map { preferences -> preferences[Keys.CREDIT_BALANCE] ?: 0 }
 
-    suspend fun setCreditsBalance(balance: Int) {
+    /**
+     * Sets the credit balance.
+     * @param balance The new balance. Negative values are coerced to 0.
+     */
+    suspend fun setCreditBalance(balance: Int) {
         context.dataStore.edit { preferences ->
-            preferences[Keys.CREDITS_BALANCE] = balance
+            preferences[Keys.CREDIT_BALANCE] = balance.coerceAtLeast(0)
         }
     }
 
+    /**
+     * Flow of current theme mode setting.
+     * Default: [ThemeMode.SYSTEM]
+     */
+    val themeMode: Flow<ThemeMode> = context.dataStore.data
+        .map { preferences ->
+            ThemeMode.fromString(preferences[Keys.THEME_MODE])
+        }
+
+    /**
+     * Sets the theme mode.
+     */
+    suspend fun setThemeMode(mode: ThemeMode) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.THEME_MODE] = mode.name
+        }
+    }
+
+    /**
+     * Flow of haptic feedback enabled status.
+     * Default: `true`
+     */
     val hapticsEnabled: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[Keys.HAPTICS_ENABLED] ?: true }
 
+    /**
+     * Sets whether haptic feedback is enabled.
+     */
     suspend fun setHapticsEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[Keys.HAPTICS_ENABLED] = enabled
