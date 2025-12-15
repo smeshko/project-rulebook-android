@@ -98,7 +98,7 @@ development_status:
 
   # Story 1.12: Domain Models
   1-12-domain-models:
-    status: in-progress
+    status: done
     linear_id: RULE-119
     linear_url: https://linear.app/project-rulebook/issue/RULE-119
     story_file: docs/sprint-artifacts/1-12-domain-models.md
