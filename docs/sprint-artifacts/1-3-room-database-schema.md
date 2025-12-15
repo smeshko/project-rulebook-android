@@ -1,6 +1,6 @@
 # Story 1.3: Room Database Schema & DAOs
 
-Status: ready-for-dev
+Status: Done
 
 ## Linear Issue
 
@@ -33,51 +33,52 @@ So that game and rules data can be persisted offline.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add Room dependencies (AC: #1)
-  - [ ] Add room-runtime to version catalog
-  - [ ] Add room-ktx to version catalog
-  - [ ] Add room-compiler for KSP
-  - [ ] Add KSP plugin to build configuration
-- [ ] Task 2: Create GameEntity (AC: #1, #3, #4)
-  - [ ] Create entity class with @Entity annotation
-  - [ ] Set tableName = "saved_games"
-  - [ ] Define id as @PrimaryKey
-  - [ ] Add title, thumbnailUrl, createdAt, lastAccessedAt columns
-  - [ ] Use Long for timestamps
-- [ ] Task 3: Create RulesEntity (AC: #1, #3, #5)
-  - [ ] Create entity class with @Entity annotation
-  - [ ] Set tableName = "rules"
-  - [ ] Define id as @PrimaryKey
-  - [ ] Add gameId with @ForeignKey to GameEntity (CASCADE delete)
-  - [ ] Add overview, setup, firstRound, advanced columns as String
-  - [ ] Add rawJson column for complete JSON storage
-- [ ] Task 4: Create GameDao (AC: #2)
-  - [ ] Create @Dao interface
-  - [ ] Add @Insert(onConflict = REPLACE) insert method
-  - [ ] Add @Update update method
-  - [ ] Add @Delete delete method
-  - [ ] Add @Query getAll returning Flow<List<GameEntity>>
-  - [ ] Add @Query getById returning Flow<GameEntity?>
-  - [ ] Add @Query getAllSorted with ORDER BY parameter
-- [ ] Task 5: Create RulesDao (AC: #2)
-  - [ ] Create @Dao interface
-  - [ ] Add @Insert insert method
-  - [ ] Add @Query getByGameId returning Flow<RulesEntity?>
-  - [ ] Add @Query deleteByGameId
-- [ ] Task 6: Create RulebookDatabase (AC: #1)
-  - [ ] Create @Database abstract class
-  - [ ] Register GameEntity and RulesEntity
-  - [ ] Set version = 1
-  - [ ] Add abstract gameDao() method
-  - [ ] Add abstract rulesDao() method
-- [ ] Task 7: Create TypeConverters (AC: #5)
-  - [ ] Create Converters class for JSON handling
-  - [ ] Add @TypeConverter for any complex types
-- [ ] Task 8: Add Database to Koin DI
-  - [ ] Create provideDatabase function
-  - [ ] Create provideGameDao function
-  - [ ] Create provideRulesDao function
-  - [ ] Register in DatabaseModule
+- [x] Task 1: Add Room dependencies (AC: #1)
+  - [x] Add room-runtime to version catalog
+  - [x] Add room-ktx to version catalog
+  - [x] Add room-compiler for KSP
+  - [x] Add KSP plugin to build configuration
+- [x] Task 2: Create GameEntity (AC: #1, #3, #4)
+  - [x] Create entity class with @Entity annotation
+  - [x] Set tableName = "saved_games"
+  - [x] Define id as @PrimaryKey
+  - [x] Add title, thumbnailUrl, createdAt, lastAccessedAt columns
+  - [x] Use Long for timestamps
+- [x] Task 3: Create RulesEntity (AC: #1, #3, #5)
+  - [x] Create entity class with @Entity annotation
+  - [x] Set tableName = "rules"
+  - [x] Define id as @PrimaryKey
+  - [x] Add gameId with @ForeignKey to GameEntity (CASCADE delete)
+  - [x] Add overview, setup, firstRound, advanced columns as String
+  - [x] Add rawJson column for complete JSON storage
+- [x] Task 4: Create GameDao (AC: #2)
+  - [x] Create @Dao interface
+  - [x] Add @Insert(onConflict = REPLACE) insert method
+  - [x] Add @Update update method
+  - [x] Add @Delete delete method
+  - [x] Add @Query getAll returning Flow<List<GameEntity>>
+  - [x] Add @Query getById returning Flow<GameEntity?>
+  - [x] Add sorted query methods (by title, createdAt, lastAccessedAt) - Note: Uses separate type-safe methods instead of dynamic ORDER BY for compile-time query validation
+- [x] Task 5: Create RulesDao (AC: #2)
+  - [x] Create @Dao interface
+  - [x] Add @Insert insert method
+  - [x] Add @Query getByGameId returning Flow<RulesEntity?>
+  - [x] Add @Query deleteByGameId
+- [x] Task 6: Create RulebookDatabase (AC: #1)
+  - [x] Create @Database abstract class
+  - [x] Register GameEntity and RulesEntity
+  - [x] Set version = 1
+  - [x] Add abstract gameDao() method
+  - [x] Add abstract rulesDao() method
+- [x] Task 7: TypeConverters Assessment (AC: #5)
+  - [x] Assessed TypeConverter needs - JSON stored as raw String, timestamps as Long
+  - [x] No TypeConverters required - all types are natively supported by Room
+  - [x] Documented decision in RulebookDatabase KDoc
+- [x] Task 8: Add Database to Koin DI
+  - [x] Create provideDatabase function with fallbackToDestructiveMigration
+  - [x] Create provideGameDao function
+  - [x] Create provideRulesDao function
+  - [x] Register in DatabaseModule
 
 ## Dev Notes
 
@@ -146,11 +147,52 @@ data class RulesEntity(
 ## Dev Agent Record
 
 ### Context Reference
+- Story 1.3: Room Database Schema & DAOs (RULE-110)
 
 ### Agent Model Used
+- Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
+- Build warnings resolved: Added koin-android dependency for androidContext() usage
+- Schema export configured: Added KSP arg for room.schemaLocation
+- Fixed app module dependencies: Added core:database, core:datastore, core:network
 
 ### Completion Notes List
+- Implemented GameEntity with snake_case column names (saved_games table)
+- Implemented RulesEntity with foreign key to GameEntity (CASCADE delete) and index on game_id
+- Created GameDao with CRUD operations and multiple sorted query methods (Flow-based)
+- Created RulesDao with insert, update, getByGameId, deleteByGameId operations
+- Configured RulebookDatabase with both entities (no TypeConverters needed)
+- Configured Koin DI module with database and DAO singletons
+- Added unit tests for GameEntity and RulesEntity
+- Added instrumented tests for GameDao and RulesDao (including CASCADE delete verification)
+- All acceptance criteria satisfied
+
+### Code Review Fixes (2025-12-15)
+- Removed unused Converters.kt (Date converters were never used)
+- Removed @TypeConverters annotation from RulebookDatabase
+- Added @Update method to RulesDao for explicit update semantics
+- Added fallbackToDestructiveMigration() for dev build safety
+- Added KDoc documentation to all DAO methods
+- Added Room testing dependencies for instrumented tests
+- Created comprehensive DAO instrumented tests (GameDaoTest, RulesDaoTest)
 
 ### File List
+- gradle/libs.versions.toml (modified - added room-testing, test dependencies)
+- core/database/build.gradle.kts (modified - added koin-android, testing dependencies, schema location)
+- core/database/src/main/kotlin/com/rulebook/core/database/entity/GameEntity.kt (modified)
+- core/database/src/main/kotlin/com/rulebook/core/database/entity/RulesEntity.kt (created)
+- core/database/src/main/kotlin/com/rulebook/core/database/GameDao.kt (modified - added KDoc)
+- core/database/src/main/kotlin/com/rulebook/core/database/RulesDao.kt (created - with @Update method)
+- core/database/src/main/kotlin/com/rulebook/core/database/RulebookDatabase.kt (modified - removed TypeConverters)
+- core/database/src/main/kotlin/com/rulebook/core/database/di/DatabaseModule.kt (modified - added fallbackToDestructiveMigration)
+- core/database/src/test/kotlin/com/rulebook/core/database/entity/GameEntityTest.kt (created)
+- core/database/src/test/kotlin/com/rulebook/core/database/entity/RulesEntityTest.kt (created)
+- core/database/src/androidTest/kotlin/com/rulebook/core/database/GameDaoTest.kt (created)
+- core/database/src/androidTest/kotlin/com/rulebook/core/database/RulesDaoTest.kt (created)
+- core/database/schemas/com.rulebook.core.database.RulebookDatabase/1.json (created - schema export)
+- app/build.gradle.kts (modified - added database, datastore, network dependencies)
+
+## Change Log
+- 2025-12-05: Implemented Room database schema with GameEntity, RulesEntity, DAOs, and Koin DI integration
+- 2025-12-15: Code review fixes - removed unused TypeConverters, added RulesDao.update(), migration strategy, KDoc, and proper DAO instrumented tests
