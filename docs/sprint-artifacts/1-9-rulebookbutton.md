@@ -157,16 +157,17 @@ fun RulebookButton(
 - Primary: Pink fill (RulebookTheme.colors.pink), black border, offset shadow
 - Secondary: Transparent background, black border only, no shadow
 - Destructive: Red fill (RulebookTheme.colors.red), black border, offset shadow
-- Disabled state uses 50% opacity on container and content colors
+- Disabled state uses 50% alpha on entire button (Modifier.alpha) for consistent opacity across all elements including border/shadow
 - Material Button provides ripple touch feedback by default
 - Text uses brutalistButtonText typography (14sp, Black weight)
 - Min touch target 48dp, horizontal padding 20dp, RectangleShape (0dp corners)
-- 10 preview composables covering all variants, enabled/disabled, light/dark modes
+- 12 preview composables covering all variants, enabled/disabled, light/dark modes
 
 ### File List
 - core/designsystem/src/main/kotlin/com/rulebook/core/designsystem/component/RulebookButton.kt (new)
 - core/designsystem/src/test/kotlin/com/rulebook/core/designsystem/component/RulebookButtonTest.kt (new)
 - docs/sprint-artifacts/1-9-rulebookbutton.md (modified)
+- docs/sprint-artifacts/sprint-status.yaml (modified)
 
 ## Dependencies
 

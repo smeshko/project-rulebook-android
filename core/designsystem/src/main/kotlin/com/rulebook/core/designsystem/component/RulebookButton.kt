@@ -1,13 +1,13 @@
 package com.rulebook.core.designsystem.component
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.tooling.preview.Preview
@@ -75,8 +75,12 @@ fun RulebookButton(
     // Shadow only for Primary and Destructive
     val hasShadow = variant != ButtonVariant.Secondary
 
+    // Apply disabled alpha to the entire button (ensures border/shadow also fade)
+    val disabledAlpha = if (enabled) 1f else 0.5f
+
     // Apply brutalist modifiers
     val buttonModifier = modifier
+        .alpha(disabledAlpha)
         .heightIn(min = 48.dp) // Min touch target
         .then(if (hasShadow) Modifier.brutalistShadow() else Modifier)
         .brutalistBorder()
@@ -93,8 +97,9 @@ fun RulebookButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,
             contentColor = contentColor,
-            disabledContainerColor = backgroundColor.copy(alpha = 0.5f),
-            disabledContentColor = contentColor.copy(alpha = 0.5f)
+            // Disabled colors use same values since alpha is applied to whole button via Modifier.alpha()
+            disabledContainerColor = backgroundColor,
+            disabledContentColor = contentColor
         )
     ) {
         Text(
@@ -215,10 +220,36 @@ private fun RulebookButtonDisabledSecondaryLightPreview() {
     }
 }
 
+@Preview(showBackground = true, name = "Disabled Secondary - Dark")
+@Composable
+private fun RulebookButtonDisabledSecondaryDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        RulebookButton(
+            text = "Disabled",
+            onClick = {},
+            variant = ButtonVariant.Secondary,
+            enabled = false
+        )
+    }
+}
+
 @Preview(showBackground = true, name = "Disabled Destructive - Light")
 @Composable
 private fun RulebookButtonDisabledDestructiveLightPreview() {
     RulebookTheme(darkTheme = false) {
+        RulebookButton(
+            text = "Disabled",
+            onClick = {},
+            variant = ButtonVariant.Destructive,
+            enabled = false
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Disabled Destructive - Dark")
+@Composable
+private fun RulebookButtonDisabledDestructiveDarkPreview() {
+    RulebookTheme(darkTheme = true) {
         RulebookButton(
             text = "Disabled",
             onClick = {},
