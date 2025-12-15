@@ -84,7 +84,7 @@ development_status:
 
   # Story 1.10: Core UI Components - RulebookCard
   1-10-rulebookcard:
-    status: ready-for-dev
+    status: done
     linear_id: RULE-117
     linear_url: https://linear.app/project-rulebook/issue/RULE-117
     story_file: docs/sprint-artifacts/1-10-rulebookcard.md
@@ -112,8 +112,8 @@ development_status:
 
 summary:
   total_stories: 13
-  done: 8
-  ready_for_dev: 5
+  done: 9
+  ready_for_dev: 4
   in_progress: 0
   in_review: 0
   blocked: 0
