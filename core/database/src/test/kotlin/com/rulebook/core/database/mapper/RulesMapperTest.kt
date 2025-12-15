@@ -4,6 +4,7 @@ import com.rulebook.core.database.entity.RulesEntity
 import com.rulebook.core.model.RuleSection
 import com.rulebook.core.model.Rules
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RulesMapperTest {
@@ -47,10 +48,10 @@ class RulesMapperTest {
         assertEquals("rules-001", entity.id)
         assertEquals("game-123", entity.gameId)
         // Verify JSON is created (contains expected content)
-        assert(entity.overview.contains("Overview"))
-        assert(entity.overview.contains("Game overview content"))
-        assert(entity.setup.contains("Setup"))
-        assert(entity.setup.contains("Place board"))
+        assertTrue("Overview section should contain 'Overview'", entity.overview.contains("Overview"))
+        assertTrue("Overview section should contain content", entity.overview.contains("Game overview content"))
+        assertTrue("Setup section should contain 'Setup'", entity.setup.contains("Setup"))
+        assertTrue("Setup section should contain items", entity.setup.contains("Place board"))
     }
 
     @Test
