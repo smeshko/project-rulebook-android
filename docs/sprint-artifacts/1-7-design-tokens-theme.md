@@ -1,6 +1,6 @@
 # Story 1.7: Design Tokens & Theme Foundation
 
-Status: Ready for Review
+Status: done
 
 ## Linear Issue
 
