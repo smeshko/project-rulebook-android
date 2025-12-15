@@ -6,10 +6,12 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import com.rulebook.core.designsystem.modifier.brutalistBorder
 import com.rulebook.core.designsystem.modifier.brutalistShadow
@@ -86,4 +88,68 @@ fun ElevatedRulebookCard(
         shadowOffset = BrutalistShadowOffsetMedium,
         content = content
     )
+}
+
+// =============================================================================
+// PREVIEWS
+// =============================================================================
+
+@Preview(showBackground = true, name = "Non-Clickable Card - Light")
+@Composable
+private fun RulebookCardNonClickableLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        RulebookCard {
+            Text("Card content")
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Non-Clickable Card - Dark")
+@Composable
+private fun RulebookCardNonClickableDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        RulebookCard {
+            Text("Card content")
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Clickable Card - Light")
+@Composable
+private fun RulebookCardClickableLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        RulebookCard(onClick = {}) {
+            Text("Tappable card")
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Clickable Card - Dark")
+@Composable
+private fun RulebookCardClickableDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        RulebookCard(onClick = {}) {
+            Text("Tappable card")
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Elevated Card - Light")
+@Composable
+private fun ElevatedRulebookCardLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        ElevatedRulebookCard {
+            Text("Emphasized card")
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Elevated Card - Dark")
+@Composable
+private fun ElevatedRulebookCardDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        ElevatedRulebookCard {
+            Text("Emphasized card")
+        }
+    }
 }
