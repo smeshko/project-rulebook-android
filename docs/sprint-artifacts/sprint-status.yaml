@@ -63,7 +63,7 @@ development_status:
 
   # Story 1.7: Design Tokens & Theme Foundation
   1-7-design-tokens-theme:
-    status: in-progress
+    status: review
     linear_id: RULE-114
     linear_url: https://linear.app/project-rulebook/issue/RULE-114
     story_file: docs/sprint-artifacts/1-7-design-tokens-theme.md

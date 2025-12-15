@@ -116,4 +116,10 @@ node_modules/
 
 # Linear
 .linear
+
 .worktrees/
+.codex/sessions/
+.codex/log
+.codex/auth.json
+.codex/history.jsonl
+.codex/version.json*
