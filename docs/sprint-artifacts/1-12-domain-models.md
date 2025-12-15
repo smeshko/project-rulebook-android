@@ -1,6 +1,6 @@
 # Story 1.12: Domain Models
 
-Status: Ready for Review
+Status: done
 
 ## Linear Issue
 
@@ -80,7 +80,7 @@ So that data structures are shared across modules.
   - [x] GameEntity.toDomain() -> Game
   - [x] Game.toEntity() -> GameEntity
   - [x] RulesEntity.toDomain() -> Rules
-  - [x] Rules.toEntity() -> RulesEntity
+  - [x] Rules.toEntity(id) -> RulesEntity (requires entity ID)
   - [x] AnalyzeResponse.toDomain() -> ScanResult
 
 ## Dev Notes
@@ -157,10 +157,17 @@ These models support:
 
 ### Context Reference
 
+- Architecture: `docs/architecture.md`
+- Room Entities: `core/database/src/main/kotlin/.../entity/`
+
 ### Agent Model Used
 Claude Opus 4.5
 
+claude-opus-4-5-20251101
+
 ### Debug Log References
+
+N/A
 
 ### Completion Notes List
 - Task 1: Updated Game.kt to match story specification (id, title, thumbnailUrl, createdAt, lastAccessedAt). Removed kotlinx.serialization dependency to keep domain models pure Kotlin. Added GameTest.kt with unit tests for data class functionality.
@@ -168,6 +175,11 @@ Claude Opus 4.5
 - Task 3: Created Rules.kt with gameId and four RuleSection properties (overview, setup, firstRound, advanced). Added RulesTest.kt with tests for composition and equality.
 - Task 4: Created ScanResult.kt with gameTitle, confidence, and optional thumbnailUrl. Added ScanResultTest.kt with tests for float confidence and nullable thumbnail.
 - Task 5: Created mapper extension functions in core/database (GameMapper, RulesMapper) and core/network (ScanResultMapper). Mappers convert between entities/responses and domain models. Added kotlin.serialization plugin to database module for JSON serialization of RuleSection.
+
+- All 4 domain models implemented as pure Kotlin data classes
+- Mappers created for Entity ↔ Domain conversion
+- JSON serialization for RuleSection storage in database
+- Comprehensive unit tests for all models and mappers
 
 ### File List
 - core/model/src/main/kotlin/com/rulebook/core/model/Game.kt (modified)
@@ -186,6 +198,34 @@ Claude Opus 4.5
 - core/database/build.gradle.kts (modified)
 - core/network/src/main/kotlin/com/rulebook/core/network/mapper/ScanResultMapper.kt (new)
 - core/network/src/test/kotlin/com/rulebook/core/network/mapper/ScanResultMapperTest.kt (new)
+
+**Domain Models (core/model):**
+- `core/model/src/main/kotlin/com/rulebook/core/model/Game.kt`
+- `core/model/src/main/kotlin/com/rulebook/core/model/RuleSection.kt`
+- `core/model/src/main/kotlin/com/rulebook/core/model/Rules.kt`
+- `core/model/src/main/kotlin/com/rulebook/core/model/ScanResult.kt`
+
+**Model Tests:**
+- `core/model/src/test/kotlin/com/rulebook/core/model/GameTest.kt`
+- `core/model/src/test/kotlin/com/rulebook/core/model/RuleSectionTest.kt`
+- `core/model/src/test/kotlin/com/rulebook/core/model/RulesTest.kt`
+- `core/model/src/test/kotlin/com/rulebook/core/model/ScanResultTest.kt`
+
+**Database Mappers:**
+- `core/database/src/main/kotlin/com/rulebook/core/database/mapper/GameMapper.kt`
+- `core/database/src/main/kotlin/com/rulebook/core/database/mapper/RulesMapper.kt`
+
+**Mapper Tests:**
+- `core/database/src/test/kotlin/com/rulebook/core/database/mapper/GameMapperTest.kt`
+- `core/database/src/test/kotlin/com/rulebook/core/database/mapper/RulesMapperTest.kt`
+
+**Network Mapper:**
+- `core/network/src/main/kotlin/com/rulebook/core/network/mapper/ScanResultMapper.kt`
+- `core/network/src/test/kotlin/com/rulebook/core/network/mapper/ScanResultMapperTest.kt`
+
+**Build Config:**
+- `core/model/build.gradle.kts`
+- `core/database/build.gradle.kts`
 
 ## Dependencies
 

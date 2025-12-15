@@ -63,7 +63,7 @@ development_status:
 
   # Story 1.7: Design Tokens & Theme Foundation
   1-7-design-tokens-theme:
-    status: review
+    status: done
     linear_id: RULE-114
     linear_url: https://linear.app/project-rulebook/issue/RULE-114
     story_file: docs/sprint-artifacts/1-7-design-tokens-theme.md
@@ -98,22 +98,22 @@ development_status:
 
   # Story 1.12: Domain Models
   1-12-domain-models:
-    status: review
+    status: done
     linear_id: RULE-119
     linear_url: https://linear.app/project-rulebook/issue/RULE-119
     story_file: docs/sprint-artifacts/1-12-domain-models.md
 
   # Story 1.13: Result Wrapper & Error Handling
   1-13-result-wrapper:
-    status: in-progress
+    status: done
     linear_id: RULE-120
     linear_url: https://linear.app/project-rulebook/issue/RULE-120
     story_file: docs/sprint-artifacts/1-13-result-wrapper.md
 
 summary:
   total_stories: 13
-  done: 4
-  ready_for_dev: 9
+  done: 7
+  ready_for_dev: 6
   in_progress: 0
   in_review: 0
   blocked: 0
