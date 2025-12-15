@@ -124,20 +124,32 @@ Use same event names as iOS for cross-platform analytics:
 ## Dev Agent Record
 
 ### Context Reference
+- Architecture: docs/architecture.md (TelemetryDeck 6.x, Koin DI patterns)
+- Story file: docs/sprint-artifacts/1-6-analytics-telemetrydeck.md
 
 - Architecture: `docs/architecture.md` (TelemetryDeck SDK requirement, analytics module structure)
 - Sprint Status: `docs/sprint-artifacts/sprint-status.yaml`
 
 ### Agent Model Used
+- Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 - Implementation: Dev agent (model not recorded)
 - Code Review: Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
+- N/A (no build verification due to JDK 25 incompatibility with Gradle)
 
 N/A - Implementation completed without issues
 
 ### Completion Notes List
+- Task 1: Updated TelemetryDeck SDK to v6.3.0 (latest) in version catalog
+- Task 2: Added BuildConfig field TELEMETRY_APP_ID with gradle property support
+- Task 3: Created AnalyticsManager interface with trackEvent() and trackScreenView()
+- Task 4: Implemented TelemetryDeckAnalyticsManager using TelemetryDeck.signal() for batched delivery
+- Task 5: Configured early initialization in RulebookApplication.onCreate()
+- Task 6: Registered TelemetryDeckAnalyticsManager as singleton in Koin module
+- Created FakeAnalyticsManager for testing purposes
+- Added comprehensive unit tests for interface compliance
 
 1. **SDK Version Upgrade**: Used TelemetryDeck SDK 6.3.0 instead of 6.0.1 specified in architecture doc (newer stable version with bug fixes)
 2. **API Method**: Used `TelemetryDeck.signal()` instead of `TelemetryDeck.send()` for batch event delivery (more efficient)
@@ -146,6 +158,22 @@ N/A - Implementation completed without issues
 5. **Privacy Compliance**: Documented GDPR compliance in code comments per AC #4
 
 ### File List
+**New Files:**
+- core/analytics/src/main/kotlin/com/rulebook/core/analytics/AnalyticsManager.kt
+- core/analytics/src/main/kotlin/com/rulebook/core/analytics/TelemetryDeckAnalyticsManager.kt
+- core/analytics/src/test/kotlin/com/rulebook/core/analytics/AnalyticsManagerTest.kt
+- core/analytics/src/test/kotlin/com/rulebook/core/analytics/FakeAnalyticsManager.kt
+- core/analytics/src/test/kotlin/com/rulebook/core/analytics/TelemetryDeckAnalyticsManagerTest.kt
+- core/analytics/src/test/kotlin/com/rulebook/core/analytics/di/AnalyticsModuleTest.kt
+
+**Modified Files:**
+- gradle/libs.versions.toml (TelemetryDeck version 2.2.0 → 6.3.0)
+- core/analytics/build.gradle.kts (added dependency, buildConfig, test dep)
+- core/analytics/src/main/kotlin/com/rulebook/core/analytics/di/AnalyticsModule.kt
+- app/src/main/kotlin/com/rulebook/RulebookApplication.kt
+
+**Deleted Files:**
+- core/analytics/src/main/kotlin/com/rulebook/core/analytics/AnalyticsService.kt (replaced by interface pattern)
 
 **Source Files:**
 - `gradle/libs.versions.toml` - Added TelemetryDeck SDK 6.3.0 dependency
