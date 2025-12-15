@@ -4,6 +4,16 @@ plugins {
 
 android {
     namespace = "com.rulebook.core.analytics"
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    defaultConfig {
+        // TelemetryDeck App ID - use placeholder for development
+        // Production app ID should be configured via local.properties or CI secrets
+        buildConfigField("String", "TELEMETRY_APP_ID", "\"${findProperty("TELEMETRY_APP_ID") ?: ""}\"")
+    }
 }
 
 dependencies {
