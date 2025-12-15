@@ -1,0 +1,368 @@
+package com.rulebook.core.common
+
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class ResultTest {
+
+    // Task 1: Result Sealed Class Tests
+    @Test
+    fun `Success holds data correctly`() {
+        val data = "test data"
+        val result: Result<String> = Result.Success(data)
+
+        assertTrue(result is Result.Success)
+        assertEquals(data, (result as Result.Success).data)
+    }
+
+    @Test
+    fun `Success holds complex data correctly`() {
+        data class TestData(val id: Int, val name: String)
+        val data = TestData(1, "test")
+        val result: Result<TestData> = Result.Success(data)
+
+        assertTrue(result is Result.Success)
+        assertEquals(data, (result as Result.Success).data)
+    }
+
+    @Test
+    fun `Error holds message correctly`() {
+        val message = "Error occurred"
+        val result: Result<String> = Result.Error(message)
+
+        assertTrue(result is Result.Error)
+        assertEquals(message, (result as Result.Error).message)
+    }
+
+    @Test
+    fun `Error holds message and cause correctly`() {
+        val message = "Error occurred"
+        val cause = RuntimeException("Original error")
+        val result: Result<String> = Result.Error(message, cause)
+
+        assertTrue(result is Result.Error)
+        val error = result as Result.Error
+        assertEquals(message, error.message)
+        assertEquals(cause, error.cause)
+    }
+
+    @Test
+    fun `Error cause can be null`() {
+        val message = "Error occurred"
+        val result: Result<String> = Result.Error(message)
+
+        assertTrue(result is Result.Error)
+        assertNull((result as Result.Error).cause)
+    }
+
+    @Test
+    fun `Result is sealed with only Success and Error subtypes`() {
+        val success: Result<Int> = Result.Success(42)
+        val error: Result<Int> = Result.Error("error")
+
+        // This verifies exhaustive when matching
+        val description = when (success) {
+            is Result.Success -> "success"
+            is Result.Error -> "error"
+        }
+        assertEquals("success", description)
+
+        val description2 = when (error) {
+            is Result.Success -> "success"
+            is Result.Error -> "error"
+        }
+        assertEquals("error", description2)
+    }
+
+    // Task 2: map() Extension Tests
+    @Test
+    fun `map transforms Success data`() {
+        val result: Result<Int> = Result.Success(5)
+
+        val mapped = result.map { it * 2 }
+
+        assertTrue(mapped is Result.Success)
+        assertEquals(10, (mapped as Result.Success).data)
+    }
+
+    @Test
+    fun `map preserves Error without transformation`() {
+        val error: Result<Int> = Result.Error("error message")
+
+        val mapped = error.map { it * 2 }
+
+        assertTrue(mapped is Result.Error)
+        assertEquals("error message", (mapped as Result.Error).message)
+    }
+
+    @Test
+    fun `map can change result type`() {
+        val result: Result<Int> = Result.Success(42)
+
+        val mapped: Result<String> = result.map { "Number: $it" }
+
+        assertTrue(mapped is Result.Success)
+        assertEquals("Number: 42", (mapped as Result.Success).data)
+    }
+
+    @Test
+    fun `map preserves Error cause`() {
+        val cause = RuntimeException("original")
+        val error: Result<Int> = Result.Error("error", cause)
+
+        val mapped = error.map { it.toString() }
+
+        assertTrue(mapped is Result.Error)
+        val mappedError = mapped as Result.Error
+        assertEquals("error", mappedError.message)
+        assertEquals(cause, mappedError.cause)
+    }
+
+    // Task 3: onSuccess() Extension Tests
+    @Test
+    fun `onSuccess executes action on Success`() {
+        var captured: String? = null
+        val result: Result<String> = Result.Success("hello")
+
+        result.onSuccess { captured = it }
+
+        assertEquals("hello", captured)
+    }
+
+    @Test
+    fun `onSuccess does not execute action on Error`() {
+        var executed = false
+        val result: Result<String> = Result.Error("error")
+
+        result.onSuccess { executed = true }
+
+        assertEquals(false, executed)
+    }
+
+    @Test
+    fun `onSuccess returns original Result for chaining`() {
+        val original: Result<Int> = Result.Success(42)
+
+        val returned = original.onSuccess { }
+
+        assertTrue(returned === original)
+    }
+
+    @Test
+    fun `onSuccess preserves Error for chaining`() {
+        val original: Result<Int> = Result.Error("error")
+
+        val returned = original.onSuccess { }
+
+        assertTrue(returned === original)
+    }
+
+    // Task 4: onError() Extension Tests
+    @Test
+    fun `onError executes action on Error`() {
+        var capturedMessage: String? = null
+        val result: Result<String> = Result.Error("error message")
+
+        result.onError { capturedMessage = it.message }
+
+        assertEquals("error message", capturedMessage)
+    }
+
+    @Test
+    fun `onError does not execute action on Success`() {
+        var executed = false
+        val result: Result<String> = Result.Success("success")
+
+        result.onError { executed = true }
+
+        assertEquals(false, executed)
+    }
+
+    @Test
+    fun `onError returns original Result for chaining`() {
+        val original: Result<Int> = Result.Error("error")
+
+        val returned = original.onError { }
+
+        assertTrue(returned === original)
+    }
+
+    @Test
+    fun `onError preserves Success for chaining`() {
+        val original: Result<Int> = Result.Success(42)
+
+        val returned = original.onError { }
+
+        assertTrue(returned === original)
+    }
+
+    @Test
+    fun `onError receives Error with cause`() {
+        val cause = RuntimeException("original")
+        var capturedCause: Throwable? = null
+        val result: Result<String> = Result.Error("error", cause)
+
+        result.onError { capturedCause = it.cause }
+
+        assertEquals(cause, capturedCause)
+    }
+
+    // Task 5: getOrNull() Extension Tests
+    @Test
+    fun `getOrNull returns data on Success`() {
+        val result: Result<String> = Result.Success("hello")
+
+        val value = result.getOrNull()
+
+        assertEquals("hello", value)
+    }
+
+    @Test
+    fun `getOrNull returns null on Error`() {
+        val result: Result<String> = Result.Error("error")
+
+        val value = result.getOrNull()
+
+        assertNull(value)
+    }
+
+    @Test
+    fun `getOrNull works with nullable success type`() {
+        val result: Result<String?> = Result.Success(null)
+
+        val value = result.getOrNull()
+
+        assertNull(value)
+    }
+
+    // Task 6: Additional Utility Extension Tests
+
+    // getOrDefault tests
+    @Test
+    fun `getOrDefault returns data on Success`() {
+        val result: Result<String> = Result.Success("hello")
+
+        val value = result.getOrDefault("default")
+
+        assertEquals("hello", value)
+    }
+
+    @Test
+    fun `getOrDefault returns default on Error`() {
+        val result: Result<String> = Result.Error("error")
+
+        val value = result.getOrDefault("default")
+
+        assertEquals("default", value)
+    }
+
+    // getOrElse tests
+    @Test
+    fun `getOrElse returns data on Success`() {
+        val result: Result<String> = Result.Success("hello")
+
+        val value = result.getOrElse { "fallback" }
+
+        assertEquals("hello", value)
+    }
+
+    @Test
+    fun `getOrElse returns computed value on Error`() {
+        val result: Result<String> = Result.Error("error message")
+
+        val value = result.getOrElse { "Error: ${it.message}" }
+
+        assertEquals("Error: error message", value)
+    }
+
+    // fold tests
+    @Test
+    fun `fold calls onSuccess for Success result`() {
+        val result: Result<Int> = Result.Success(5)
+
+        val value = result.fold(
+            onSuccess = { it * 2 },
+            onError = { -1 }
+        )
+
+        assertEquals(10, value)
+    }
+
+    @Test
+    fun `fold calls onError for Error result`() {
+        val result: Result<Int> = Result.Error("error")
+
+        val value = result.fold(
+            onSuccess = { it * 2 },
+            onError = { -1 }
+        )
+
+        assertEquals(-1, value)
+    }
+
+    @Test
+    fun `fold can return different type`() {
+        val result: Result<Int> = Result.Success(42)
+
+        val value: String = result.fold(
+            onSuccess = { "Success: $it" },
+            onError = { "Error: ${it.message}" }
+        )
+
+        assertEquals("Success: 42", value)
+    }
+
+    // Task 7: safeCall Tests
+    @Test
+    fun `safeCall returns Success on successful execution`() = runTest {
+        val result = safeCall { "hello" }
+
+        assertTrue(result is Result.Success)
+        assertEquals("hello", (result as Result.Success).data)
+    }
+
+    @Test
+    fun `safeCall catches exception and returns Error`() = runTest {
+        val exception = RuntimeException("test error")
+
+        val result = safeCall<String> { throw exception }
+
+        assertTrue(result is Result.Error)
+        val error = result as Result.Error
+        assertEquals("test error", error.message)
+        assertEquals(exception, error.cause)
+    }
+
+    @Test
+    fun `safeCall handles null exception message`() = runTest {
+        val exception = RuntimeException()
+
+        val result = safeCall<String> { throw exception }
+
+        assertTrue(result is Result.Error)
+        val error = result as Result.Error
+        assertEquals("Unknown error", error.message)
+        assertEquals(exception, error.cause)
+    }
+
+    @Test
+    fun `safeCall works with suspend functions`() = runTest {
+        suspend fun suspendingFunction(): Int {
+            return 42
+        }
+
+        val result = safeCall { suspendingFunction() }
+
+        assertTrue(result is Result.Success)
+        assertEquals(42, (result as Result.Success).data)
+    }
+
+    @Test(expected = CancellationException::class)
+    fun `safeCall rethrows CancellationException for structured concurrency`() = runTest {
+        safeCall<String> { throw CancellationException("cancelled") }
+    }
+}
