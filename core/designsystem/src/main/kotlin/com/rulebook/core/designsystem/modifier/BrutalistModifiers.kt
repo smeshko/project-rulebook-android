@@ -1,10 +1,13 @@
 package com.rulebook.core.designsystem.modifier
 
+import androidx.compose.foundation.border
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.Dp
+import com.rulebook.core.designsystem.theme.BrutalistBorderWidth
 import com.rulebook.core.designsystem.theme.BrutalistShadowOffset
 
 /**
@@ -64,3 +67,32 @@ fun Modifier.brutalistShadow(
         size = size
     )
 }
+
+/**
+ * Applies a brutalist-style border to the composable.
+ *
+ * The brutalist border uses thick lines and sharp corners (RectangleShape)
+ * to create a bold, graphic visual effect characteristic of brutalist design.
+ *
+ * @param width The width of the border. Defaults to [BrutalistBorderWidth] (3dp).
+ * @param color The color of the border. Defaults to [Color.Black].
+ * @return A [Modifier] that applies a border with sharp corners.
+ *
+ * @sample
+ * ```kotlin
+ * Box(
+ *     modifier = Modifier
+ *         .size(100.dp)
+ *         .brutalistBorder(width = 4.dp, color = Color.DarkGray)
+ *         .background(Color.White)
+ * )
+ * ```
+ */
+fun Modifier.brutalistBorder(
+    width: Dp = BrutalistBorderWidth,
+    color: Color = Color.Black
+): Modifier = this.border(
+    width = width,
+    color = color,
+    shape = RectangleShape
+)
