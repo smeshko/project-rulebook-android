@@ -1,6 +1,6 @@
 # Story 1.10: Core UI Components - RulebookCard
 
-Status: ready-for-dev
+Status: done
 
 ## Linear Issue
 
@@ -33,26 +33,26 @@ So that cards have consistent brutalist styling.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create RulebookCard composable (AC: #1, #2, #3)
-  - [ ] Define composable function signature
-  - [ ] Accept modifier, onClick, content parameters
-  - [ ] Apply surface background from theme
-  - [ ] Apply brutalist border (3dp)
-  - [ ] Apply brutalist shadow (4dp offset)
-  - [ ] Set corner radius to 0dp
-  - [ ] Add 16dp internal padding
-- [ ] Task 2: Handle clickable state (AC: #2, #3)
-  - [ ] Make card clickable when onClick is provided
-  - [ ] Apply ripple effect for clickable cards
-  - [ ] Keep non-clickable for cards without onClick
-- [ ] Task 3: Create elevated variant
-  - [ ] Create variant with larger shadow offset (8dp)
-  - [ ] Use for emphasized cards or expanded states
-- [ ] Task 4: Create Preview composables
-  - [ ] Preview non-clickable card
-  - [ ] Preview clickable card
-  - [ ] Preview elevated card
-  - [ ] Preview light/dark modes
+- [x] Task 1: Create RulebookCard composable (AC: #1, #2, #3)
+  - [x] Define composable function signature
+  - [x] Accept modifier, onClick, content parameters
+  - [x] Apply surface background from theme
+  - [x] Apply brutalist border (3dp)
+  - [x] Apply brutalist shadow (4dp offset)
+  - [x] Set corner radius to 0dp
+  - [x] Add 16dp internal padding
+- [x] Task 2: Handle clickable state (AC: #2, #3)
+  - [x] Make card clickable when onClick is provided
+  - [x] Apply ripple effect for clickable cards
+  - [x] Keep non-clickable for cards without onClick
+- [x] Task 3: Create elevated variant
+  - [x] Create variant with larger shadow offset (8dp)
+  - [x] Use for emphasized cards or expanded states
+- [x] Task 4: Create Preview composables
+  - [x] Preview non-clickable card
+  - [x] Preview clickable card
+  - [x] Preview elevated card
+  - [x] Preview light/dark modes
 
 ## Dev Notes
 
@@ -138,7 +138,13 @@ RulebookCard(shadowOffset = 8.dp) {
 
 ### Completion Notes List
 
+- Tasks 1-3: Implemented RulebookCard composable with brutalist styling (surface background, 3dp border, 4dp shadow, 0dp corners, 16dp padding). Added optional onClick with ripple effect. Created ElevatedRulebookCard variant with 8dp shadow offset.
+- Task 4: Added 6 preview composables for non-clickable, clickable, and elevated cards in both light and dark themes.
+
 ### File List
+
+- core/designsystem/src/main/kotlin/com/rulebook/core/designsystem/component/RulebookCard.kt (new)
+- core/designsystem/src/test/kotlin/com/rulebook/core/designsystem/component/RulebookCardTest.kt (new)
 
 ## Dependencies
 
