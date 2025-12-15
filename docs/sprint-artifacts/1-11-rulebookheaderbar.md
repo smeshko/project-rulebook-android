@@ -48,11 +48,11 @@ So that screen headers have consistent styling.
 - [x] Task 4: Handle edge-to-edge insets (AC: #3)
   - [x] Apply WindowInsets for status bar padding
   - [x] Ensure content doesn't overlap status bar
-- [ ] Task 5: Create Preview composables
-  - [ ] Preview with title only
-  - [ ] Preview with back button
-  - [ ] Preview with action buttons
-  - [ ] Preview light/dark modes
+- [x] Task 5: Create Preview composables
+  - [x] Preview with title only
+  - [x] Preview with back button
+  - [x] Preview with action buttons
+  - [x] Preview light/dark modes
 
 ## Dev Notes
 
@@ -167,6 +167,10 @@ RulebookHeaderBar(
   - Actions slot supports trailing IconButtons via RowScope
   - Status bar insets handled via `Modifier.windowInsetsPadding(WindowInsets.statusBars)`
 - Unit tests created and passing
+- Task 5: Added 6 preview composables covering all combinations:
+  - Title only (light/dark)
+  - With back button (light/dark)
+  - With action buttons (light/dark)
 
 ### File List
 - core/designsystem/src/main/kotlin/com/rulebook/core/designsystem/component/RulebookHeaderBar.kt (new)

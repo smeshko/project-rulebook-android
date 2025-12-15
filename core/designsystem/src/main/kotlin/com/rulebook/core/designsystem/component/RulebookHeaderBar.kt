@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,6 +23,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import com.rulebook.core.designsystem.theme.RulebookTheme
 
 /**
@@ -74,6 +77,86 @@ fun RulebookHeaderBar(
                 .fillMaxWidth()
                 .height(RulebookTheme.spacing.borderWidth)
                 .background(Color.Black)
+        )
+    }
+}
+
+// =============================================================================
+// PREVIEWS
+// =============================================================================
+
+@Preview(showBackground = true, name = "Title Only - Light")
+@Composable
+private fun RulebookHeaderBarTitleOnlyLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        RulebookHeaderBar(title = "Library")
+    }
+}
+
+@Preview(showBackground = true, name = "Title Only - Dark")
+@Composable
+private fun RulebookHeaderBarTitleOnlyDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        RulebookHeaderBar(title = "Library")
+    }
+}
+
+@Preview(showBackground = true, name = "With Back Button - Light")
+@Composable
+private fun RulebookHeaderBarWithBackLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        RulebookHeaderBar(
+            title = "Game Rules",
+            onBackClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "With Back Button - Dark")
+@Composable
+private fun RulebookHeaderBarWithBackDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        RulebookHeaderBar(
+            title = "Game Rules",
+            onBackClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "With Actions - Light")
+@Composable
+private fun RulebookHeaderBarWithActionsLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        RulebookHeaderBar(
+            title = "Game Rules",
+            onBackClick = {},
+            actions = {
+                IconButton(onClick = {}) {
+                    Icon(Icons.Default.Share, contentDescription = "Share")
+                }
+                IconButton(onClick = {}) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "More")
+                }
+            }
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "With Actions - Dark")
+@Composable
+private fun RulebookHeaderBarWithActionsDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        RulebookHeaderBar(
+            title = "Game Rules",
+            onBackClick = {},
+            actions = {
+                IconButton(onClick = {}) {
+                    Icon(Icons.Default.Share, contentDescription = "Share")
+                }
+                IconButton(onClick = {}) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "More")
+                }
+            }
         )
     }
 }
