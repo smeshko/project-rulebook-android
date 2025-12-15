@@ -14,19 +14,20 @@ import java.util.concurrent.TimeUnit
  *
  * Provides OkHttp and Retrofit instances configured with:
  * - 30-second timeouts (connect, read, write)
+ * - 60-second call timeout (entire HTTP operation)
  * - HTTP logging (debug builds only)
  * - kotlinx.serialization for JSON parsing
  */
 object RulebookApiClient {
 
     private const val TIMEOUT_SECONDS = 30L
+    private const val CALL_TIMEOUT_SECONDS = 60L
 
     /**
      * JSON configuration for kotlinx.serialization.
      */
     val json: Json = Json {
         ignoreUnknownKeys = true
-        isLenient = true
         encodeDefaults = true
     }
 
@@ -41,6 +42,7 @@ object RulebookApiClient {
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .callTimeout(CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .apply {
                 if (isDebug) {
                     addInterceptor(

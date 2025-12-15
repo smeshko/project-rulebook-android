@@ -18,6 +18,6 @@ data class GenerateResponse(
  */
 @Serializable
 data class RulesSection(
-    val title: String,
-    val content: String,
+    @SerialName("title") val title: String,
+    @SerialName("content") val content: String,
 )

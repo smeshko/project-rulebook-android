@@ -5,7 +5,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 /**
  * Tests for RulebookApiClient configuration.
@@ -16,21 +15,28 @@ class RulebookApiClientTest {
     fun `createOkHttpClient configures 30 second connect timeout`() {
         val client = RulebookApiClient.createOkHttpClient(isDebug = false)
 
-        assertEquals(30, client.connectTimeoutMillis / 1000)
+        assertEquals(30_000, client.connectTimeoutMillis)
     }
 
     @Test
     fun `createOkHttpClient configures 30 second read timeout`() {
         val client = RulebookApiClient.createOkHttpClient(isDebug = false)
 
-        assertEquals(30, client.readTimeoutMillis / 1000)
+        assertEquals(30_000, client.readTimeoutMillis)
     }
 
     @Test
     fun `createOkHttpClient configures 30 second write timeout`() {
         val client = RulebookApiClient.createOkHttpClient(isDebug = false)
 
-        assertEquals(30, client.writeTimeoutMillis / 1000)
+        assertEquals(30_000, client.writeTimeoutMillis)
+    }
+
+    @Test
+    fun `createOkHttpClient configures 60 second call timeout`() {
+        val client = RulebookApiClient.createOkHttpClient(isDebug = false)
+
+        assertEquals(60_000, client.callTimeoutMillis)
     }
 
     @Test

@@ -1,6 +1,6 @@
 # Story 1.5: Network Client Configuration
 
-Status: Ready for Review
+Status: Done
 
 ## Linear Issue
 
@@ -165,18 +165,39 @@ val okHttpClient = OkHttpClient.Builder()
 - Added comprehensive unit tests for models and API client configuration
 
 ### File List
-- core/network/build.gradle.kts (modified - added buildConfig, BASE_URL, test deps)
-- core/network/src/main/kotlin/com/rulebook/core/network/RulebookApiClient.kt (new)
+- core/network/build.gradle.kts (modified - added buildConfig, BASE_URL variants, test deps, MockWebServer)
+- core/network/src/main/kotlin/com/rulebook/core/network/RulebookApiClient.kt (new, modified - added callTimeout, removed isLenient)
 - core/network/src/main/kotlin/com/rulebook/core/network/api/RulebookApi.kt (new)
 - core/network/src/main/kotlin/com/rulebook/core/network/di/NetworkModule.kt (modified)
 - core/network/src/main/kotlin/com/rulebook/core/network/model/AnalyzeRequest.kt (new)
 - core/network/src/main/kotlin/com/rulebook/core/network/model/AnalyzeResponse.kt (new)
 - core/network/src/main/kotlin/com/rulebook/core/network/model/GenerateRequest.kt (new)
-- core/network/src/main/kotlin/com/rulebook/core/network/model/GenerateResponse.kt (new)
-- core/network/src/test/kotlin/com/rulebook/core/network/RulebookApiClientTest.kt (new)
+- core/network/src/main/kotlin/com/rulebook/core/network/model/GenerateResponse.kt (new, modified - added @SerialName to RulesSection)
+- core/network/src/test/kotlin/com/rulebook/core/network/RulebookApiClientTest.kt (new, modified - improved assertions, added callTimeout test)
 - core/network/src/test/kotlin/com/rulebook/core/network/model/NetworkModelsTest.kt (new)
 - app/src/main/res/xml/network_security_config.xml (new)
 - app/src/main/AndroidManifest.xml (modified - added networkSecurityConfig)
+- gradle/libs.versions.toml (modified - added okhttp-mockwebserver)
+
+### Senior Developer Review (AI)
+
+**Review Date:** 2025-12-15
+**Reviewer:** Claude Opus 4.5 (Adversarial Code Review)
+
+**Issues Found:** 1 High, 4 Medium, 2 Low
+
+**Fixes Applied:**
+1. **[H1] Added MockWebServer test dependency** - Added `okhttp-mockwebserver` to version catalog and build.gradle.kts for proper network integration testing
+2. **[M1] Added call timeout** - Added 60-second `callTimeout` to OkHttpClient to prevent indefinite hangs during slow responses
+3. **[M3] Removed `isLenient`** - Removed lenient JSON parsing to catch API contract violations early in development
+4. **[M4] Added debug/release BASE_URL variants** - Configured separate staging URL for debug builds and production URL for release builds
+5. **[L1] Improved test assertions** - Changed timeout assertions to use milliseconds directly (30_000) instead of integer division
+6. **[L2] Added @SerialName to RulesSection** - Added explicit annotations for API contract consistency
+
+**Not Fixed (Deferred):**
+- **[M2] Retry interceptor** - Per architecture.md, retry logic belongs in repository layer, not network client
+
+**Review Outcome:** APPROVED with fixes applied
 
 ## Dependencies
 
