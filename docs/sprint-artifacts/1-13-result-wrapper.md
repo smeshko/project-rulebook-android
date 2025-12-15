@@ -46,9 +46,9 @@ So that errors are handled consistently across the app.
 - [x] Task 2: Create map() extension (AC: #2)
   - [x] Transform Success data while preserving Error
   - [x] Return new Result<R>
-- [ ] Task 3: Create onSuccess() extension (AC: #2)
-  - [ ] Execute action only on Success
-  - [ ] Return original Result for chaining
+- [x] Task 3: Create onSuccess() extension (AC: #2)
+  - [x] Execute action only on Success
+  - [x] Return original Result for chaining
 - [ ] Task 4: Create onError() extension (AC: #2)
   - [ ] Execute action only on Error
   - [ ] Return original Result for chaining
@@ -190,6 +190,7 @@ repository.getGame(gameId)
 ### Completion Notes List
 - **Task 1 (2025-12-15):** Created Result sealed class in core/common module. Removed pre-existing Loading state to match architecture spec. Result now has only Success<T> and Error subtypes as required. Added 6 unit tests covering: Success data holding, Error message/cause handling, null cause support, and sealed class exhaustiveness.
 - **Task 2 (2025-12-15):** Created map() extension function. Transforms Success data while preserving Error. Added 4 unit tests for transformation, error preservation, type changes, and cause preservation.
+- **Task 3 (2025-12-15):** Created onSuccess() extension function. Executes action only on Success and returns original Result for chaining. Added 4 unit tests.
 
 ### File List
 - core/common/src/main/kotlin/com/rulebook/core/common/Result.kt (modified)

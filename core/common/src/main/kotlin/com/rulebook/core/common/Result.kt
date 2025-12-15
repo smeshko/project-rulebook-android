@@ -21,3 +21,12 @@ inline fun <T, R> Result<T>.map(transform: (T) -> R): Result<R> =
         is Result.Success -> Result.Success(transform(data))
         is Result.Error -> this
     }
+
+/**
+ * Executes the given action only if this is a Success result.
+ * Returns the original Result for chaining.
+ */
+inline fun <T> Result<T>.onSuccess(action: (T) -> Unit): Result<T> {
+    if (this is Result.Success) action(data)
+    return this
+}
