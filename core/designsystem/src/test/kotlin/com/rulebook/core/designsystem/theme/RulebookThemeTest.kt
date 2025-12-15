@@ -1,5 +1,8 @@
 package com.rulebook.core.designsystem.theme
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -93,8 +96,22 @@ class RulebookThemeTest {
 
     @Test
     fun `material shapes have zero corners`() {
-        assertNotNull(RulebookShapes)
         // All shapes should have 0dp corners for brutalist aesthetic
+        assertEquals(RoundedCornerShape(0.dp), RulebookShapes.extraSmall)
+        assertEquals(RoundedCornerShape(0.dp), RulebookShapes.small)
+        assertEquals(RoundedCornerShape(0.dp), RulebookShapes.medium)
+        assertEquals(RoundedCornerShape(0.dp), RulebookShapes.large)
+        assertEquals(RoundedCornerShape(0.dp), RulebookShapes.extraLarge)
+    }
+
+    @Test
+    fun `extended shapes use RectangleShape`() {
+        // All extended shapes should be RectangleShape for brutalist aesthetic
+        assertEquals(RectangleShape, RulebookExtendedShapesInstance.extraSmall)
+        assertEquals(RectangleShape, RulebookExtendedShapesInstance.small)
+        assertEquals(RectangleShape, RulebookExtendedShapesInstance.medium)
+        assertEquals(RectangleShape, RulebookExtendedShapesInstance.large)
+        assertEquals(RectangleShape, RulebookExtendedShapesInstance.extraLarge)
     }
 
     // =========================================================================

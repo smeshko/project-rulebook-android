@@ -2,6 +2,7 @@ package com.rulebook.core.designsystem.theme
 
 import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -142,20 +143,23 @@ class RulebookSpacingTest {
 
     @Test
     fun `spacing scale is in ascending order`() {
-        assert(SpacingXs < SpacingSm)
-        assert(SpacingSm < SpacingMd)
-        assert(SpacingMd < SpacingLg)
-        assert(SpacingLg < SpacingXl)
+        assertTrue("SpacingXs should be smaller than SpacingSm", SpacingXs < SpacingSm)
+        assertTrue("SpacingSm should be smaller than SpacingMd", SpacingSm < SpacingMd)
+        assertTrue("SpacingMd should be smaller than SpacingLg", SpacingMd < SpacingLg)
+        assertTrue("SpacingLg should be smaller than SpacingXl", SpacingLg < SpacingXl)
     }
 
     @Test
     fun `shadow offsets are in ascending order`() {
-        assert(BrutalistShadowOffset < BrutalistShadowOffsetMedium)
-        assert(BrutalistShadowOffsetMedium < BrutalistShadowOffsetLarge)
+        assertTrue("BrutalistShadowOffset should be smaller than BrutalistShadowOffsetMedium",
+            BrutalistShadowOffset < BrutalistShadowOffsetMedium)
+        assertTrue("BrutalistShadowOffsetMedium should be smaller than BrutalistShadowOffsetLarge",
+            BrutalistShadowOffsetMedium < BrutalistShadowOffsetLarge)
     }
 
     @Test
     fun `border widths standard is thinner than thick`() {
-        assert(BrutalistBorderWidth < BrutalistBorderWidthThick)
+        assertTrue("BrutalistBorderWidth should be smaller than BrutalistBorderWidthThick",
+            BrutalistBorderWidth < BrutalistBorderWidthThick)
     }
 }

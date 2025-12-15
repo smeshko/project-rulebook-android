@@ -3,6 +3,7 @@ package com.rulebook.core.designsystem.theme
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -177,19 +178,25 @@ class RulebookTypographyTest {
 
     @Test
     fun `display sizes are in descending order`() {
-        assert(DisplayLargeTitle.fontSize > DisplayTitle.fontSize)
-        assert(DisplayTitle.fontSize > DisplayTitle2.fontSize)
+        assertTrue("DisplayLargeTitle should be larger than DisplayTitle",
+            DisplayLargeTitle.fontSize > DisplayTitle.fontSize)
+        assertTrue("DisplayTitle should be larger than DisplayTitle2",
+            DisplayTitle.fontSize > DisplayTitle2.fontSize)
     }
 
     @Test
     fun `brutalist sizes are in descending order`() {
-        assert(BrutalistTitle.fontSize > BrutalistSectionTitle.fontSize)
-        assert(BrutalistSectionTitle.fontSize > BrutalistButtonText.fontSize)
+        assertTrue("BrutalistTitle should be larger than BrutalistSectionTitle",
+            BrutalistTitle.fontSize > BrutalistSectionTitle.fontSize)
+        assertTrue("BrutalistSectionTitle should be larger than BrutalistButtonText",
+            BrutalistSectionTitle.fontSize > BrutalistButtonText.fontSize)
     }
 
     @Test
     fun `body sizes are larger than caption`() {
-        assert(BodyText.fontSize > CaptionText.fontSize)
-        assert(BodyCallout.fontSize > CaptionText.fontSize)
+        assertTrue("BodyText should be larger than CaptionText",
+            BodyText.fontSize > CaptionText.fontSize)
+        assertTrue("BodyCallout should be larger than CaptionText",
+            BodyCallout.fontSize > CaptionText.fontSize)
     }
 }
