@@ -7,6 +7,10 @@ android {
     namespace = "com.rulebook.core.database"
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(project(":core:model"))
 
@@ -19,4 +23,14 @@ dependencies {
     // Koin
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
+    implementation(libs.koin.android)
+
+    // Unit Testing
+    testImplementation(libs.junit)
+
+    // Instrumented Testing (Room + Coroutines)
+    androidTestImplementation(libs.room.testing)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 }
