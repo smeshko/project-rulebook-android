@@ -70,7 +70,7 @@ development_status:
 
   # Story 1.8: Brutalist Modifier Extensions
   1-8-brutalist-modifiers:
-    status: ready-for-dev
+    status: review
     linear_id: RULE-115
     linear_url: https://linear.app/project-rulebook/issue/RULE-115
     story_file: docs/sprint-artifacts/1-8-brutalist-modifiers.md
@@ -91,7 +91,7 @@ development_status:
 
   # Story 1.11: Core UI Components - RulebookHeaderBar
   1-11-rulebookheaderbar:
-    status: ready-for-dev
+    status: in-progress
     linear_id: RULE-118
     linear_url: https://linear.app/project-rulebook/issue/RULE-118
     story_file: docs/sprint-artifacts/1-11-rulebookheaderbar.md
