@@ -9,8 +9,13 @@ enum class ThemeMode {
     SYSTEM;
 
     companion object {
+        /**
+         * Parses a string value to [ThemeMode].
+         * Handles case-insensitivity and trims whitespace.
+         * Returns [SYSTEM] for null, empty, or unrecognized values.
+         */
         fun fromString(value: String?): ThemeMode {
-            return when (value?.uppercase()) {
+            return when (value?.trim()?.uppercase()) {
                 "LIGHT" -> LIGHT
                 "DARK" -> DARK
                 "SYSTEM" -> SYSTEM

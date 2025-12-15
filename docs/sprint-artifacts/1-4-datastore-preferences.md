@@ -1,6 +1,6 @@
 # Story 1.4: DataStore Preferences Setup
 
-Status: Ready for Review
+Status: Done
 
 ## Linear Issue
 
@@ -159,11 +159,21 @@ N/A
 - All acceptance criteria satisfied with sensible defaults
 
 ### File List
-- core/datastore/build.gradle.kts (modified - added koin-android and test dependencies)
-- core/datastore/src/main/kotlin/com/rulebook/core/datastore/ThemeMode.kt (new)
-- core/datastore/src/main/kotlin/com/rulebook/core/datastore/RulebookPreferences.kt (modified)
+- core/datastore/build.gradle.kts (modified - added koin-android, test, and androidTest dependencies)
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/ThemeMode.kt (new - with whitespace trimming in fromString())
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/RulebookPreferences.kt (modified - with KDoc, input validation, internal Keys)
 - core/datastore/src/main/kotlin/com/rulebook/core/datastore/di/DataStoreModule.kt (modified)
-- core/datastore/src/test/kotlin/com/rulebook/core/datastore/ThemeModeTest.kt (new)
+- core/datastore/src/test/kotlin/com/rulebook/core/datastore/ThemeModeTest.kt (new - with whitespace tests)
+- core/datastore/src/test/kotlin/com/rulebook/core/datastore/RulebookPreferencesTest.kt (new - unit tests for Keys and validation)
+- core/datastore/src/androidTest/kotlin/com/rulebook/core/datastore/RulebookPreferencesIntegrationTest.kt (new - instrumented tests)
+
+### Code Review Fixes Applied
+- **H1 Fixed**: Added RulebookPreferencesTest.kt (unit tests) and RulebookPreferencesIntegrationTest.kt (instrumented tests)
+- **M1 Fixed**: Added input validation to setCreditBalance() - negative values coerced to 0
+- **M3 Fixed**: Created androidTest directory with RulebookPreferencesIntegrationTest.kt
+- **M4 Fixed**: Added trim() to ThemeMode.fromString() for whitespace handling
+- **L1 Fixed**: Changed PreferenceKeys from private to internal for testing
+- **L2 Fixed**: Added comprehensive KDoc documentation to RulebookPreferences class
 
 ## Dependencies
 

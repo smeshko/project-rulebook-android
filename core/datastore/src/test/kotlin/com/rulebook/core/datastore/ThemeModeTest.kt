@@ -39,6 +39,23 @@ class ThemeModeTest {
     }
 
     @Test
+    fun `fromString trims whitespace from input`() {
+        assertEquals(ThemeMode.LIGHT, ThemeMode.fromString(" LIGHT "))
+        assertEquals(ThemeMode.LIGHT, ThemeMode.fromString("  light  "))
+        assertEquals(ThemeMode.DARK, ThemeMode.fromString(" DARK "))
+        assertEquals(ThemeMode.DARK, ThemeMode.fromString("\tdark\t"))
+        assertEquals(ThemeMode.SYSTEM, ThemeMode.fromString(" SYSTEM "))
+        assertEquals(ThemeMode.SYSTEM, ThemeMode.fromString("\n system \n"))
+    }
+
+    @Test
+    fun `fromString handles whitespace-only strings`() {
+        assertEquals(ThemeMode.SYSTEM, ThemeMode.fromString("   "))
+        assertEquals(ThemeMode.SYSTEM, ThemeMode.fromString("\t"))
+        assertEquals(ThemeMode.SYSTEM, ThemeMode.fromString("\n"))
+    }
+
+    @Test
     fun `enum values are correct`() {
         val values = ThemeMode.entries
         assertEquals(3, values.size)
