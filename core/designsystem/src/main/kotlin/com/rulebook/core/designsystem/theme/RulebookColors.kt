@@ -79,6 +79,10 @@ val GreenDark = Color(0xFF58D68D)
 val RedLight = Color(0xFFE74C3C)
 val RedDark = Color(0xFFEC7063)
 
+// Error Container - Tinted backgrounds for error states
+val ErrorContainerLight = Color(0xFFFCE4E4)  // Light red-tinted background
+val ErrorContainerDark = Color(0xFF4A2020)   // Dark red-tinted background
+
 // =============================================================================
 // EXTENDED COLOR SCHEME
 // =============================================================================
@@ -173,8 +177,8 @@ fun rulebookLightColorScheme(): ColorScheme = lightColorScheme(
     onTertiaryContainer = ContentPrimaryLight,
     error = RedLight,
     onError = Color.White,
-    errorContainer = SurfaceSecondaryLight,
-    onErrorContainer = RedLight,
+    errorContainer = ErrorContainerLight,
+    onErrorContainer = ContentPrimaryLight,
     background = SurfaceSecondaryLight,
     onBackground = ContentPrimaryLight,
     surface = SurfacePrimaryLight,
@@ -211,8 +215,8 @@ fun rulebookDarkColorScheme(): ColorScheme = darkColorScheme(
     onTertiaryContainer = ContentPrimaryDark,
     error = RedDark,
     onError = Color.Black,
-    errorContainer = SurfacePrimaryDark,
-    onErrorContainer = RedDark,
+    errorContainer = ErrorContainerDark,
+    onErrorContainer = ContentPrimaryDark,
     background = SurfacePrimaryDark,
     onBackground = ContentPrimaryDark,
     surface = SurfaceSecondaryDark,
