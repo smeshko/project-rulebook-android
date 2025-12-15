@@ -122,3 +122,14 @@ fun Modifier.brutalistCard(
 ### Completion Notes List
 
 ### File List
+
+## Dependencies
+
+- **Depends On:** Story 1.7
+- **Blocks:** Story 1.9, Story 1.10
+- **Can Parallel With:** Story 1.11
+
+### Dependency Rationale
+- Story 1.7: Brutalist modifiers use RulebookSpacing values (shadowOffset, borderWidth)
+- Story 1.9: RulebookButton uses brutalistShadow() and brutalistBorder() modifiers
+- Story 1.10: RulebookCard uses brutalistShadow() and brutalistBorder() modifiers

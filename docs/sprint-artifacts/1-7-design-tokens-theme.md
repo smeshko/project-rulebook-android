@@ -151,3 +151,14 @@ fun RulebookTheme(
 ### Completion Notes List
 
 ### File List
+
+## Dependencies
+
+- **Depends On:** Story 1.1
+- **Blocks:** Story 1.8, Story 1.11
+- **Can Parallel With:** Story 1.2, Story 1.3, Story 1.4, Story 1.5, Story 1.6, Story 1.12, Story 1.13
+
+### Dependency Rationale
+- Story 1.1: Design tokens require designsystem module to exist
+- Story 1.8: Brutalist modifiers need design tokens for default values (spacing, colors)
+- Story 1.11: HeaderBar component needs theme foundation for styling

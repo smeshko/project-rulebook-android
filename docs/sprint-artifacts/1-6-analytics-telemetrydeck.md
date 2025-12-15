@@ -132,3 +132,12 @@ Use same event names as iOS for cross-platform analytics:
 ### Completion Notes List
 
 ### File List
+
+## Dependencies
+
+- **Depends On:** Story 1.1
+- **Blocks:** None
+- **Can Parallel With:** Story 1.2, Story 1.3, Story 1.4, Story 1.5, Story 1.7, Story 1.12, Story 1.13
+
+### Dependency Rationale
+- Story 1.1: Analytics integration requires analytics module to exist

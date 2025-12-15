@@ -188,3 +188,12 @@ repository.getGame(gameId)
 ### Completion Notes List
 
 ### File List
+
+## Dependencies
+
+- **Depends On:** Story 1.1
+- **Blocks:** None
+- **Can Parallel With:** Story 1.2, Story 1.3, Story 1.4, Story 1.5, Story 1.6, Story 1.7, Story 1.12
+
+### Dependency Rationale
+- Story 1.1: Result wrapper requires common module to exist

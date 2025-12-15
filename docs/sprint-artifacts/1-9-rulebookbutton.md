@@ -149,3 +149,12 @@ fun RulebookButton(
 ### Completion Notes List
 
 ### File List
+
+## Dependencies
+
+- **Depends On:** Story 1.8
+- **Blocks:** None
+- **Can Parallel With:** Story 1.10
+
+### Dependency Rationale
+- Story 1.8: RulebookButton requires brutalist modifiers (brutalistShadow, brutalistBorder)

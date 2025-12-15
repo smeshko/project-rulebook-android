@@ -64,6 +64,22 @@ So that feature development can proceed with proper separation of concerns.
 - [Source: docs/architecture.md#Project Setup & Foundation]
 - [Source: docs/architecture.md#Module Structure]
 
+## Dependencies
+
+- **Depends On:** None (Foundation story - start immediately)
+- **Blocks:** Story 1.2, Story 1.3, Story 1.4, Story 1.5, Story 1.6, Story 1.7, Story 1.12, Story 1.13
+- **Can Parallel With:** None
+
+### Dependency Rationale
+- Story 1.2: DI setup requires multi-module structure to exist
+- Story 1.3: Room database setup requires module structure and version catalog
+- Story 1.4: DataStore setup requires datastore module to exist
+- Story 1.5: Network client requires network module and version catalog
+- Story 1.6: Analytics requires analytics module to exist
+- Story 1.7: Design tokens require designsystem module
+- Story 1.12: Domain models require model module
+- Story 1.13: Result wrapper requires common module
+
 ## Dev Agent Record
 
 ### Completion Notes List

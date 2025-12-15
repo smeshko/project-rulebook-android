@@ -871,6 +871,59 @@ sealed class Result<out T> {
 
 ---
 
+## Epic 1: Dependency Flowchart
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║  WAVE 1: Start Immediately                                                    ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  [1.1] Project Initialization & Multi-Module Structure                        ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+                                        │
+                                        ▼
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║  WAVE 2: After 1.1 (PARALLEL x8)                                              ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  [1.2] DI Setup (Koin)         ║  [1.3] Room Database       ║  [1.4] DataStore║
+║  [1.5] Network Client          ║  [1.6] Analytics           ║  [1.7] Theme    ║
+║  [1.12] Domain Models          ║  [1.13] Result Wrapper                       ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+                                        │
+          ┌─────────────────────────────┴─────────────────────────────┐
+          │                                                           │
+          ▼                                                           ▼
+╔═══════════════════════════════════════╗   ╔═════════════════════════════════════╗
+║  WAVE 3a: After 1.7                   ║   ║  WAVE 3b: After 1.7                 ║
+╠═══════════════════════════════════════╣   ╠═════════════════════════════════════╣
+║                                       ║   ║                                     ║
+║  [1.8] Brutalist Modifiers            ║   ║  [1.11] RulebookHeaderBar           ║
+║                                       ║   ║                                     ║
+╚═══════════════════════════════════════╝   ╚═════════════════════════════════════╝
+                    │
+                    ▼
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║  WAVE 4: After 1.8 (PARALLEL x2)                                              ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  [1.9] RulebookButton                  ║  [1.10] RulebookCard                  ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+```
+
+**Execution Summary:**
+- **Wave 1:** 1 story (start immediately)
+- **Wave 2:** 8 stories (can run in parallel after Wave 1)
+- **Wave 3:** 2 stories (can run in parallel after Wave 2, specifically after 1.7)
+- **Wave 4:** 2 stories (can run in parallel after Wave 3, specifically after 1.8)
+
+**Critical Path:** 1.1 → 1.7 → 1.8 → 1.9/1.10
+
+---
+
 ## Epic 2: App Shell & Navigation
 
 **Goal:** Create the main app structure with bottom navigation, FAB, and basic screens. After this epic, users can launch the app, see the library (empty state), navigate to settings, and tap the camera FAB.

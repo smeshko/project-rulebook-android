@@ -139,3 +139,12 @@ RulebookCard(shadowOffset = 8.dp) {
 ### Completion Notes List
 
 ### File List
+
+## Dependencies
+
+- **Depends On:** Story 1.8
+- **Blocks:** None
+- **Can Parallel With:** Story 1.9
+
+### Dependency Rationale
+- Story 1.8: RulebookCard requires brutalist modifiers (brutalistShadow, brutalistBorder)

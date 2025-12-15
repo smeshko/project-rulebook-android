@@ -164,3 +164,12 @@ claude-opus-4-5-20251101
 - feature/settings/src/main/kotlin/com/rulebook/feature/settings/di/SettingsModule.kt (created)
 - feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/di/OnboardingModule.kt (created)
 - feature/purchase/src/main/kotlin/com/rulebook/feature/purchase/di/PurchaseModule.kt (created)
+
+## Dependencies
+
+- **Depends On:** Story 1.1
+- **Blocks:** None
+- **Can Parallel With:** Story 1.3, Story 1.4, Story 1.5, Story 1.6, Story 1.7, Story 1.12, Story 1.13
+
+### Dependency Rationale
+- Story 1.1: Koin setup requires multi-module structure to exist with all modules created

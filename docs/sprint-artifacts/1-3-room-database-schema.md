@@ -196,3 +196,12 @@ data class RulesEntity(
 ## Change Log
 - 2025-12-05: Implemented Room database schema with GameEntity, RulesEntity, DAOs, and Koin DI integration
 - 2025-12-15: Code review fixes - removed unused TypeConverters, added RulesDao.update(), migration strategy, KDoc, and proper DAO instrumented tests
+
+## Dependencies
+
+- **Depends On:** Story 1.1
+- **Blocks:** None
+- **Can Parallel With:** Story 1.2, Story 1.4, Story 1.5, Story 1.6, Story 1.7, Story 1.12, Story 1.13
+
+### Dependency Rationale
+- Story 1.1: Room database setup requires module structure and version catalog to exist

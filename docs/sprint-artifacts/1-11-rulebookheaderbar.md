@@ -159,3 +159,12 @@ RulebookHeaderBar(
 ### Completion Notes List
 
 ### File List
+
+## Dependencies
+
+- **Depends On:** Story 1.7
+- **Blocks:** None
+- **Can Parallel With:** Story 1.8
+
+### Dependency Rationale
+- Story 1.7: RulebookHeaderBar requires theme foundation for styling (typography, colors, spacing)
