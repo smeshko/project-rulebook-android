@@ -208,4 +208,32 @@ class ResultTest {
 
         assertEquals(cause, capturedCause)
     }
+
+    // Task 5: getOrNull() Extension Tests
+    @Test
+    fun `getOrNull returns data on Success`() {
+        val result: Result<String> = Result.Success("hello")
+
+        val value = result.getOrNull()
+
+        assertEquals("hello", value)
+    }
+
+    @Test
+    fun `getOrNull returns null on Error`() {
+        val result: Result<String> = Result.Error("error")
+
+        val value = result.getOrNull()
+
+        assertNull(value)
+    }
+
+    @Test
+    fun `getOrNull works with nullable success type`() {
+        val result: Result<String?> = Result.Success(null)
+
+        val value = result.getOrNull()
+
+        assertNull(value)
+    }
 }

@@ -39,3 +39,12 @@ inline fun <T> Result<T>.onError(action: (Result.Error) -> Unit): Result<T> {
     if (this is Result.Error) action(this)
     return this
 }
+
+/**
+ * Returns the data if this is a Success result, null otherwise.
+ */
+fun <T> Result<T>.getOrNull(): T? =
+    when (this) {
+        is Result.Success -> data
+        is Result.Error -> null
+    }

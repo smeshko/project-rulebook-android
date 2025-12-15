@@ -52,9 +52,9 @@ So that errors are handled consistently across the app.
 - [x] Task 4: Create onError() extension (AC: #2)
   - [x] Execute action only on Error
   - [x] Return original Result for chaining
-- [ ] Task 5: Create getOrNull() extension (AC: #2)
-  - [ ] Return data if Success
-  - [ ] Return null if Error
+- [x] Task 5: Create getOrNull() extension (AC: #2)
+  - [x] Return data if Success
+  - [x] Return null if Error
 - [ ] Task 6: Create additional utility extensions
   - [ ] Create getOrDefault(default: T)
   - [ ] Create getOrElse(onError: (Error) -> T)
@@ -192,6 +192,7 @@ repository.getGame(gameId)
 - **Task 2 (2025-12-15):** Created map() extension function. Transforms Success data while preserving Error. Added 4 unit tests for transformation, error preservation, type changes, and cause preservation.
 - **Task 3 (2025-12-15):** Created onSuccess() extension function. Executes action only on Success and returns original Result for chaining. Added 4 unit tests.
 - **Task 4 (2025-12-15):** Created onError() extension function. Executes action only on Error and returns original Result for chaining. Added 5 unit tests including cause handling.
+- **Task 5 (2025-12-15):** Created getOrNull() extension function. Returns data on Success, null on Error. Added 3 unit tests including nullable type handling.
 
 ### File List
 - core/common/src/main/kotlin/com/rulebook/core/common/Result.kt (modified)
