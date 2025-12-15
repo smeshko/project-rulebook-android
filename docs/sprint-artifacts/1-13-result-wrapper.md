@@ -1,6 +1,6 @@
 # Story 1.13: Result Wrapper & Error Handling
 
-Status: Ready for Review
+Status: done
 
 ## Linear Issue
 
