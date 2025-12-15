@@ -1,6 +1,6 @@
 # Story 1.4: DataStore Preferences Setup
 
-Status: ready-for-dev
+Status: Ready for Review
 
 ## Linear Issue
 
@@ -33,34 +33,34 @@ So that settings and state persist across app sessions.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add DataStore dependencies (AC: #1)
-  - [ ] Add datastore-preferences to version catalog
-  - [ ] Add dependency to core/datastore module
-- [ ] Task 2: Create ThemeMode enum (AC: #1)
-  - [ ] Create ThemeMode enum (LIGHT, DARK, SYSTEM)
-  - [ ] Place in core/datastore or core/model
-- [ ] Task 3: Create PreferenceKeys object (AC: #1, #3)
-  - [ ] Define ONBOARDING_COMPLETED key (Boolean, default false)
-  - [ ] Define CREDIT_BALANCE key (Int, default 0)
-  - [ ] Define THEME_MODE key (String/Int, default SYSTEM)
-  - [ ] Define HAPTICS_ENABLED key (Boolean, default true)
-- [ ] Task 4: Create RulebookPreferences class (AC: #1, #2)
-  - [ ] Create class with DataStore<Preferences> dependency
-  - [ ] Implement hasCompletedOnboarding Flow
-  - [ ] Implement creditBalance Flow
-  - [ ] Implement themeMode Flow
-  - [ ] Implement hapticsEnabled Flow
-  - [ ] Add suspend fun setOnboardingCompleted(value: Boolean)
-  - [ ] Add suspend fun setCreditBalance(value: Int)
-  - [ ] Add suspend fun setThemeMode(mode: ThemeMode)
-  - [ ] Add suspend fun setHapticsEnabled(enabled: Boolean)
-- [ ] Task 5: Create DataStore instance (AC: #1)
-  - [ ] Create Context.rulebookDataStore extension
-  - [ ] Configure with PreferencesDataStoreFactory
-- [ ] Task 6: Add DataStore to Koin DI
-  - [ ] Create provideDataStore function
-  - [ ] Create provideRulebookPreferences function
-  - [ ] Register in DataStoreModule
+- [x] Task 1: Add DataStore dependencies (AC: #1)
+  - [x] Add datastore-preferences to version catalog
+  - [x] Add dependency to core/datastore module
+- [x] Task 2: Create ThemeMode enum (AC: #1)
+  - [x] Create ThemeMode enum (LIGHT, DARK, SYSTEM)
+  - [x] Place in core/datastore or core/model
+- [x] Task 3: Create PreferenceKeys object (AC: #1, #3)
+  - [x] Define ONBOARDING_COMPLETED key (Boolean, default false)
+  - [x] Define CREDIT_BALANCE key (Int, default 0)
+  - [x] Define THEME_MODE key (String/Int, default SYSTEM)
+  - [x] Define HAPTICS_ENABLED key (Boolean, default true)
+- [x] Task 4: Create RulebookPreferences class (AC: #1, #2)
+  - [x] Create class with DataStore<Preferences> dependency
+  - [x] Implement hasCompletedOnboarding Flow
+  - [x] Implement creditBalance Flow
+  - [x] Implement themeMode Flow
+  - [x] Implement hapticsEnabled Flow
+  - [x] Add suspend fun setOnboardingCompleted(value: Boolean)
+  - [x] Add suspend fun setCreditBalance(value: Int)
+  - [x] Add suspend fun setThemeMode(mode: ThemeMode)
+  - [x] Add suspend fun setHapticsEnabled(enabled: Boolean)
+- [x] Task 5: Create DataStore instance (AC: #1)
+  - [x] Create Context.rulebookDataStore extension
+  - [x] Configure with PreferencesDataStoreFactory
+- [x] Task 6: Add DataStore to Koin DI
+  - [x] Create provideDataStore function
+  - [x] Create provideRulebookPreferences function
+  - [x] Register in DataStoreModule
 
 ## Dev Notes
 
@@ -140,14 +140,30 @@ private object PreferenceKeys {
 ## Dev Agent Record
 
 ### Context Reference
+- Story 1.4: DataStore Preferences Setup
+- Linear Issue: RULE-111
 
 ### Agent Model Used
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
+N/A
 
 ### Completion Notes List
+- Implemented ThemeMode enum with LIGHT, DARK, SYSTEM values and fromString() parsing
+- Updated RulebookPreferences with all required Flow properties and suspend setters
+- PreferenceKeys object implemented as private nested object in RulebookPreferences
+- DataStore instance created via Context extension property (preferencesDataStore delegate)
+- Configured Koin DataStoreModule to provide RulebookPreferences singleton
+- Added unit tests for ThemeMode enum covering all parsing scenarios
+- All acceptance criteria satisfied with sensible defaults
 
 ### File List
+- core/datastore/build.gradle.kts (modified - added koin-android and test dependencies)
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/ThemeMode.kt (new)
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/RulebookPreferences.kt (modified)
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/di/DataStoreModule.kt (modified)
+- core/datastore/src/test/kotlin/com/rulebook/core/datastore/ThemeModeTest.kt (new)
 
 ## Dependencies
 
