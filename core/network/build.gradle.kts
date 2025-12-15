@@ -5,6 +5,14 @@ plugins {
 
 android {
     namespace = "com.rulebook.core.network"
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    defaultConfig {
+        buildConfigField("String", "BASE_URL", "\"https://api.rulebook.app/v1/\"")
+    }
 }
 
 dependencies {
@@ -19,4 +27,8 @@ dependencies {
     // Koin
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
+
+    // Testing
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

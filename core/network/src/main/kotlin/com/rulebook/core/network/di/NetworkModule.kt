@@ -1,7 +1,25 @@
 package com.rulebook.core.network.di
 
+import com.rulebook.core.network.BuildConfig
+import com.rulebook.core.network.RulebookApiClient
+import com.rulebook.core.network.api.RulebookApi
+import okhttp3.OkHttpClient
 import org.koin.dsl.module
+import retrofit2.Retrofit
 
 val networkModule = module {
-    // TODO: Add Retrofit and OkHttp configuration
+    single<OkHttpClient> {
+        RulebookApiClient.createOkHttpClient(isDebug = BuildConfig.DEBUG)
+    }
+
+    single<Retrofit> {
+        RulebookApiClient.createRetrofit(
+            okHttpClient = get(),
+            baseUrl = BuildConfig.BASE_URL,
+        )
+    }
+
+    single<RulebookApi> {
+        RulebookApiClient.createRulebookApi(retrofit = get())
+    }
 }
