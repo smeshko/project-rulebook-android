@@ -1,5 +1,6 @@
 package com.rulebook.core.common
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -358,5 +359,10 @@ class ResultTest {
 
         assertTrue(result is Result.Success)
         assertEquals(42, (result as Result.Success).data)
+    }
+
+    @Test(expected = CancellationException::class)
+    fun `safeCall rethrows CancellationException for structured concurrency`() = runTest {
+        safeCall<String> { throw CancellationException("cancelled") }
     }
 }

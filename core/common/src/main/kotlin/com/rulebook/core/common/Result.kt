@@ -1,5 +1,7 @@
 package com.rulebook.core.common
 
+import kotlin.coroutines.cancellation.CancellationException
+
 /**
  * A generic wrapper for handling success and error states consistently across the app.
  * All repository operations should return Result<T>.
@@ -83,10 +85,14 @@ inline fun <T, R> Result<T>.fold(
  * Wraps a suspend function in a try-catch and returns a Result.
  * On success, returns Result.Success with the value.
  * On exception, returns Result.Error with the exception message and cause.
+ *
+ * Note: CancellationException is rethrown to preserve structured concurrency.
  */
 suspend fun <T> safeCall(block: suspend () -> T): Result<T> =
     try {
         Result.Success(block())
+    } catch (e: CancellationException) {
+        throw e
     } catch (e: Exception) {
         Result.Error(
             message = e.localizedMessage ?: "Unknown error",
