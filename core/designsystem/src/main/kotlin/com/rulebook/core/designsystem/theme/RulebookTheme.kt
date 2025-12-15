@@ -2,73 +2,109 @@ package com.rulebook.core.designsystem.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
 
-// Rulebook Brutalist Color Palette
-object RulebookColors {
-    // Surface colors - Light
-    val SurfacePrimaryLight = Color(0xFFFFFFFF)
-    val SurfaceSecondaryLight = Color(0xFFFFF9F0)  // Cream
-    val SurfaceTertiaryLight = Color(0xFFF5E6D3)
+/**
+ * Rulebook Design System - Theme
+ *
+ * Three-layer design system architecture:
+ * 1. Material 3 Foundation - Provides accessibility, Android conventions, Compose integration
+ * 2. Rulebook Theme - Custom colors, typography, shapes from iOS design tokens
+ * 3. Rulebook Components - Custom composables implementing brutalist aesthetic
+ *
+ * This theme wraps MaterialTheme with Rulebook-specific customizations while
+ * preserving Material behaviors users expect (ripples, touch targets, etc.).
+ *
+ * Usage:
+ * ```kotlin
+ * RulebookTheme {
+ *     // Access Material colors
+ *     val primary = MaterialTheme.colorScheme.primary
+ *
+ *     // Access extended Rulebook colors
+ *     val orange = RulebookTheme.colors.orange
+ *
+ *     // Access extended typography
+ *     val brutalistTitle = RulebookTheme.typography.brutalistTitle
+ *
+ *     // Access spacing
+ *     val spacing = RulebookTheme.spacing.md
+ * }
+ * ```
+ */
 
-    // Surface colors - Dark
-    val SurfacePrimaryDark = Color(0xFF1C1C1E)
-    val SurfaceSecondaryDark = Color(0xFF2C2C2E)
-    val SurfaceTertiaryDark = Color(0xFF3A3A3C)
-
-    // Accent colors - Light
-    val OrangeLight = Color(0xFFFF6B35)
-    val BlueLight = Color(0xFF3498DB)
-    val YellowLight = Color(0xFFFFD23F)
-    val PurpleLight = Color(0xFF7209B7)
-    val PinkLight = Color(0xFFE91E63)
-    val GreenLight = Color(0xFF2ECC71)
-    val RedLight = Color(0xFFE74C3C)
-
-    // Accent colors - Dark
-    val OrangeDark = Color(0xFFFF8C5F)
-    val BlueDark = Color(0xFF5DADE2)
-    val YellowDark = Color(0xFFFFE066)
-    val PurpleDark = Color(0xFF9D4EDD)
-    val PinkDark = Color(0xFFF06292)
-    val GreenDark = Color(0xFF58D68D)
-    val RedDark = Color(0xFFEC7063)
-}
-
-private val LightColorScheme = lightColorScheme(
-    primary = RulebookColors.PinkLight,
-    onPrimary = Color.White,
-    primaryContainer = RulebookColors.SurfaceSecondaryLight,
-    secondary = RulebookColors.BlueLight,
-    tertiary = RulebookColors.OrangeLight,
-    background = RulebookColors.SurfaceSecondaryLight,
-    surface = RulebookColors.SurfacePrimaryLight,
-    error = RulebookColors.RedLight,
-)
-
-private val DarkColorScheme = darkColorScheme(
-    primary = RulebookColors.PinkDark,
-    onPrimary = Color.Black,
-    primaryContainer = RulebookColors.SurfacePrimaryDark,
-    secondary = RulebookColors.BlueDark,
-    tertiary = RulebookColors.OrangeDark,
-    background = RulebookColors.SurfacePrimaryDark,
-    surface = RulebookColors.SurfaceSecondaryDark,
-    error = RulebookColors.RedDark,
-)
-
+/**
+ * Rulebook theme wrapper that applies brutalist design tokens to MaterialTheme.
+ *
+ * @param darkTheme Whether to use dark theme colors. Defaults to system setting.
+ * @param content The content to display with the theme applied.
+ */
 @Composable
 fun RulebookTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    // Select color schemes based on theme mode
+    val colorScheme = if (darkTheme) rulebookDarkColorScheme() else rulebookLightColorScheme()
+    val extendedColors = if (darkTheme) DarkExtendedColors else LightExtendedColors
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content
-    )
+    // Provide extended design tokens via CompositionLocal
+    CompositionLocalProvider(
+        LocalRulebookColors provides extendedColors,
+        LocalRulebookTypography provides RulebookExtendedTypographyInstance,
+        LocalRulebookSpacing provides RulebookSpacing,
+        LocalRulebookShapes provides RulebookExtendedShapesInstance
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = RulebookTypography,
+            shapes = RulebookShapes,
+            content = content
+        )
+    }
+}
+
+/**
+ * Object providing convenient access to Rulebook design tokens.
+ *
+ * Use this object within a RulebookTheme scope to access extended tokens
+ * that aren't available in MaterialTheme.
+ */
+object RulebookTheme {
+    /**
+     * Extended Rulebook colors including accent palette and semantic colors.
+     * These complement MaterialTheme.colorScheme with Rulebook-specific tokens.
+     */
+    val colors: RulebookExtendedColors
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalRulebookColors.current
+
+    /**
+     * Extended Rulebook typography including brutalist styles.
+     * These complement MaterialTheme.typography with Rulebook-specific text styles.
+     */
+    val typography: RulebookExtendedTypography
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalRulebookTypography.current
+
+    /**
+     * Rulebook spacing values including spacing scale and brutalist specifications.
+     */
+    val spacing: RulebookSpacingValues
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalRulebookSpacing.current
+
+    /**
+     * Extended Rulebook shapes (all 0dp corners for brutalist aesthetic).
+     * These complement MaterialTheme.shapes with semantic shape access.
+     */
+    val shapes: RulebookExtendedShapes
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalRulebookShapes.current
 }
