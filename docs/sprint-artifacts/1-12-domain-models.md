@@ -1,6 +1,6 @@
 # Story 1.12: Domain Models
 
-Status: ready-for-dev
+Status: Ready for Review
 
 ## Linear Issue
 
@@ -55,33 +55,33 @@ So that data structures are shared across modules.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create Game data class (AC: #1, #2, #3)
-  - [ ] Define id: String
-  - [ ] Define title: String
-  - [ ] Define thumbnailUrl: String?
-  - [ ] Define createdAt: Long
-  - [ ] Define lastAccessedAt: Long
-  - [ ] Ensure no Android dependencies
-- [ ] Task 2: Create RuleSection data class (AC: #1, #2, #3)
-  - [ ] Define title: String
-  - [ ] Define content: String
-  - [ ] Define items: List<String>? for checklists
-- [ ] Task 3: Create Rules data class (AC: #1, #2, #3)
-  - [ ] Define gameId: String
-  - [ ] Define overview: RuleSection
-  - [ ] Define setup: RuleSection
-  - [ ] Define firstRound: RuleSection
-  - [ ] Define advanced: RuleSection
-- [ ] Task 4: Create ScanResult data class (AC: #1, #2, #3)
-  - [ ] Define gameTitle: String
-  - [ ] Define confidence: Float
-  - [ ] Define thumbnailUrl: String?
-- [ ] Task 5: Create mapper functions
-  - [ ] GameEntity.toDomain() -> Game
-  - [ ] Game.toEntity() -> GameEntity
-  - [ ] RulesEntity.toDomain() -> Rules
-  - [ ] Rules.toEntity() -> RulesEntity
-  - [ ] AnalyzeResponse.toDomain() -> ScanResult
+- [x] Task 1: Create Game data class (AC: #1, #2, #3)
+  - [x] Define id: String
+  - [x] Define title: String
+  - [x] Define thumbnailUrl: String?
+  - [x] Define createdAt: Long
+  - [x] Define lastAccessedAt: Long
+  - [x] Ensure no Android dependencies
+- [x] Task 2: Create RuleSection data class (AC: #1, #2, #3)
+  - [x] Define title: String
+  - [x] Define content: String
+  - [x] Define items: List<String>? for checklists
+- [x] Task 3: Create Rules data class (AC: #1, #2, #3)
+  - [x] Define gameId: String
+  - [x] Define overview: RuleSection
+  - [x] Define setup: RuleSection
+  - [x] Define firstRound: RuleSection
+  - [x] Define advanced: RuleSection
+- [x] Task 4: Create ScanResult data class (AC: #1, #2, #3)
+  - [x] Define gameTitle: String
+  - [x] Define confidence: Float
+  - [x] Define thumbnailUrl: String?
+- [x] Task 5: Create mapper functions
+  - [x] GameEntity.toDomain() -> Game
+  - [x] Game.toEntity() -> GameEntity
+  - [x] RulesEntity.toDomain() -> Rules
+  - [x] Rules.toEntity() -> RulesEntity
+  - [x] AnalyzeResponse.toDomain() -> ScanResult
 
 ## Dev Notes
 
@@ -158,12 +158,34 @@ These models support:
 ### Context Reference
 
 ### Agent Model Used
+Claude Opus 4.5
 
 ### Debug Log References
 
 ### Completion Notes List
+- Task 1: Updated Game.kt to match story specification (id, title, thumbnailUrl, createdAt, lastAccessedAt). Removed kotlinx.serialization dependency to keep domain models pure Kotlin. Added GameTest.kt with unit tests for data class functionality.
+- Task 2: Created RuleSection.kt with title, content, and optional items list with null default. Added RuleSectionTest.kt with comprehensive tests.
+- Task 3: Created Rules.kt with gameId and four RuleSection properties (overview, setup, firstRound, advanced). Added RulesTest.kt with tests for composition and equality.
+- Task 4: Created ScanResult.kt with gameTitle, confidence, and optional thumbnailUrl. Added ScanResultTest.kt with tests for float confidence and nullable thumbnail.
+- Task 5: Created mapper extension functions in core/database (GameMapper, RulesMapper) and core/network (ScanResultMapper). Mappers convert between entities/responses and domain models. Added kotlin.serialization plugin to database module for JSON serialization of RuleSection.
 
 ### File List
+- core/model/src/main/kotlin/com/rulebook/core/model/Game.kt (modified)
+- core/model/src/main/kotlin/com/rulebook/core/model/RuleSection.kt (new)
+- core/model/src/main/kotlin/com/rulebook/core/model/Rules.kt (new)
+- core/model/src/main/kotlin/com/rulebook/core/model/ScanResult.kt (new)
+- core/model/src/test/kotlin/com/rulebook/core/model/GameTest.kt (new)
+- core/model/src/test/kotlin/com/rulebook/core/model/RuleSectionTest.kt (new)
+- core/model/src/test/kotlin/com/rulebook/core/model/RulesTest.kt (new)
+- core/model/src/test/kotlin/com/rulebook/core/model/ScanResultTest.kt (new)
+- core/model/build.gradle.kts (modified)
+- core/database/src/main/kotlin/com/rulebook/core/database/mapper/GameMapper.kt (new)
+- core/database/src/main/kotlin/com/rulebook/core/database/mapper/RulesMapper.kt (new)
+- core/database/src/test/kotlin/com/rulebook/core/database/mapper/GameMapperTest.kt (new)
+- core/database/src/test/kotlin/com/rulebook/core/database/mapper/RulesMapperTest.kt (new)
+- core/database/build.gradle.kts (modified)
+- core/network/src/main/kotlin/com/rulebook/core/network/mapper/ScanResultMapper.kt (new)
+- core/network/src/test/kotlin/com/rulebook/core/network/mapper/ScanResultMapperTest.kt (new)
 
 ## Dependencies
 
