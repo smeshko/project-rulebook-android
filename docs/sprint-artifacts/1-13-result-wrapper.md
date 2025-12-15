@@ -1,6 +1,6 @@
 # Story 1.13: Result Wrapper & Error Handling
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Linear Issue
 
@@ -39,10 +39,10 @@ So that errors are handled consistently across the app.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create Result sealed class (AC: #1)
-  - [ ] Create sealed class Result<out T>
-  - [ ] Create Success data class with data: T
-  - [ ] Create Error data class with message and cause
+- [x] Task 1: Create Result sealed class (AC: #1)
+  - [x] Create sealed class Result<out T>
+  - [x] Create Success data class with data: T
+  - [x] Create Error data class with message and cause
 - [ ] Task 2: Create map() extension (AC: #2)
   - [ ] Transform Success data while preserving Error
   - [ ] Return new Result<R>
@@ -180,14 +180,20 @@ repository.getGame(gameId)
 ## Dev Agent Record
 
 ### Context Reference
+- Architecture: docs/architecture.md (Error Handling pattern, Result<T> specification)
 
 ### Agent Model Used
+- Claude Opus 4.5
 
 ### Debug Log References
 
 ### Completion Notes List
+- **Task 1 (2025-12-15):** Created Result sealed class in core/common module. Removed pre-existing Loading state to match architecture spec. Result now has only Success<T> and Error subtypes as required. Added 6 unit tests covering: Success data holding, Error message/cause handling, null cause support, and sealed class exhaustiveness.
 
 ### File List
+- core/common/src/main/kotlin/com/rulebook/core/common/Result.kt (modified)
+- core/common/src/test/kotlin/com/rulebook/core/common/ResultTest.kt (created)
+- core/common/build.gradle.kts (modified - added test dependencies)
 
 ## Dependencies
 
