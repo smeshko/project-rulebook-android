@@ -37,7 +37,7 @@ cameraX = "1.4.0"
 playBilling = "7.1.1"
 
 # Analytics
-telemetryDeck = "2.2.0"
+telemetryDeck = "6.3.0"
 
 # Testing
 junit = "4.13.2"
