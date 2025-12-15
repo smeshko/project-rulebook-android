@@ -48,3 +48,33 @@ fun <T> Result<T>.getOrNull(): T? =
         is Result.Success -> data
         is Result.Error -> null
     }
+
+/**
+ * Returns the data if this is a Success result, the provided default otherwise.
+ */
+fun <T> Result<T>.getOrDefault(default: T): T =
+    when (this) {
+        is Result.Success -> data
+        is Result.Error -> default
+    }
+
+/**
+ * Returns the data if this is a Success result, or computes a value from the Error otherwise.
+ */
+inline fun <T> Result<T>.getOrElse(onError: (Result.Error) -> T): T =
+    when (this) {
+        is Result.Success -> data
+        is Result.Error -> onError(this)
+    }
+
+/**
+ * Applies the appropriate function based on whether this is a Success or Error,
+ * returning the result.
+ */
+inline fun <T, R> Result<T>.fold(
+    onSuccess: (T) -> R,
+    onError: (Result.Error) -> R
+): R = when (this) {
+    is Result.Success -> onSuccess(data)
+    is Result.Error -> onError(this)
+}

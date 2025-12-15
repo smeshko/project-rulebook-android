@@ -236,4 +236,81 @@ class ResultTest {
 
         assertNull(value)
     }
+
+    // Task 6: Additional Utility Extension Tests
+
+    // getOrDefault tests
+    @Test
+    fun `getOrDefault returns data on Success`() {
+        val result: Result<String> = Result.Success("hello")
+
+        val value = result.getOrDefault("default")
+
+        assertEquals("hello", value)
+    }
+
+    @Test
+    fun `getOrDefault returns default on Error`() {
+        val result: Result<String> = Result.Error("error")
+
+        val value = result.getOrDefault("default")
+
+        assertEquals("default", value)
+    }
+
+    // getOrElse tests
+    @Test
+    fun `getOrElse returns data on Success`() {
+        val result: Result<String> = Result.Success("hello")
+
+        val value = result.getOrElse { "fallback" }
+
+        assertEquals("hello", value)
+    }
+
+    @Test
+    fun `getOrElse returns computed value on Error`() {
+        val result: Result<String> = Result.Error("error message")
+
+        val value = result.getOrElse { "Error: ${it.message}" }
+
+        assertEquals("Error: error message", value)
+    }
+
+    // fold tests
+    @Test
+    fun `fold calls onSuccess for Success result`() {
+        val result: Result<Int> = Result.Success(5)
+
+        val value = result.fold(
+            onSuccess = { it * 2 },
+            onError = { -1 }
+        )
+
+        assertEquals(10, value)
+    }
+
+    @Test
+    fun `fold calls onError for Error result`() {
+        val result: Result<Int> = Result.Error("error")
+
+        val value = result.fold(
+            onSuccess = { it * 2 },
+            onError = { -1 }
+        )
+
+        assertEquals(-1, value)
+    }
+
+    @Test
+    fun `fold can return different type`() {
+        val result: Result<Int> = Result.Success(42)
+
+        val value: String = result.fold(
+            onSuccess = { "Success: $it" },
+            onError = { "Error: ${it.message}" }
+        )
+
+        assertEquals("Success: 42", value)
+    }
 }
