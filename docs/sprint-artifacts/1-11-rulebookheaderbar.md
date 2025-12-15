@@ -1,6 +1,6 @@
 # Story 1.11: Core UI Components - RulebookHeaderBar
 
-Status: ready-for-dev
+Status: Done
 
 ## Linear Issue
 
@@ -32,27 +32,27 @@ So that screen headers have consistent styling.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create RulebookHeaderBar composable (AC: #1, #2)
-  - [ ] Define composable function signature
-  - [ ] Accept title, onBackClick, actions parameters
-  - [ ] Use TopAppBar as base
-  - [ ] Apply brutalist title typography (24sp Black)
-  - [ ] Add thick bottom border (3dp)
-- [ ] Task 2: Implement back navigation (AC: #1, #2)
-  - [ ] Show back icon when onBackClick is provided
-  - [ ] Use standard Android back arrow
-  - [ ] Apply click handling
-- [ ] Task 3: Implement action buttons slot (AC: #1, #2)
-  - [ ] Add actions slot for trailing buttons
-  - [ ] Use RowScope for proper layout
-- [ ] Task 4: Handle edge-to-edge insets (AC: #3)
-  - [ ] Apply WindowInsets for status bar padding
-  - [ ] Ensure content doesn't overlap status bar
-- [ ] Task 5: Create Preview composables
-  - [ ] Preview with title only
-  - [ ] Preview with back button
-  - [ ] Preview with action buttons
-  - [ ] Preview light/dark modes
+- [x] Task 1: Create RulebookHeaderBar composable (AC: #1, #2)
+  - [x] Define composable function signature
+  - [x] Accept title, onBackClick, actions parameters
+  - [x] Use TopAppBar as base
+  - [x] Apply brutalist title typography (24sp Black)
+  - [x] Add thick bottom border (3dp)
+- [x] Task 2: Implement back navigation (AC: #1, #2)
+  - [x] Show back icon when onBackClick is provided
+  - [x] Use standard Android back arrow
+  - [x] Apply click handling
+- [x] Task 3: Implement action buttons slot (AC: #1, #2)
+  - [x] Add actions slot for trailing buttons
+  - [x] Use RowScope for proper layout
+- [x] Task 4: Handle edge-to-edge insets (AC: #3)
+  - [x] Apply WindowInsets for status bar padding
+  - [x] Ensure content doesn't overlap status bar
+- [x] Task 5: Create Preview composables
+  - [x] Preview with title only
+  - [x] Preview with back button
+  - [x] Preview with action buttons
+  - [x] Preview light/dark modes
 
 ## Dev Notes
 
@@ -151,14 +151,30 @@ RulebookHeaderBar(
 ## Dev Agent Record
 
 ### Context Reference
+- Loaded design system tokens from Story 1.7 (RulebookTypography, RulebookSpacing, RulebookTheme)
 
 ### Agent Model Used
+- claude-opus-4-5-20251101
 
 ### Debug Log References
 
 ### Completion Notes List
+- Tasks 1-4: Implemented RulebookHeaderBar composable with all core functionality:
+  - Function signature: `RulebookHeaderBar(title: String, modifier: Modifier, onBackClick: (() -> Unit)?, actions: @Composable RowScope.() -> Unit)`
+  - Title uses `RulebookTheme.typography.brutalistTitle` (24sp Black weight)
+  - Bottom border uses `RulebookTheme.spacing.borderWidth` (3dp)
+  - Back navigation shows `Icons.AutoMirrored.Filled.ArrowBack` when `onBackClick` is provided
+  - Actions slot supports trailing IconButtons via RowScope
+  - Status bar insets handled via `Modifier.windowInsetsPadding(WindowInsets.statusBars)`
+- Unit tests created and passing
+- Task 5: Added 6 preview composables covering all combinations:
+  - Title only (light/dark)
+  - With back button (light/dark)
+  - With action buttons (light/dark)
 
 ### File List
+- core/designsystem/src/main/kotlin/com/rulebook/core/designsystem/component/RulebookHeaderBar.kt (new)
+- core/designsystem/src/test/kotlin/com/rulebook/core/designsystem/component/RulebookHeaderBarTest.kt (new)
 
 ## Dependencies
 
