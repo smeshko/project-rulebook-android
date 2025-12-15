@@ -96,3 +96,37 @@ fun Modifier.brutalistBorder(
     color = color,
     shape = RectangleShape
 )
+
+/**
+ * Applies both brutalist shadow and border to create a complete card styling.
+ *
+ * This is a convenience modifier that combines [brutalistShadow] and [brutalistBorder]
+ * into a single call, providing the complete brutalist card aesthetic with sensible
+ * defaults for typical card usage.
+ *
+ * @param shadowOffset The distance to offset the shadow. Defaults to [BrutalistShadowOffset] (4dp).
+ * @param borderWidth The width of the border. Defaults to [BrutalistBorderWidth] (3dp).
+ * @param shadowColor The color of the shadow. Defaults to [Color.Black].
+ * @param borderColor The color of the border. Defaults to [Color.Black].
+ * @return A [Modifier] that applies both shadow and border with brutalist styling.
+ *
+ * @sample
+ * ```kotlin
+ * Card(
+ *     modifier = Modifier
+ *         .fillMaxWidth()
+ *         .brutalistCard()
+ *         .background(Color.White)
+ * ) {
+ *     // Card content
+ * }
+ * ```
+ */
+fun Modifier.brutalistCard(
+    shadowOffset: Dp = BrutalistShadowOffset,
+    borderWidth: Dp = BrutalistBorderWidth,
+    shadowColor: Color = Color.Black,
+    borderColor: Color = Color.Black
+): Modifier = this
+    .brutalistShadow(offset = shadowOffset, color = shadowColor)
+    .brutalistBorder(width = borderWidth, color = borderColor)

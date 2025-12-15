@@ -115,4 +115,68 @@ class BrutalistModifiersTest {
             .brutalistBorder()
         assertNotNull("brutalistShadow and brutalistBorder should compose together", result)
     }
+
+    // =========================================================================
+    // BRUTALIST CARD MODIFIER TESTS (Combined Shadow + Border)
+    // =========================================================================
+
+    @Test
+    fun `brutalistCard returns non-null modifier`() {
+        val result = Modifier.brutalistCard()
+        assertNotNull("brutalistCard should return a modifier", result)
+    }
+
+    @Test
+    fun `brutalistCard with default parameters uses sensible defaults`() {
+        // Test that the function accepts default parameters and returns a valid modifier
+        val result = Modifier.brutalistCard()
+        assertNotNull("brutalistCard should compose with Modifier", result)
+    }
+
+    @Test
+    fun `brutalistCard with custom shadow offset accepts parameter`() {
+        val customOffset = 8.dp
+        val result = Modifier.brutalistCard(shadowOffset = customOffset)
+        assertNotNull("brutalistCard with custom shadow offset should return a modifier", result)
+    }
+
+    @Test
+    fun `brutalistCard with custom border width accepts parameter`() {
+        val customWidth = 4.dp
+        val result = Modifier.brutalistCard(borderWidth = customWidth)
+        assertNotNull("brutalistCard with custom border width should return a modifier", result)
+    }
+
+    @Test
+    fun `brutalistCard with custom shadow color accepts parameter`() {
+        val customColor = Color.DarkGray
+        val result = Modifier.brutalistCard(shadowColor = customColor)
+        assertNotNull("brutalistCard with custom shadow color should return a modifier", result)
+    }
+
+    @Test
+    fun `brutalistCard with custom border color accepts parameter`() {
+        val customColor = Color.DarkGray
+        val result = Modifier.brutalistCard(borderColor = customColor)
+        assertNotNull("brutalistCard with custom border color should return a modifier", result)
+    }
+
+    @Test
+    fun `brutalistCard with all custom parameters`() {
+        val result = Modifier.brutalistCard(
+            shadowOffset = 12.dp,
+            borderWidth = 5.dp,
+            shadowColor = Color.Red,
+            borderColor = Color.Blue
+        )
+        assertNotNull("brutalistCard with all custom params should return a modifier", result)
+    }
+
+    @Test
+    fun `brutalistCard chains with other modifiers`() {
+        val result = Modifier
+            .brutalistCard()
+            .then(Modifier)
+        assertNotNull("brutalistCard should chain with other modifiers", result)
+    }
 }
