@@ -39,10 +39,10 @@ So that the navigation bar and FAB are consistently displayed.
   - [x] Add fade transitions for main tabs
   - [x] Add slide transitions for detail screens
   - [x] Use AnimatedNavHost for smooth animations
-- [ ] Task 5: Integrate with RulebookNavHost
-  - [ ] Wrap NavHost content with RulebookScaffold
-  - [ ] Pass navigation state to scaffold
-  - [ ] Wire FAB click to camera navigation
+- [x] Task 5: Integrate with RulebookNavHost
+  - [x] Wrap NavHost content with RulebookScaffold
+  - [x] Pass navigation state to scaffold
+  - [x] Wire FAB click to camera navigation
 - [ ] Task 6: Handle edge-to-edge insets
   - [ ] Content respects system bars
   - [ ] Bottom bar positioned correctly
@@ -246,11 +246,13 @@ claude-opus-4-5-20251101
 - Task 2: Added AnimatedVisibility with slideInVertically/slideOutVertically animations for smooth bottom bar show/hide transitions.
 - Task 3: Added AnimatedVisibility with scaleIn/scaleOut animations for smooth FAB show/hide transitions.
 - Task 4: Added screen transition animations to RulebookNavHost - fade transitions for main tabs (Library, Settings) and slide transitions for detail screens (Camera, Rules, Onboarding, Purchase).
+- Task 5: Integrated RulebookScaffold in RulebookApp.kt, replacing the basic Scaffold with the full navigation-aware scaffold.
 
 ### File List
 - app/src/main/kotlin/com/rulebook/navigation/RulebookScaffold.kt (new)
 - app/src/test/kotlin/com/rulebook/navigation/RulebookScaffoldTest.kt (new)
 - app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (modified)
+- app/src/main/kotlin/com/rulebook/RulebookApp.kt (modified)
 
 ## Dependencies
 
