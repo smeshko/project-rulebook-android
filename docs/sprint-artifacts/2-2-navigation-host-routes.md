@@ -1,6 +1,6 @@
 # Story 2.2: Navigation Host & Route Definitions
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -32,26 +32,26 @@ So that screens can be navigated to consistently.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create NavigationDestination.kt (AC: #1)
-  - [ ] Define sealed class Route with route string
-  - [ ] Create Library, Settings, Camera, Rules, Onboarding, Purchase objects
-  - [ ] Add gameId argument pattern for Rules route
-- [ ] Task 2: Create RulebookNavHost composable (AC: #2)
-  - [ ] Create NavHost with startDestination = Library
-  - [ ] Add composable() for each route
-  - [ ] Pass NavController to screen composables
-- [ ] Task 3: Add type-safe navigation arguments (AC: #3)
-  - [ ] Create navArgument for gameId in Rules route
-  - [ ] Use NavType.StringType for arguments
-  - [ ] Create helper extension functions for navigation
-- [ ] Task 4: Configure deep links structure (AC: #4)
-  - [ ] Add deepLinks parameter to Routes that need them
-  - [ ] Prepare URI patterns for future use
-  - [ ] Document deep link scheme
-- [ ] Task 5: Integrate NavHost into RulebookApp
-  - [ ] Add NavController via rememberNavController()
-  - [ ] Replace placeholder with RulebookNavHost
-  - [ ] Create placeholder screens for each destination
+- [x] Task 1: Create NavigationDestination.kt (AC: #1)
+  - [x] Define sealed class Route with route string
+  - [x] Create Library, Settings, Camera, Rules, Onboarding, Purchase objects
+  - [x] Add gameId argument pattern for Rules route
+- [x] Task 2: Create RulebookNavHost composable (AC: #2)
+  - [x] Create NavHost with startDestination = Library
+  - [x] Add composable() for each route
+  - [x] Pass NavController to screen composables
+- [x] Task 3: Add type-safe navigation arguments (AC: #3)
+  - [x] Create navArgument for gameId in Rules route
+  - [x] Use NavType.StringType for arguments
+  - [x] Create helper extension functions for navigation
+- [x] Task 4: Configure deep links structure (AC: #4)
+  - [x] Add deepLinks parameter to Routes that need them
+  - [x] Prepare URI patterns for future use
+  - [x] Document deep link scheme
+- [x] Task 5: Integrate NavHost into RulebookApp
+  - [x] Add NavController via rememberNavController()
+  - [x] Replace placeholder with RulebookNavHost
+  - [x] Create placeholder screens for each destination
 
 ## Dev Notes
 
@@ -223,8 +223,23 @@ implementation(libs.androidx.navigation.compose)
 ### Debug Log References
 
 ### Completion Notes List
+- Task 1: Created NavigationDestination.kt with sealed class Route defining all app destinations (Library, Settings, Camera, Rules, Onboarding, Purchase). Rules route includes gameId argument pattern and createRoute helper function. Added RulebookNavArgs object for centralized argument keys. Unit tests verify all route strings and argument handling.
+- Task 2: Created RulebookNavHost composable with NavHost container. Configured startDestination to Library route. Added composable() entries for all 6 destinations with placeholder content. NavController is accepted as parameter for navigation management.
+- Task 3: Added type-safe navigation arguments for Rules route using navArgument with NavType.StringType. Created NavControllerExtensions.kt with helper functions for all navigation destinations (navigateToRules, navigateToLibrary, navigateToSettings, navigateToCamera, navigateToOnboarding, navigateToPurchase, completeOnboarding).
+- Task 4: Configured deep links for Rules route with pattern "rulebook://rules/{gameId}". Created DeepLinkConfig.kt with centralized scheme configuration and comprehensive documentation including manifest setup, testing instructions, and future deep link patterns.
+- Task 5: Integrated RulebookNavHost into RulebookApp with rememberNavController(). Created PlaceholderScreens.kt with temporary screens for all destinations (LibraryPlaceholder, SettingsPlaceholder, CameraPlaceholder, OnboardingPlaceholder, PurchasePlaceholder, RulesPlaceholder). RulesPlaceholder accepts gameId parameter.
 
 ### File List
+- app/src/main/kotlin/com/rulebook/navigation/NavigationDestination.kt (new)
+- app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (new)
+- app/src/main/kotlin/com/rulebook/navigation/NavControllerExtensions.kt (new)
+- app/src/main/kotlin/com/rulebook/navigation/DeepLinkConfig.kt (new)
+- app/src/main/kotlin/com/rulebook/navigation/PlaceholderScreens.kt (new)
+- app/src/main/kotlin/com/rulebook/RulebookApp.kt (modified)
+- app/src/test/kotlin/com/rulebook/navigation/NavigationDestinationTest.kt (new)
+- app/src/test/kotlin/com/rulebook/navigation/RulebookNavHostTest.kt (new)
+- app/src/test/kotlin/com/rulebook/navigation/NavControllerExtensionsTest.kt (new)
+- app/src/test/kotlin/com/rulebook/navigation/DeepLinkConfigTest.kt (new)
 
 ## Dependencies
 

@@ -2,7 +2,6 @@ package com.rulebook
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,13 +9,13 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.navigation.compose.rememberNavController
+import com.rulebook.navigation.RulebookNavHost
 
 /**
  * Root composable for the Rulebook app.
@@ -33,6 +32,7 @@ fun RulebookApp(
     modifier: Modifier = Modifier
 ) {
     val isDarkTheme = isSystemInDarkTheme()
+    val navController = rememberNavController()
 
     // Configure status bar and navigation bar icon colors based on theme
     // Note: enableEdgeToEdge() in MainActivity handles transparent bars
@@ -46,20 +46,13 @@ fun RulebookApp(
             modifier = Modifier.fillMaxSize(),
             contentWindowInsets = WindowInsets.systemBars
         ) { innerPadding ->
-            // Content with proper insets applied
-            Box(
+            // Navigation host with proper insets applied
+            RulebookNavHost(
+                navController = navController,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                // Placeholder content - NavHost will be added in Story 2.2
-                Text(
-                    text = "Rulebook",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
+                    .padding(innerPadding)
+            )
         }
     }
 }

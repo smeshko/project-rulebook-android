@@ -126,7 +126,7 @@ development_status:
 
   # Story 2.2: Navigation Host & Route Definitions
   2-2-navigation-host-routes:
-    status: ready-for-dev
+    status: done
     story_file: docs/sprint-artifacts/2-2-navigation-host-routes.md
 
   # Story 2.3: Bottom Navigation Bar
@@ -161,8 +161,8 @@ development_status:
 
 summary:
   total_stories: 21
-  done: 14
-  ready_for_dev: 7
+  done: 15
+  ready_for_dev: 6
   in_progress: 0
   in_review: 0
   blocked: 0
