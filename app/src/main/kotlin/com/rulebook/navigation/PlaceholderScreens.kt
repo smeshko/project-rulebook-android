@@ -1,5 +1,6 @@
 package com.rulebook.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,10 +21,18 @@ import androidx.compose.ui.unit.dp
  *
  * Each placeholder displays the screen name and notes when the actual
  * implementation is expected.
+ *
+ * ## Predictive Back Gesture Support
+ * Detail screens (Camera, Rules, Purchase) include `onNavigateBack` callbacks
+ * that integrate with the predictive back gesture system on Android 14+.
+ * The [BackHandler] composable is used to provide custom back handling while
+ * maintaining compatibility with predictive back animations.
  */
 
 /**
  * Placeholder for Library screen - main screen showing saved rulebooks.
+ *
+ * As a main/root screen, back navigation is handled by the system (exits app).
  */
 @Composable
 fun LibraryPlaceholder(modifier: Modifier = Modifier) {
@@ -36,6 +45,8 @@ fun LibraryPlaceholder(modifier: Modifier = Modifier) {
 
 /**
  * Placeholder for Settings screen - app configuration and preferences.
+ *
+ * As a main/root screen, back navigation is handled by the system (exits app).
  */
 @Composable
 fun SettingsPlaceholder(modifier: Modifier = Modifier) {
@@ -48,9 +59,21 @@ fun SettingsPlaceholder(modifier: Modifier = Modifier) {
 
 /**
  * Placeholder for Camera screen - capture rulebook pages.
+ *
+ * Supports predictive back gesture - swipe from left edge shows preview
+ * of previous screen before navigating back.
+ *
+ * @param onNavigateBack Callback invoked when back navigation is triggered
  */
 @Composable
-fun CameraPlaceholder(modifier: Modifier = Modifier) {
+fun CameraPlaceholder(
+    onNavigateBack: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    // BackHandler integrates with predictive back on Android 14+
+    // The onBackInvokedCallback in manifest enables the preview animation
+    BackHandler(enabled = true, onBack = onNavigateBack)
+
     PlaceholderContent(
         title = "Camera",
         subtitle = "Coming in Epic 3",
@@ -60,6 +83,9 @@ fun CameraPlaceholder(modifier: Modifier = Modifier) {
 
 /**
  * Placeholder for Onboarding screen - first-time user experience.
+ *
+ * Onboarding typically handles back navigation specially (e.g., go to previous step
+ * or show confirmation dialog). This placeholder uses default system behavior.
  */
 @Composable
 fun OnboardingPlaceholder(modifier: Modifier = Modifier) {
@@ -72,9 +98,20 @@ fun OnboardingPlaceholder(modifier: Modifier = Modifier) {
 
 /**
  * Placeholder for Purchase screen - premium features and subscriptions.
+ *
+ * Supports predictive back gesture - swipe from left edge shows preview
+ * of previous screen before navigating back.
+ *
+ * @param onNavigateBack Callback invoked when back navigation is triggered
  */
 @Composable
-fun PurchasePlaceholder(modifier: Modifier = Modifier) {
+fun PurchasePlaceholder(
+    onNavigateBack: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    // BackHandler integrates with predictive back on Android 14+
+    BackHandler(enabled = true, onBack = onNavigateBack)
+
     PlaceholderContent(
         title = "Purchase",
         subtitle = "Coming in Epic 6",
@@ -85,13 +122,21 @@ fun PurchasePlaceholder(modifier: Modifier = Modifier) {
 /**
  * Placeholder for Rules screen - displays rules for a specific game.
  *
+ * Supports predictive back gesture - swipe from left edge shows preview
+ * of previous screen before navigating back.
+ *
  * @param gameId The unique identifier of the game (displayed for debugging)
+ * @param onNavigateBack Callback invoked when back navigation is triggered
  */
 @Composable
 fun RulesPlaceholder(
     gameId: String,
+    onNavigateBack: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    // BackHandler integrates with predictive back on Android 14+
+    BackHandler(enabled = true, onBack = onNavigateBack)
+
     PlaceholderContent(
         title = "Rules",
         subtitle = "Game: $gameId\nComing in Epic 4",
