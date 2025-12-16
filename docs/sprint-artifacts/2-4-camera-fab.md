@@ -26,17 +26,17 @@ So that I can quickly scan a game from any main screen.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create RulebookFAB composable (AC: #2, #3, #6)
-  - [ ] Create composable in core/designsystem/component
-  - [ ] Use Material 3 FloatingActionButton as base
-  - [ ] Add camera icon
-  - [ ] Apply brutalist styling (border, shadow, pink fill)
-  - [ ] Ensure ripple feedback is present
-- [ ] Task 2: Apply brutalist styling (AC: #3)
-  - [ ] Pink fill color (#E91E63)
-  - [ ] Black border (3dp)
-  - [ ] Offset shadow (4dp)
-  - [ ] Use brutalistShadow and brutalistBorder modifiers
+- [x] Task 1: Create RulebookFAB composable (AC: #2, #3, #6)
+  - [x] Create composable in core/designsystem/component
+  - [x] Use Material 3 FloatingActionButton as base
+  - [x] Add camera icon
+  - [x] Apply brutalist styling (border, shadow, pink fill)
+  - [x] Ensure ripple feedback is present
+- [x] Task 2: Apply brutalist styling (AC: #3)
+  - [x] Pink fill color (#E91E63)
+  - [x] Black border (3dp)
+  - [x] Offset shadow (4dp)
+  - [x] Use brutalistShadow and brutalistBorder modifiers
 - [ ] Task 3: Configure FAB position (AC: #1, #5)
   - [ ] Standard FAB position (bottom-right)
   - [ ] Above navigation bar with proper spacing
