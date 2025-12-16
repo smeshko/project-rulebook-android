@@ -7,6 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 
 /**
  * Navigation host for the Rulebook app.
@@ -55,11 +56,17 @@ fun RulebookNavHost(
         }
 
         // Rules - displays rules for a specific game with type-safe gameId argument
+        // Deep link: rulebook://rules/{gameId}
         composable(
             route = Route.Rules.route,
             arguments = listOf(
                 navArgument(RulebookNavArgs.GAME_ID) {
                     type = NavType.StringType
+                }
+            ),
+            deepLinks = listOf(
+                navDeepLink {
+                    uriPattern = "${DeepLinkConfig.SCHEME}://${DeepLinkConfig.HOST_RULES}/{${RulebookNavArgs.GAME_ID}}"
                 }
             )
         ) { backStackEntry ->
