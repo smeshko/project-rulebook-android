@@ -36,11 +36,13 @@ fun RulebookBottomBar(
         modifier = modifier
             .drawBehind {
                 // Thick top border (brutalist style) - always black per design spec
+                // Offset by half stroke width to prevent clipping at y=0
+                val strokeWidth = BrutalistBorderWidth.toPx()
                 drawLine(
                     color = Color.Black,
-                    start = Offset(0f, 0f),
-                    end = Offset(size.width, 0f),
-                    strokeWidth = BrutalistBorderWidth.toPx()
+                    start = Offset(0f, strokeWidth / 2f),
+                    end = Offset(size.width, strokeWidth / 2f),
+                    strokeWidth = strokeWidth
                 )
             },
         containerColor = MaterialTheme.colorScheme.surface,
