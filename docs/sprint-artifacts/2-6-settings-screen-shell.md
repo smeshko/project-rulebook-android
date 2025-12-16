@@ -1,6 +1,6 @@
 # Story 2.6: Settings Screen Shell
 
-Status: Ready for Review
+Status: Done
 
 ## Story
 
