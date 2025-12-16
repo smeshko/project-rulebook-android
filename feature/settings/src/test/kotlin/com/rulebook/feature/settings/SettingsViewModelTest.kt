@@ -29,4 +29,26 @@ class SettingsViewModelTest {
 
         assertEquals("States should be equal", state1, state2)
     }
+
+    @Test
+    fun `onThemeToggle updates isDarkTheme state`() = runTest {
+        val viewModel = SettingsViewModel()
+
+        viewModel.onThemeToggle(true)
+        assertTrue("Dark theme should be enabled", viewModel.uiState.first().isDarkTheme)
+
+        viewModel.onThemeToggle(false)
+        assertFalse("Dark theme should be disabled", viewModel.uiState.first().isDarkTheme)
+    }
+
+    @Test
+    fun `onHapticsToggle updates isHapticsEnabled state`() = runTest {
+        val viewModel = SettingsViewModel()
+
+        viewModel.onHapticsToggle(false)
+        assertFalse("Haptics should be disabled", viewModel.uiState.first().isHapticsEnabled)
+
+        viewModel.onHapticsToggle(true)
+        assertTrue("Haptics should be enabled", viewModel.uiState.first().isHapticsEnabled)
+    }
 }

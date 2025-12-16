@@ -18,18 +18,20 @@ class SettingsViewModel : ViewModel() {
 
     /**
      * Toggles the dark theme setting.
-     * Placeholder - will be implemented in Epic 9.
+     * Updates local UI state immediately. Persistence will be implemented in Epic 9.
      */
     fun onThemeToggle(enabled: Boolean) {
-        // TODO: Implement in Epic 9
+        _uiState.value = _uiState.value.copy(isDarkTheme = enabled)
+        // TODO: Persist to DataStore in Epic 9
     }
 
     /**
      * Toggles the haptic feedback setting.
-     * Placeholder - will be implemented in Epic 9.
+     * Updates local UI state immediately. Persistence will be implemented in Epic 9.
      */
     fun onHapticsToggle(enabled: Boolean) {
-        // TODO: Implement in Epic 9
+        _uiState.value = _uiState.value.copy(isHapticsEnabled = enabled)
+        // TODO: Persist to DataStore in Epic 9
     }
 
     /**
