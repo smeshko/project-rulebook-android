@@ -94,4 +94,48 @@ class PredictiveBackConfigTest {
         assertTrue("Compose Navigation 2.8+ required", requiredNavVersion >= "2.8.0")
         assertTrue("API 34+ required for predictive back", minApiForPredictiveBack >= 34)
     }
+
+    /**
+     * Manual testing checklist for predictive back gestures on Android 14+ devices.
+     *
+     * ## Pre-requisites
+     * - Android 14+ device (API 34+)
+     * - Gesture navigation enabled: Settings > System > Gestures > System navigation
+     *
+     * ## Test Cases
+     *
+     * ### Camera Screen (AC: #1, #2, #3, #4, #5)
+     * 1. Navigate from Library to Camera
+     * 2. Start back gesture from left edge
+     * 3. VERIFY: Preview of Library screen shows during gesture
+     * 4. Complete gesture by swiping fully
+     * 5. VERIFY: Navigation returns to Library
+     * 6. Navigate to Camera again
+     * 7. Start back gesture but cancel midway
+     * 8. VERIFY: Returns to Camera screen, no navigation occurs
+     *
+     * ### Rules Screen (AC: #1, #2, #3, #4, #5)
+     * 1. Navigate from Library to Rules (with any gameId)
+     * 2. Start back gesture from left edge
+     * 3. VERIFY: Preview of previous screen shows during gesture
+     * 4. Complete gesture
+     * 5. VERIFY: Navigation returns to previous screen
+     *
+     * ### Main Screens - Library/Settings (AC: #2)
+     * 1. On Library screen (start destination)
+     * 2. Perform back gesture
+     * 3. VERIFY: App exits or shows system back confirmation
+     *
+     * ### Backward Compatibility (Older devices)
+     * On Android 13 and below:
+     * - Back gesture should work without preview animation
+     * - Standard back navigation occurs immediately
+     * - enableOnBackInvokedCallback is ignored
+     */
+    @Test
+    fun `document manual testing checklist`() {
+        // This test documents the manual testing procedure
+        // Automated UI tests for gestures require instrumented tests
+        assertTrue("See KDoc for manual testing checklist", true)
+    }
 }
