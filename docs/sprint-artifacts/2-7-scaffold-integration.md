@@ -1,6 +1,6 @@
 # Story 2.7: Scaffold Integration & Screen Composition
 
-Status: code-review
+Status: done
 
 ## Story
 
