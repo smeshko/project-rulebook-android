@@ -1,0 +1,106 @@
+package com.rulebook.navigation
+
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.rulebook.core.designsystem.component.RulebookFAB
+
+/**
+ * Routes where the bottom navigation bar should be visible.
+ * Main screens that are part of the bottom navigation.
+ */
+private val MAIN_ROUTES = setOf(
+    Route.Library.route,
+    Route.Settings.route
+)
+
+/**
+ * Determines if the bottom navigation bar should be shown for the given route.
+ *
+ * @param currentRoute The current navigation route
+ * @return true if bottom bar should be visible, false otherwise
+ */
+fun shouldShowBottomBar(currentRoute: String?): Boolean {
+    if (currentRoute == null) return false
+    return currentRoute in MAIN_ROUTES
+}
+
+/**
+ * Determines if the FAB should be shown for the given route.
+ *
+ * The FAB is visible on the same routes as the bottom bar (Library and Settings).
+ *
+ * @param currentRoute The current navigation route
+ * @return true if FAB should be visible, false otherwise
+ */
+fun shouldShowFab(currentRoute: String?): Boolean {
+    if (currentRoute == null) return false
+    return currentRoute in MAIN_ROUTES
+}
+
+/**
+ * RulebookScaffold - Main scaffold wrapper for the Rulebook app.
+ *
+ * Provides consistent layout structure with:
+ * - Bottom navigation bar (visible on main routes)
+ * - Floating action button for camera (visible on main routes)
+ * - Content area with proper system bar insets
+ *
+ * ## Visibility Rules
+ * | Route      | Bottom Bar | FAB |
+ * |------------|------------|-----|
+ * | Library    | ✓          | ✓   |
+ * | Settings   | ✓          | ✓   |
+ * | Camera     | ✗          | ✗   |
+ * | Rules      | ✗          | ✗   |
+ * | Onboarding | ✗          | ✗   |
+ * | Purchase   | ✗          | ✗   |
+ *
+ * @param navController Navigation controller for tracking current route
+ * @param modifier Modifier for the scaffold
+ * @param content Content lambda receiving inner padding values
+ */
+@Composable
+fun RulebookScaffold(
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+    content: @Composable (PaddingValues) -> Unit
+) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val showBottomBar = shouldShowBottomBar(currentRoute)
+    val showFab = shouldShowFab(currentRoute)
+
+    Scaffold(
+        modifier = modifier,
+        bottomBar = {
+            if (showBottomBar) {
+                RulebookBottomBar(
+                    currentRoute = currentRoute,
+                    onNavigate = { route ->
+                        navController.navigateToBottomBarDestination(route)
+                    }
+                )
+            }
+        },
+        floatingActionButton = {
+            if (showFab) {
+                RulebookFAB(
+                    onClick = { navController.navigate(Route.Camera.route) }
+                )
+            }
+        },
+        floatingActionButtonPosition = FabPosition.End,
+        contentWindowInsets = WindowInsets.systemBars
+    ) { innerPadding ->
+        content(innerPadding)
+    }
+}

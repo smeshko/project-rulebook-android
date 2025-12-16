@@ -1,6 +1,6 @@
 # Story 2.7: Scaffold Integration & Screen Composition
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -23,11 +23,11 @@ So that the navigation bar and FAB are consistently displayed.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create RulebookScaffold wrapper (AC: #1)
-  - [ ] Create RulebookScaffold composable
-  - [ ] Include bottom navigation bar
-  - [ ] Include floating action button
-  - [ ] Handle content area with proper insets
+- [x] Task 1: Create RulebookScaffold wrapper (AC: #1)
+  - [x] Create RulebookScaffold composable
+  - [x] Include bottom navigation bar
+  - [x] Include floating action button
+  - [x] Handle content area with proper insets
 - [ ] Task 2: Implement bottom bar visibility logic (AC: #2)
   - [ ] Define main routes that show bottom bar
   - [ ] Define routes that hide bottom bar
@@ -237,13 +237,16 @@ fun NavController.navigateToBottomBarDestination(route: String) {
 - Navigation routes from Story 2.2
 
 ### Agent Model Used
-{{agent_model_name_version}}
+claude-opus-4-5-20251101
 
 ### Debug Log References
 
 ### Completion Notes List
+- Task 1: Created RulebookScaffold composable with bottom bar, FAB, and proper WindowInsets handling. Added shouldShowBottomBar() and shouldShowFab() helper functions with comprehensive unit tests.
 
 ### File List
+- app/src/main/kotlin/com/rulebook/navigation/RulebookScaffold.kt (new)
+- app/src/test/kotlin/com/rulebook/navigation/RulebookScaffoldTest.kt (new)
 
 ## Dependencies
 
