@@ -156,7 +156,7 @@ development_status:
 
   # Story 2.8: Predictive Back Gesture Support
   2-8-predictive-back-gesture:
-    status: ready-for-dev
+    status: done
     story_file: docs/sprint-artifacts/2-8-predictive-back-gesture.md
 
 summary:

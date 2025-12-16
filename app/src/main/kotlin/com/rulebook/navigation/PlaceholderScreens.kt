@@ -20,10 +20,18 @@ import androidx.compose.ui.unit.dp
  *
  * Each placeholder displays the screen name and notes when the actual
  * implementation is expected.
+ *
+ * ## Predictive Back Gesture Support
+ * Compose Navigation 2.8+ automatically handles predictive back gestures
+ * when `android:enableOnBackInvokedCallback="true"` is set in the manifest.
+ * The NavHost manages back navigation with preview animations - no explicit
+ * BackHandler is needed for standard back-to-previous-screen behavior.
  */
 
 /**
  * Placeholder for Library screen - main screen showing saved rulebooks.
+ *
+ * As a main/root screen, back navigation is handled by the system (exits app).
  */
 @Composable
 fun LibraryPlaceholder(modifier: Modifier = Modifier) {
@@ -36,6 +44,8 @@ fun LibraryPlaceholder(modifier: Modifier = Modifier) {
 
 /**
  * Placeholder for Settings screen - app configuration and preferences.
+ *
+ * As a main/root screen, back navigation is handled by the system (exits app).
  */
 @Composable
 fun SettingsPlaceholder(modifier: Modifier = Modifier) {
@@ -48,9 +58,15 @@ fun SettingsPlaceholder(modifier: Modifier = Modifier) {
 
 /**
  * Placeholder for Camera screen - capture rulebook pages.
+ *
+ * Supports predictive back gesture - swipe from left edge shows preview
+ * of previous screen before navigating back. Compose Navigation 2.8+
+ * handles the preview animation automatically via NavHost.
  */
 @Composable
 fun CameraPlaceholder(modifier: Modifier = Modifier) {
+    // No BackHandler needed - Compose Navigation handles predictive back
+    // with preview animations automatically when using NavHost
     PlaceholderContent(
         title = "Camera",
         subtitle = "Coming in Epic 3",
@@ -60,6 +76,9 @@ fun CameraPlaceholder(modifier: Modifier = Modifier) {
 
 /**
  * Placeholder for Onboarding screen - first-time user experience.
+ *
+ * Onboarding typically handles back navigation specially (e.g., go to previous step
+ * or show confirmation dialog). This placeholder uses default system behavior.
  */
 @Composable
 fun OnboardingPlaceholder(modifier: Modifier = Modifier) {
@@ -72,9 +91,15 @@ fun OnboardingPlaceholder(modifier: Modifier = Modifier) {
 
 /**
  * Placeholder for Purchase screen - premium features and subscriptions.
+ *
+ * Supports predictive back gesture - swipe from left edge shows preview
+ * of previous screen before navigating back. Compose Navigation 2.8+
+ * handles the preview animation automatically via NavHost.
  */
 @Composable
 fun PurchasePlaceholder(modifier: Modifier = Modifier) {
+    // No BackHandler needed - Compose Navigation handles predictive back
+    // with preview animations automatically when using NavHost
     PlaceholderContent(
         title = "Purchase",
         subtitle = "Coming in Epic 6",
@@ -85,6 +110,10 @@ fun PurchasePlaceholder(modifier: Modifier = Modifier) {
 /**
  * Placeholder for Rules screen - displays rules for a specific game.
  *
+ * Supports predictive back gesture - swipe from left edge shows preview
+ * of previous screen before navigating back. Compose Navigation 2.8+
+ * handles the preview animation automatically via NavHost.
+ *
  * @param gameId The unique identifier of the game (displayed for debugging)
  */
 @Composable
@@ -92,6 +121,8 @@ fun RulesPlaceholder(
     gameId: String,
     modifier: Modifier = Modifier
 ) {
+    // No BackHandler needed - Compose Navigation handles predictive back
+    // with preview animations automatically when using NavHost
     PlaceholderContent(
         title = "Rules",
         subtitle = "Game: $gameId\nComing in Epic 4",
