@@ -1,6 +1,6 @@
 # Story 2.5: Library Screen Shell with Empty State
 
-Status: ready-for-dev
+Status: In Progress
 
 ## Story
 
@@ -24,33 +24,33 @@ So that I understand how to get started.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create LibraryScreen composable (AC: #1, #2)
-  - [ ] Create feature/library module structure
-  - [ ] Create LibraryScreen.kt
-  - [ ] Add RulebookHeaderBar with "Library" title
-  - [ ] Implement empty state layout
-- [ ] Task 2: Create LibraryViewModel (AC: #1)
-  - [ ] Create LibraryViewModel.kt
-  - [ ] Create LibraryUiState data class
-  - [ ] Track empty state vs games list state
-  - [ ] Expose StateFlow for UI observation
-- [ ] Task 3: Implement empty state content (AC: #1)
-  - [ ] Add game-related icon/illustration
-  - [ ] Add "No games yet" headline
-  - [ ] Add "Scan your first game to get started" subtext
-  - [ ] Add optional CTA button using RulebookButton
-  - [ ] Use RulebookCard styling for empty state container
-- [ ] Task 4: Add pull-to-refresh support (AC: #3)
-  - [ ] Wrap content in PullToRefreshBox
-  - [ ] Wire refresh action to ViewModel
-  - [ ] Handle refresh state
-- [ ] Task 5: Create Koin module for library feature
-  - [ ] Create LibraryModule.kt
-  - [ ] Register LibraryViewModel
-  - [ ] Register in app module
-- [ ] Task 6: Wire navigation callbacks
-  - [ ] Add onNavigateToCamera callback
-  - [ ] Add onNavigateToRules callback (for future)
+- [x] Task 1: Create LibraryScreen composable (AC: #1, #2)
+  - [x] Create feature/library module structure
+  - [x] Create LibraryScreen.kt
+  - [x] Add RulebookHeaderBar with "Library" title
+  - [x] Implement empty state layout
+- [x] Task 2: Create LibraryViewModel (AC: #1)
+  - [x] Create LibraryViewModel.kt
+  - [x] Create LibraryUiState data class
+  - [x] Track empty state vs games list state
+  - [x] Expose StateFlow for UI observation
+- [x] Task 3: Implement empty state content (AC: #1)
+  - [x] Add game-related icon/illustration
+  - [x] Add "No games yet" headline
+  - [x] Add "Scan your first game to get started" subtext
+  - [x] Add optional CTA button using RulebookButton
+  - [x] Use RulebookCard styling for empty state container
+- [x] Task 4: Add pull-to-refresh support (AC: #3)
+  - [x] Wrap content in PullToRefreshBox
+  - [x] Wire refresh action to ViewModel
+  - [x] Handle refresh state
+- [x] Task 5: Create Koin module for library feature
+  - [x] Create LibraryModule.kt
+  - [x] Register LibraryViewModel
+  - [ ] Register in app module (deferred to Story 2.7 - Scaffold Integration)
+- [x] Task 6: Wire navigation callbacks
+  - [x] Add onNavigateToCamera callback
+  - [x] Add onNavigateToRules callback (for future)
 
 ## Dev Notes
 
@@ -247,15 +247,48 @@ dependencies {
 - RulebookCard from Story 1.10
 - RulebookButton from Story 1.9
 - MVI pattern from architecture
+- SettingsScreen pattern from Story 2.6
 
 ### Agent Model Used
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
+- Build blocked by JDK 25 incompatibility in environment (requires JDK 17/21)
+- Code follows identical patterns to SettingsScreen (Story 2.6)
 
 ### Completion Notes List
+- Created LibraryScreen composable with RulebookHeaderBar showing "Library" title
+- Created LibraryViewModel with StateFlow-based state management
+- Created LibraryUiState data class with isEmpty computed property
+- Implemented LibraryEmptyState component with:
+  - SportsEsports icon (64dp, 60% alpha)
+  - "No games yet" headline using displayTitle2 typography
+  - "Scan your first game to get started" subtext
+  - RulebookButton CTA with Primary variant
+  - RulebookCard container with brutalist styling
+- Added PullToRefreshBox wrapper with refresh wired to ViewModel
+- Created GameRepository interface and stub implementation in core:data module
+- Registered GameRepository in dataModule (core:data)
+- Updated LibraryModule to register LibraryViewModel with repository injection
+- Added onNavigateToCamera and onNavigateToRules callbacks
+- Created LibraryViewModelTest with 4 tests covering:
+  - Initial empty state
+  - Initial state with games
+  - Refresh state transitions
+  - Error state capture
+- Added light/dark previews and loading/refreshing state previews
 
 ### File List
+- feature/library/src/main/kotlin/com/rulebook/feature/library/LibraryScreen.kt (modified)
+- feature/library/src/main/kotlin/com/rulebook/feature/library/LibraryViewModel.kt (new)
+- feature/library/src/main/kotlin/com/rulebook/feature/library/LibraryUiState.kt (new)
+- feature/library/src/main/kotlin/com/rulebook/feature/library/components/LibraryEmptyState.kt (new)
+- feature/library/src/main/kotlin/com/rulebook/feature/library/di/LibraryModule.kt (modified)
+- feature/library/src/test/kotlin/com/rulebook/feature/library/LibraryViewModelTest.kt (new)
+- feature/library/build.gradle.kts (modified)
+- core/data/src/main/kotlin/com/rulebook/core/data/repository/GameRepository.kt (new)
+- core/data/src/main/kotlin/com/rulebook/core/data/repository/GameRepositoryImpl.kt (new)
+- core/data/src/main/kotlin/com/rulebook/core/data/di/DataModule.kt (modified)
 
 ## Dependencies
 
