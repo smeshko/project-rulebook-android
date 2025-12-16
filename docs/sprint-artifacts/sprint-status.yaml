@@ -136,7 +136,7 @@ development_status:
 
   # Story 2.4: Floating Action Button for Camera
   2-4-camera-fab:
-    status: in-review
+    status: done
     story_file: docs/sprint-artifacts/2-4-camera-fab.md
 
   # Story 2.5: Library Screen Shell with Empty State
@@ -161,10 +161,10 @@ development_status:
 
 summary:
   total_stories: 21
-  done: 16
-  ready_for_dev: 4
+  done: 17
+  ready_for_dev: 3
   in_progress: 0
-  in_review: 1
+  in_review: 0
   blocked: 0
   epic_status: in-progress
   retrospective: done

@@ -1,6 +1,6 @@
 # Story 2.4: Floating Action Button for Camera
 
-Status: Ready for Review
+Status: Done
 
 ## Story
 
