@@ -1,6 +1,6 @@
 # Story 2.1: MainActivity with Edge-to-Edge Display
 
-Status: Ready for Review
+Status: Done
 
 ## Story
 
