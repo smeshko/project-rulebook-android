@@ -116,12 +116,55 @@ development_status:
     linear_url: https://linear.app/project-rulebook/issue/RULE-120
     story_file: docs/sprint-artifacts/1-13-result-wrapper.md
 
+  # Epic 2: App Shell & Navigation
+  epic-2: backlog
+
+  # Story 2.1: MainActivity with Edge-to-Edge Display
+  2-1-main-activity-edge-to-edge:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/2-1-main-activity-edge-to-edge.md
+
+  # Story 2.2: Navigation Host & Route Definitions
+  2-2-navigation-host-routes:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/2-2-navigation-host-routes.md
+
+  # Story 2.3: Bottom Navigation Bar
+  2-3-bottom-navigation-bar:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/2-3-bottom-navigation-bar.md
+
+  # Story 2.4: Floating Action Button for Camera
+  2-4-camera-fab:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/2-4-camera-fab.md
+
+  # Story 2.5: Library Screen Shell with Empty State
+  2-5-library-screen-empty-state:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/2-5-library-screen-empty-state.md
+
+  # Story 2.6: Settings Screen Shell
+  2-6-settings-screen-shell:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/2-6-settings-screen-shell.md
+
+  # Story 2.7: Scaffold Integration & Screen Composition
+  2-7-scaffold-integration:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/2-7-scaffold-integration.md
+
+  # Story 2.8: Predictive Back Gesture Support
+  2-8-predictive-back-gesture:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/2-8-predictive-back-gesture.md
+
 summary:
-  total_stories: 13
+  total_stories: 21
   done: 13
-  ready_for_dev: 0
+  ready_for_dev: 8
   in_progress: 0
   in_review: 0
   blocked: 0
-  epic_status: complete
+  epic_status: in-progress
   retrospective: done
