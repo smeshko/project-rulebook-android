@@ -2,12 +2,9 @@ package com.rulebook
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -16,6 +13,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
 import com.rulebook.navigation.RulebookNavHost
+import com.rulebook.navigation.RulebookScaffold
 
 /**
  * Root composable for the Rulebook app.
@@ -23,7 +21,7 @@ import com.rulebook.navigation.RulebookNavHost
  * This composable:
  * - Configures theme-aware status bar icons (light/dark)
  * - Applies WindowInsets for proper edge-to-edge content layout
- * - Provides the Scaffold structure for navigation (to be implemented in Story 2.7)
+ * - Provides the RulebookScaffold structure with bottom bar, FAB, and navigation
  *
  * @param modifier Optional modifier for the root composable
  */
@@ -42,9 +40,9 @@ fun RulebookApp(
         modifier = modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            contentWindowInsets = WindowInsets.systemBars
+        RulebookScaffold(
+            navController = navController,
+            modifier = Modifier.fillMaxSize()
         ) { innerPadding ->
             // Navigation host with proper insets applied
             RulebookNavHost(

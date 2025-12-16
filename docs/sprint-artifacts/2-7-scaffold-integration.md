@@ -1,6 +1,6 @@
 # Story 2.7: Scaffold Integration & Screen Composition
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -23,30 +23,30 @@ So that the navigation bar and FAB are consistently displayed.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create RulebookScaffold wrapper (AC: #1)
-  - [ ] Create RulebookScaffold composable
-  - [ ] Include bottom navigation bar
-  - [ ] Include floating action button
-  - [ ] Handle content area with proper insets
-- [ ] Task 2: Implement bottom bar visibility logic (AC: #2)
-  - [ ] Define main routes that show bottom bar
-  - [ ] Define routes that hide bottom bar
-  - [ ] Conditionally show/hide based on current route
-- [ ] Task 3: Implement FAB visibility logic (AC: #2)
-  - [ ] FAB visible on Library and Settings
-  - [ ] FAB hidden on Camera, Rules, Onboarding, Purchase
-- [ ] Task 4: Configure screen transitions (AC: #3)
-  - [ ] Add fade transitions for main tabs
-  - [ ] Add slide transitions for detail screens
-  - [ ] Use AnimatedNavHost for smooth animations
-- [ ] Task 5: Integrate with RulebookNavHost
-  - [ ] Wrap NavHost content with RulebookScaffold
-  - [ ] Pass navigation state to scaffold
-  - [ ] Wire FAB click to camera navigation
-- [ ] Task 6: Handle edge-to-edge insets
-  - [ ] Content respects system bars
-  - [ ] Bottom bar positioned correctly
-  - [ ] FAB positioned above bottom bar
+- [x] Task 1: Create RulebookScaffold wrapper (AC: #1)
+  - [x] Create RulebookScaffold composable
+  - [x] Include bottom navigation bar
+  - [x] Include floating action button
+  - [x] Handle content area with proper insets
+- [x] Task 2: Implement bottom bar visibility logic (AC: #2)
+  - [x] Define main routes that show bottom bar
+  - [x] Define routes that hide bottom bar
+  - [x] Conditionally show/hide based on current route
+- [x] Task 3: Implement FAB visibility logic (AC: #2)
+  - [x] FAB visible on Library and Settings
+  - [x] FAB hidden on Camera, Rules, Onboarding, Purchase
+- [x] Task 4: Configure screen transitions (AC: #3)
+  - [x] Add fade transitions for main tabs
+  - [x] Add slide transitions for detail screens
+  - [x] Use AnimatedNavHost for smooth animations
+- [x] Task 5: Integrate with RulebookNavHost
+  - [x] Wrap NavHost content with RulebookScaffold
+  - [x] Pass navigation state to scaffold
+  - [x] Wire FAB click to camera navigation
+- [x] Task 6: Handle edge-to-edge insets
+  - [x] Content respects system bars
+  - [x] Bottom bar positioned correctly
+  - [x] FAB positioned above bottom bar
 
 ## Dev Notes
 
@@ -237,13 +237,23 @@ fun NavController.navigateToBottomBarDestination(route: String) {
 - Navigation routes from Story 2.2
 
 ### Agent Model Used
-{{agent_model_name_version}}
+claude-opus-4-5-20251101
 
 ### Debug Log References
 
 ### Completion Notes List
+- Task 1: Created RulebookScaffold composable with bottom bar, FAB, and proper WindowInsets handling. Added shouldShowBottomBar() and shouldShowFab() helper functions with comprehensive unit tests.
+- Task 2: Added AnimatedVisibility with slideInVertically/slideOutVertically animations for smooth bottom bar show/hide transitions.
+- Task 3: Added AnimatedVisibility with scaleIn/scaleOut animations for smooth FAB show/hide transitions.
+- Task 4: Added screen transition animations to RulebookNavHost - fade transitions for main tabs (Library, Settings) and slide transitions for detail screens (Camera, Rules, Onboarding, Purchase).
+- Task 5: Integrated RulebookScaffold in RulebookApp.kt, replacing the basic Scaffold with the full navigation-aware scaffold.
+- Task 6: Verified edge-to-edge handling with WindowInsets.systemBars, proper bottom bar positioning, and FAB placement. Updated KDoc with edge-to-edge documentation.
 
 ### File List
+- app/src/main/kotlin/com/rulebook/navigation/RulebookScaffold.kt (new)
+- app/src/test/kotlin/com/rulebook/navigation/RulebookScaffoldTest.kt (new)
+- app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (modified)
+- app/src/main/kotlin/com/rulebook/RulebookApp.kt (modified)
 
 ## Dependencies
 

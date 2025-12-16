@@ -1,5 +1,10 @@
 package com.rulebook.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -10,6 +15,11 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.rulebook.feature.library.LibraryScreen
 import com.rulebook.feature.settings.SettingsScreen
+
+/**
+ * Animation duration for screen transitions.
+ */
+private const val TRANSITION_DURATION_MS = 300
 
 /**
  * Navigation host for the Rulebook app.
@@ -39,11 +49,21 @@ fun RulebookNavHost(
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier
+        modifier = modifier,
+        // Default transitions - fade for most screens
+        enterTransition = { fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) },
+        exitTransition = { fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) },
+        popEnterTransition = { fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) },
+        popExitTransition = { fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) }
     ) {
         // Library - main screen showing saved rulebooks
         // Back gesture on main screen lets system handle it (exit app)
-        composable(route = Route.Library.route) {
+        // Uses default fade transition
+        composable(
+            route = Route.Library.route,
+            enterTransition = { fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) }
+        ) {
             LibraryScreen(
                 onNavigateToCamera = { navController.navigate(Route.Camera.route) },
                 onNavigateToRules = { gameId -> navController.navigate(Route.Rules.createRoute(gameId)) }
@@ -52,25 +72,51 @@ fun RulebookNavHost(
 
         // Settings - app configuration and preferences
         // Back gesture on main screen lets system handle it (exit app)
-        composable(route = Route.Settings.route) {
+        // Uses default fade transition
+        composable(
+            route = Route.Settings.route,
+            enterTransition = { fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) }
+        ) {
             SettingsScreen()
         }
 
         // Camera - capture rulebook pages
         // Predictive back handled automatically by NavHost - shows preview during gesture
-        composable(route = Route.Camera.route) {
+        // Uses slide transition for detail screen
+        composable(
+            route = Route.Camera.route,
+            enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
+        ) {
             CameraPlaceholder()
         }
 
         // Onboarding - first-time user experience
         // Back gesture during onboarding should be handled by the screen
-        composable(route = Route.Onboarding.route) {
+        // Uses slide transition
+        composable(
+            route = Route.Onboarding.route,
+            enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
+        ) {
             OnboardingPlaceholder()
         }
 
         // Purchase - premium features and subscriptions
         // Predictive back handled automatically by NavHost - shows preview during gesture
-        composable(route = Route.Purchase.route) {
+        // Uses slide transition for detail screen
+        composable(
+            route = Route.Purchase.route,
+            enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
+        ) {
             PurchasePlaceholder()
         }
 
@@ -79,6 +125,7 @@ fun RulebookNavHost(
         // Predictive back handled automatically by NavHost - shows preview during gesture
         // Note: When opened via deep link, Rules is the only destination.
         // NavHost handles this by finishing the activity when back stack is empty.
+        // Uses slide transition for detail screen
         composable(
             route = Route.Rules.route,
             arguments = listOf(
@@ -90,7 +137,11 @@ fun RulebookNavHost(
                 navDeepLink {
                     uriPattern = "${DeepLinkConfig.SCHEME}://${DeepLinkConfig.HOST_RULES}/{${RulebookNavArgs.GAME_ID}}"
                 }
-            )
+            ),
+            enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) { backStackEntry ->
             val gameId = backStackEntry.arguments?.getString(RulebookNavArgs.GAME_ID) ?: ""
             RulesPlaceholder(gameId = gameId)
