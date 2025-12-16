@@ -2,6 +2,10 @@
 name: code-review-loop
 description: Automated code review loop using Codex for adversarial review, with main agent validation and fixing. Runs up to 2 cycles, commits after each, then creates PR.
 web_bundle: true
+
+# Input Parameters (all optional)
+# story_id - Story ID to review (e.g., "3-1"). If provided and not on correct
+#            branch, workflow will find and switch to matching worktree.
 ---
 
 <!-- AUTONOMOUS WORKFLOW PATTERN

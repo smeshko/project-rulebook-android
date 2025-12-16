@@ -14,12 +14,17 @@ workflowFile: '{workflow_path}/workflow.md'
 config_source: '{project-root}/.bmad/bmm/config.yaml'
 sprint_artifacts: '{config_source}:sprint_artifacts'
 output_folder: '{config_source}:output_folder'
+worktree_base: '{project-root}/.worktrees'
 
 # Template References
 # (none required for this step)
 
 # Task References
 # (none required for this step)
+
+# Input Parameters
+# story_id - optional story ID (e.g., "3-1" or "T005"). If provided and not on
+#            correct branch, workflow will check for matching worktree.
 ---
 
 # Step 1: Initialize Code Review Loop
@@ -57,9 +62,84 @@ To load all necessary context for the code review loop: story file, acceptance c
 
 ## INITIALIZATION SEQUENCE:
 
-### 1. Detect Current Story
+### 1. Resolve Story and Environment
 
-Detect the story from git branch:
+This section handles optional story parameter input and worktree detection.
+
+#### 1a. Check for Story Parameter
+
+If `story_id` parameter was provided (e.g., workflow invoked with a story ID):
+- Store it as `{{target_story_id}}`
+- Proceed to step 1b to verify environment
+
+If no `story_id` was provided:
+- Proceed to step 1c (auto-detect from current branch)
+
+#### 1b. Verify Environment for Provided Story
+
+When a story ID is explicitly provided, verify we're in the correct environment:
+
+```bash
+# Get current branch
+git branch --show-current
+```
+
+**Check if current branch matches the story:**
+
+If current branch matches pattern `story/{{target_story_id}}*`:
+- We're already in the correct environment
+- Proceed to step 2 (Load Story File)
+
+**If NOT on correct branch, check for existing worktree:**
+
+```bash
+# List all worktrees and find matching one
+git worktree list --porcelain
+```
+
+Parse output to find worktree where branch matches `story/{{target_story_id}}*`.
+
+**If matching worktree found:**
+- Extract worktree path from `git worktree list` output
+- Display: "Found worktree for story {{target_story_id}} at {{worktree_path}}"
+- Change working directory to that worktree path
+- Verify we're now on correct branch
+- Proceed to step 2 (Load Story File)
+
+**If no matching worktree exists:**
+- Display error:
+  ```
+  ═══════════════════════════════════════════════════════════════
+    ERROR: Story Environment Not Found
+  ═══════════════════════════════════════════════════════════════
+    Story ID: {{target_story_id}}
+    Current Branch: {{current_branch}}
+
+    No worktree found for this story.
+
+    Options:
+    - Run /bmad:bmm:workflows:dev-begin {{target_story_id}} to set up environment
+    - Manually checkout: git checkout story/{{target_story_id}}-*
+  ═══════════════════════════════════════════════════════════════
+  ```
+- HALT workflow
+
+#### 1c. Auto-Detect Story from Current Environment
+
+If no story parameter was provided, detect from current context:
+
+**First, check if in a worktree directory:**
+
+```bash
+pwd
+```
+
+If current directory is under `{worktree_base}/story-*`:
+- Extract story ID from worktree path (e.g., `.worktrees/story-3-1` → `3-1`)
+- Store as `{{target_story_id}}`
+- Proceed to step 2
+
+**Otherwise, detect from git branch:**
 
 ```bash
 git branch --show-current
