@@ -1,6 +1,6 @@
 # Story 2.3: Bottom Navigation Bar
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -29,31 +29,31 @@ So that I can quickly switch between main sections.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create RulebookBottomBar composable (AC: #1, #2, #6)
-  - [ ] Create composable in app/navigation package
-  - [ ] Use Material 3 NavigationBar as base
-  - [ ] Add Library and Settings NavigationBarItem
-  - [ ] Apply brutalist styling with thick border
-- [ ] Task 2: Implement tab icons and labels (AC: #2)
-  - [ ] Add grid icon for Library
-  - [ ] Add gear/settings icon for Settings
-  - [ ] Configure icon and label display
-- [ ] Task 3: Apply selection highlighting (AC: #3)
-  - [ ] Use accent color for selected indicator
-  - [ ] Ensure unselected tabs are visually distinct
-  - [ ] Apply brutalist styling to selection state
-- [ ] Task 4: Wire navigation to tabs (AC: #4)
-  - [ ] Accept currentRoute parameter
-  - [ ] Accept onNavigate callback
-  - [ ] Navigate on tab click
-- [ ] Task 5: Preserve tab state (AC: #5)
-  - [ ] Use saveState in navigation
-  - [ ] Use restoreState when returning to tab
-  - [ ] Test state preservation across tab switches
-- [ ] Task 6: Create BottomBarDestination sealed class
-  - [ ] Define destinations shown in bottom bar
-  - [ ] Include route, icon, and label for each
-  - [ ] Make easily extensible for future tabs
+- [x] Task 1: Create RulebookBottomBar composable (AC: #1, #2, #6)
+  - [x] Create composable in app/navigation package
+  - [x] Use Material 3 NavigationBar as base
+  - [x] Add Library and Settings NavigationBarItem
+  - [x] Apply brutalist styling with thick border
+- [x] Task 2: Implement tab icons and labels (AC: #2)
+  - [x] Add grid icon for Library
+  - [x] Add gear/settings icon for Settings
+  - [x] Configure icon and label display
+- [x] Task 3: Apply selection highlighting (AC: #3)
+  - [x] Use accent color for selected indicator
+  - [x] Ensure unselected tabs are visually distinct
+  - [x] Apply brutalist styling to selection state
+- [x] Task 4: Wire navigation to tabs (AC: #4)
+  - [x] Accept currentRoute parameter
+  - [x] Accept onNavigate callback
+  - [x] Navigate on tab click
+- [x] Task 5: Preserve tab state (AC: #5)
+  - [x] Use saveState in navigation
+  - [x] Use restoreState when returning to tab
+  - [x] Test state preservation across tab switches
+- [x] Task 6: Create BottomBarDestination sealed class
+  - [x] Define destinations shown in bottom bar
+  - [x] Include route, icon, and label for each
+  - [x] Make easily extensible for future tabs
 
 ## Dev Notes
 
@@ -200,13 +200,29 @@ The bottom bar will be integrated into Scaffold in Story 2.7. For now, create it
 - Brutalist styling patterns from Epic 1 design system
 
 ### Agent Model Used
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
+- Initial Java 25 compatibility issue resolved by using Android Studio JBR
+- Tests for BottomBarDestination.items moved to instrumented tests due to Android framework dependency for icon initialization
 
 ### Completion Notes List
+- Created BottomBarDestination sealed class with Library and Settings data objects
+- Implemented RulebookBottomBar composable with brutalist styling (thick 3dp top border, flat appearance)
+- Added selected/unselected icon variants (filled/outlined) for visual feedback
+- Implemented NavigationBarItemDefaults.colors for pink accent highlighting
+- Added navigateToBottomBarDestination extension for state preservation navigation
+- Added comprehensive unit tests for BottomBarDestination and navigation extensions
+- Added compose material icons extended dependency
 
 ### File List
+- app/build.gradle.kts (modified - added material-icons-extended dependency)
+- app/src/main/kotlin/com/rulebook/navigation/BottomBarDestination.kt (new)
+- app/src/main/kotlin/com/rulebook/navigation/RulebookBottomBar.kt (new)
+- app/src/main/kotlin/com/rulebook/navigation/NavControllerExtensions.kt (modified - added navigateToBottomBarDestination)
+- app/src/test/kotlin/com/rulebook/navigation/BottomBarDestinationTest.kt (new)
+- app/src/test/kotlin/com/rulebook/navigation/RulebookBottomBarTest.kt (new)
+- app/src/test/kotlin/com/rulebook/navigation/NavControllerExtensionsTest.kt (modified - added bottom bar tests)
 
 ## Dependencies
 
