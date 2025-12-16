@@ -21,7 +21,9 @@ data class LibraryUiState(
 ) {
     /**
      * Whether the empty state should be displayed.
-     * True when there are no games, not currently loading, and no error occurred.
+     * True when there are no games and no error occurred.
+     * Note: Empty state is shown even during loading to provide visual feedback
+     * rather than a blank screen. The PullToRefreshBox indicator handles refresh.
      */
-    val isEmpty: Boolean get() = games.isEmpty() && !isLoading && error == null
+    val isEmpty: Boolean get() = games.isEmpty() && error == null
 }

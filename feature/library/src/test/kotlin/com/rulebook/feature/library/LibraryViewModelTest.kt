@@ -13,6 +13,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -121,6 +122,29 @@ class LibraryViewModelTest {
         assertFalse(state.isEmpty)
         assertTrue(state.games.isEmpty())
         assertEquals("Network error", state.error)
+    }
+
+    @Test
+    fun `refresh clears error state immediately`() = runTest {
+        // Given - repository returns error
+        val repository = FakeGameRepository(error = "Network error")
+        val viewModel = LibraryViewModel(repository)
+        advanceUntilIdle()
+
+        // Verify initial error state
+        assertEquals("Network error", viewModel.uiState.value.error)
+
+        // When - start refresh
+        viewModel.refresh()
+
+        // Then - error should be cleared immediately (before refresh completes)
+        assertTrue(viewModel.uiState.value.isRefreshing)
+        assertNull(viewModel.uiState.value.error)
+
+        // After refresh completes, error returns (since repository still returns error)
+        advanceUntilIdle()
+        assertEquals("Network error", viewModel.uiState.value.error)
+        assertFalse(viewModel.uiState.value.isRefreshing)
     }
 }
 

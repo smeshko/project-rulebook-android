@@ -36,7 +36,7 @@ class LibraryViewModel(
      */
     fun refresh() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isRefreshing = true) }
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
             loadGamesInternal()
             _uiState.update { it.copy(isRefreshing = false) }
         }
