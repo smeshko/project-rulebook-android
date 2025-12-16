@@ -1,6 +1,8 @@
 package com.rulebook.navigation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.PaddingValues
@@ -99,7 +101,11 @@ fun RulebookScaffold(
             }
         },
         floatingActionButton = {
-            if (showFab) {
+            AnimatedVisibility(
+                visible = showFab,
+                enter = scaleIn(),
+                exit = scaleOut()
+            ) {
                 RulebookFAB(
                     onClick = { navController.navigate(Route.Camera.route) }
                 )
