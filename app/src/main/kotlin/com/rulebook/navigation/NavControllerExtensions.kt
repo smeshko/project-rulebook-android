@@ -1,6 +1,7 @@
 package com.rulebook.navigation
 
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavOptions
 
 /**
@@ -92,10 +93,8 @@ fun NavController.completeOnboarding() {
 fun NavController.navigateToBottomBarDestination(route: String) {
     navigate(route) {
         // Pop up to start destination to avoid building up back stack
-        graph.startDestinationRoute?.let { startRoute ->
-            popUpTo(startRoute) {
-                saveState = true
-            }
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
         }
         // Avoid multiple copies of the same destination
         launchSingleTop = true

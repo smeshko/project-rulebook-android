@@ -32,14 +32,12 @@ fun RulebookBottomBar(
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val borderColor = MaterialTheme.colorScheme.onSurface
-
     NavigationBar(
         modifier = modifier
             .drawBehind {
-                // Thick top border (brutalist style)
+                // Thick top border (brutalist style) - always black per design spec
                 drawLine(
-                    color = borderColor,
+                    color = Color.Black,
                     start = Offset(0f, 0f),
                     end = Offset(size.width, 0f),
                     strokeWidth = BrutalistBorderWidth.toPx()
