@@ -1,6 +1,6 @@
 # Story 2.5: Library Screen Shell with Empty State
 
-Status: In Progress
+Status: Ready for Review
 
 ## Story
 
