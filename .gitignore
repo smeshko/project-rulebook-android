@@ -123,3 +123,4 @@ node_modules/
 .codex/auth.json
 .codex/history.jsonl
 .codex/version.json*
+.codex/config.toml
