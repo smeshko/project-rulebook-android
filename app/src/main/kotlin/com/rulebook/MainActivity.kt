@@ -4,44 +4,25 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.rulebook.ui.theme.RulebookTheme
+import com.rulebook.core.designsystem.theme.RulebookTheme
 
+/**
+ * Main entry point for the Rulebook app.
+ *
+ * Configures edge-to-edge display and sets up the root composable.
+ * Edge-to-edge is enabled before setContent to ensure proper system bar handling.
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        // Enable edge-to-edge BEFORE super.onCreate() and setContent
+        // This ensures proper status bar and navigation bar transparency
         enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+
         setContent {
             RulebookTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Rulebook",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                RulebookApp()
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    RulebookTheme {
-        Greeting("Rulebook")
     }
 }
