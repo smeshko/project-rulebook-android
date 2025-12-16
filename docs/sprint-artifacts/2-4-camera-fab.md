@@ -41,9 +41,9 @@ So that I can quickly scan a game from any main screen.
   - [x] Standard FAB position (bottom-right) - Handled by Scaffold in Story 2.7
   - [x] Above navigation bar with proper spacing - Handled by Scaffold
   - [x] Respect edge-to-edge insets - No additional handling needed per Dev Notes
-- [ ] Task 4: Wire navigation callback (AC: #4)
-  - [ ] Accept onClick callback parameter
-  - [ ] Navigate to camera screen when tapped
+- [x] Task 4: Wire navigation callback (AC: #4)
+  - [x] Accept onClick callback parameter
+  - [x] Navigate to camera screen when tapped - Wired by caller via onClick
 - [ ] Task 5: Create RulebookFAB preview composables
   - [ ] Preview in light mode
   - [ ] Preview in dark mode
