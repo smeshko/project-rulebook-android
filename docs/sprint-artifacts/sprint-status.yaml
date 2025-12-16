@@ -77,7 +77,7 @@ development_status:
 
   # Story 1.9: Core UI Components - RulebookButton
   1-9-rulebookbutton:
-    status: ready-for-dev
+    status: done
     linear_id: RULE-116
     linear_url: https://linear.app/project-rulebook/issue/RULE-116
     story_file: docs/sprint-artifacts/1-9-rulebookbutton.md
