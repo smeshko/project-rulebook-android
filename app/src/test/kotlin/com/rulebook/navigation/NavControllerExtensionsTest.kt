@@ -1,6 +1,7 @@
 package com.rulebook.navigation
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -64,5 +65,25 @@ class NavControllerExtensionsTest {
         assertEquals("rules/with-dashes", Route.Rules.createRoute("with-dashes"))
         assertEquals("rules/with_underscores", Route.Rules.createRoute("with_underscores"))
         assertEquals("rules/123numeric", Route.Rules.createRoute("123numeric"))
+    }
+
+    @Test
+    fun `navigateToBottomBarDestination targets valid Library route`() {
+        // Verify Library destination uses valid route
+        assertTrue(
+            "Library destination has empty route",
+            BottomBarDestination.Library.route.isNotEmpty()
+        )
+        assertEquals(Route.Library.route, BottomBarDestination.Library.route)
+    }
+
+    @Test
+    fun `navigateToBottomBarDestination targets valid Settings route`() {
+        // Verify Settings destination uses valid route
+        assertTrue(
+            "Settings destination has empty route",
+            BottomBarDestination.Settings.route.isNotEmpty()
+        )
+        assertEquals(Route.Settings.route, BottomBarDestination.Settings.route)
     }
 }
