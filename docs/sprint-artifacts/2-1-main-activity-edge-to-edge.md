@@ -1,6 +1,6 @@
 # Story 2.1: MainActivity with Edge-to-Edge Display
 
-Status: ready-for-dev
+Status: Done
 
 ## Story
 
@@ -22,23 +22,23 @@ So that the experience feels modern and immersive.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create MainActivity with edge-to-edge setup (AC: #1, #2, #3)
-  - [ ] Create MainActivity.kt in app module
-  - [ ] Call `enableEdgeToEdge()` in onCreate before setContent
-  - [ ] Set transparent status bar with system icon colors
-  - [ ] Configure navigation bar appearance
-- [ ] Task 2: Apply WindowInsets to content (AC: #4)
-  - [ ] Use `WindowInsets.systemBars` for padding
-  - [ ] Create root composable that applies insets
-  - [ ] Ensure content doesn't overlap with status/nav bars
-- [ ] Task 3: Configure theme-aware status bar icons (AC: #2)
-  - [ ] Light icons on dark backgrounds
-  - [ ] Dark icons on light backgrounds
-  - [ ] Test with both light and dark themes
-- [ ] Task 4: Create RulebookApp root composable
-  - [ ] Create RulebookApp.kt as main entry composable
-  - [ ] Apply RulebookTheme wrapper
-  - [ ] Prepare scaffold structure for navigation (Story 2.7)
+- [x] Task 1: Create MainActivity with edge-to-edge setup (AC: #1, #2, #3)
+  - [x] Create MainActivity.kt in app module
+  - [x] Call `enableEdgeToEdge()` in onCreate before setContent
+  - [x] Set transparent status bar with system icon colors
+  - [x] Configure navigation bar appearance
+- [x] Task 2: Apply WindowInsets to content (AC: #4)
+  - [x] Use `WindowInsets.systemBars` for padding
+  - [x] Create root composable that applies insets
+  - [x] Ensure content doesn't overlap with status/nav bars
+- [x] Task 3: Configure theme-aware status bar icons (AC: #2)
+  - [x] Light icons on dark backgrounds
+  - [x] Dark icons on light backgrounds
+  - [x] Test with both light and dark themes
+- [x] Task 4: Create RulebookApp root composable
+  - [x] Create RulebookApp.kt as main entry composable
+  - [x] Apply RulebookTheme wrapper
+  - [x] Prepare scaffold structure for navigation (Story 2.7)
 
 ## Dev Notes
 
@@ -141,13 +141,25 @@ Scaffold(
 - Architecture module structure
 
 ### Agent Model Used
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
+- Build successful with Android Studio JDK 21
+- No compilation warnings after removing deprecated Window.statusBarColor/navigationBarColor calls
 
 ### Completion Notes List
+- Updated MainActivity.kt to use RulebookTheme from core/designsystem module
+- Created RulebookApp.kt as root composable with edge-to-edge support
+- enableEdgeToEdge() called before super.onCreate() for proper system bar handling
+- WindowInsets.systemBars applied via Scaffold's contentWindowInsets
+- ConfigureSystemBars composable sets light/dark status bar icons based on theme
+- Removed unused local theme (app/src/main/kotlin/com/rulebook/ui/theme/Theme.kt)
+- All acceptance criteria satisfied
 
 ### File List
+- app/src/main/kotlin/com/rulebook/MainActivity.kt (modified)
+- app/src/main/kotlin/com/rulebook/RulebookApp.kt (created)
+- app/src/main/kotlin/com/rulebook/ui/theme/Theme.kt (deleted)
 
 ## Dependencies
 

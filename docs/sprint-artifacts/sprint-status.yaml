@@ -121,7 +121,7 @@ development_status:
 
   # Story 2.1: MainActivity with Edge-to-Edge Display
   2-1-main-activity-edge-to-edge:
-    status: ready-for-dev
+    status: done
     story_file: docs/sprint-artifacts/2-1-main-activity-edge-to-edge.md
 
   # Story 2.2: Navigation Host & Route Definitions
@@ -161,8 +161,8 @@ development_status:
 
 summary:
   total_stories: 21
-  done: 13
-  ready_for_dev: 8
+  done: 14
+  ready_for_dev: 7
   in_progress: 0
   in_review: 0
   blocked: 0
