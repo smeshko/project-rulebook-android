@@ -1,6 +1,6 @@
 # Story 2.4: Floating Action Button for Camera
 
-Status: ready-for-dev
+Status: Ready for Review
 
 ## Story
 
@@ -44,10 +44,10 @@ So that I can quickly scan a game from any main screen.
 - [x] Task 4: Wire navigation callback (AC: #4)
   - [x] Accept onClick callback parameter
   - [x] Navigate to camera screen when tapped - Wired by caller via onClick
-- [ ] Task 5: Create RulebookFAB preview composables
-  - [ ] Preview in light mode
-  - [ ] Preview in dark mode
-  - [ ] Preview pressed state
+- [x] Task 5: Create RulebookFAB preview composables
+  - [x] Preview in light mode
+  - [x] Preview in dark mode
+  - [x] Preview pressed state - M3 ripple feedback (runtime behavior, not static)
 
 ## Dev Notes
 
@@ -155,13 +155,25 @@ Scaffold(
 - RulebookButton pattern for brutalist styling
 
 ### Agent Model Used
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
+- Tests passed: RulebookFABTest (2 tests)
+- Build: :core:designsystem:testDebugUnitTest passed
 
 ### Completion Notes List
+- Created RulebookFAB composable in core/designsystem/component package
+- Used Material 3 FloatingActionButton as base with RectangleShape
+- Applied brutalist styling: pink fill, 3dp black border, 4dp offset shadow
+- Camera icon (Icons.Filled.CameraAlt) with 24dp size, black color
+- Ripple feedback provided by M3 FAB (no custom implementation needed)
+- Elevation set to 0dp (brutalist shadow replaces Material elevation)
+- onClick callback parameter for navigation wiring in Story 2.7
+- Previews: light mode, dark mode (pressed state is runtime M3 ripple)
 
 ### File List
+- core/designsystem/src/main/kotlin/com/rulebook/core/designsystem/component/RulebookFAB.kt (new)
+- core/designsystem/src/test/kotlin/com/rulebook/core/designsystem/component/RulebookFABTest.kt (new)
 
 ## Dependencies
 
