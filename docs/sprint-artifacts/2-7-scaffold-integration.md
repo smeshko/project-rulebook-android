@@ -28,10 +28,10 @@ So that the navigation bar and FAB are consistently displayed.
   - [x] Include bottom navigation bar
   - [x] Include floating action button
   - [x] Handle content area with proper insets
-- [ ] Task 2: Implement bottom bar visibility logic (AC: #2)
-  - [ ] Define main routes that show bottom bar
-  - [ ] Define routes that hide bottom bar
-  - [ ] Conditionally show/hide based on current route
+- [x] Task 2: Implement bottom bar visibility logic (AC: #2)
+  - [x] Define main routes that show bottom bar
+  - [x] Define routes that hide bottom bar
+  - [x] Conditionally show/hide based on current route
 - [ ] Task 3: Implement FAB visibility logic (AC: #2)
   - [ ] FAB visible on Library and Settings
   - [ ] FAB hidden on Camera, Rules, Onboarding, Purchase
@@ -243,6 +243,7 @@ claude-opus-4-5-20251101
 
 ### Completion Notes List
 - Task 1: Created RulebookScaffold composable with bottom bar, FAB, and proper WindowInsets handling. Added shouldShowBottomBar() and shouldShowFab() helper functions with comprehensive unit tests.
+- Task 2: Added AnimatedVisibility with slideInVertically/slideOutVertically animations for smooth bottom bar show/hide transitions.
 
 ### File List
 - app/src/main/kotlin/com/rulebook/navigation/RulebookScaffold.kt (new)
