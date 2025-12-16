@@ -1,9 +1,9 @@
 package com.rulebook.feature.library.di
 
+import com.rulebook.feature.library.LibraryViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val libraryModule = module {
-    // TODO: Add LibraryViewModel when implemented
-    // viewModel { LibraryViewModel(get()) }
+    viewModel { LibraryViewModel(get()) }
 }
