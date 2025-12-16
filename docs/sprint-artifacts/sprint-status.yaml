@@ -146,7 +146,7 @@ development_status:
 
   # Story 2.6: Settings Screen Shell
   2-6-settings-screen-shell:
-    status: ready-for-dev
+    status: in-review
     story_file: docs/sprint-artifacts/2-6-settings-screen-shell.md
 
   # Story 2.7: Scaffold Integration & Screen Composition
@@ -162,9 +162,9 @@ development_status:
 summary:
   total_stories: 21
   done: 16
-  ready_for_dev: 5
+  ready_for_dev: 4
   in_progress: 0
-  in_review: 0
+  in_review: 1
   blocked: 0
   epic_status: in-progress
   retrospective: done

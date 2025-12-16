@@ -1,6 +1,6 @@
 # Story 2.6: Settings Screen Shell
 
-Status: in-progress
+Status: Ready for Review
 
 ## Story
 
