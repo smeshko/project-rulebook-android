@@ -82,9 +82,8 @@ feature/settings/
 │   ├── components/
 │   │   ├── SettingsSectionHeader.kt
 │   │   ├── SettingsToggleRow.kt
-│   │   └── SettingsLinkRow.kt
-│   ├── navigation/
-│   │   └── SettingsNavigation.kt
+│   │   ├── SettingsLinkRow.kt
+│   │   └── SettingsInfoRow.kt
 │   └── di/
 │       └── SettingsModule.kt
 └── build.gradle.kts
