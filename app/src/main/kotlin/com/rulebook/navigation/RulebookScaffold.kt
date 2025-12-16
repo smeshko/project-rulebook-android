@@ -1,6 +1,7 @@
 package com.rulebook.navigation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
@@ -95,8 +96,14 @@ fun RulebookScaffold(
         bottomBar = {
             AnimatedVisibility(
                 visible = showBottomBar,
-                enter = slideInVertically(initialOffsetY = { it }),
-                exit = slideOutVertically(targetOffsetY = { it })
+                enter = slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(durationMillis = 300)
+                ),
+                exit = slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(durationMillis = 300)
+                )
             ) {
                 RulebookBottomBar(
                     currentRoute = currentRoute,
@@ -109,8 +116,8 @@ fun RulebookScaffold(
         floatingActionButton = {
             AnimatedVisibility(
                 visible = showFab,
-                enter = scaleIn(),
-                exit = scaleOut()
+                enter = scaleIn(animationSpec = tween(durationMillis = 200)),
+                exit = scaleOut(animationSpec = tween(durationMillis = 200))
             ) {
                 RulebookFAB(
                     onClick = { navController.navigate(Route.Camera.route) }
