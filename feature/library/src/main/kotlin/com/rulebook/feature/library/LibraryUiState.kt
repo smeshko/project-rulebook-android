@@ -21,7 +21,7 @@ data class LibraryUiState(
 ) {
     /**
      * Whether the empty state should be displayed.
-     * True when there are no games and not currently loading.
+     * True when there are no games, not currently loading, and no error occurred.
      */
-    val isEmpty: Boolean get() = games.isEmpty() && !isLoading
+    val isEmpty: Boolean get() = games.isEmpty() && !isLoading && error == null
 }

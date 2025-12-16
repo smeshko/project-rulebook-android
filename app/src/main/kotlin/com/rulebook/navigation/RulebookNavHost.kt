@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.rulebook.feature.library.LibraryScreen
 import com.rulebook.feature.settings.SettingsScreen
 
 /**
@@ -43,7 +44,10 @@ fun RulebookNavHost(
         // Library - main screen showing saved rulebooks
         // Back gesture on main screen lets system handle it (exit app)
         composable(route = Route.Library.route) {
-            LibraryPlaceholder()
+            LibraryScreen(
+                onNavigateToCamera = { navController.navigate(Route.Camera.route) },
+                onNavigateToRules = { gameId -> navController.navigate(Route.Rules.createRoute(gameId)) }
+            )
         }
 
         // Settings - app configuration and preferences

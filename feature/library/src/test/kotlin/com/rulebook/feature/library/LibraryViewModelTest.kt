@@ -105,6 +105,23 @@ class LibraryViewModelTest {
         val state = viewModel.uiState.value
         assertEquals("Network error", state.error)
     }
+
+    @Test
+    fun `isEmpty is false when error state is present`() = runTest {
+        // Given - repository returns error with no games
+        val repository = FakeGameRepository(error = "Network error")
+
+        // When
+        val viewModel = LibraryViewModel(repository)
+        advanceUntilIdle()
+
+        // Then - isEmpty should be false because error is present
+        // (we want to show error UI, not empty state)
+        val state = viewModel.uiState.value
+        assertFalse(state.isEmpty)
+        assertTrue(state.games.isEmpty())
+        assertEquals("Network error", state.error)
+    }
 }
 
 /**

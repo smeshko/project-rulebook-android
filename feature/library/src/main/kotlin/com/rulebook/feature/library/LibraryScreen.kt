@@ -1,14 +1,29 @@
 package com.rulebook.feature.library
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rulebook.core.designsystem.component.ButtonVariant
+import com.rulebook.core.designsystem.component.RulebookButton
+import com.rulebook.core.designsystem.component.RulebookCard
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.feature.library.components.LibraryEmptyState
@@ -62,6 +77,10 @@ internal fun LibraryScreenContent(
             modifier = Modifier.fillMaxSize()
         ) {
             when {
+                uiState.error != null -> LibraryErrorState(
+                    message = uiState.error,
+                    onRetry = onRefresh
+                )
                 uiState.isEmpty -> LibraryEmptyState(onScanClick = onNavigateToCamera)
                 else -> LibraryContent(
                     games = uiState.games,
@@ -84,6 +103,57 @@ private fun LibraryContent(
 ) {
     // TODO: Implement game list grid in Epic 7
     // For now, this is a placeholder that won't be shown since we always return empty list
+}
+
+/**
+ * Error state displayed when loading games fails.
+ * Shows an error message with a retry button.
+ */
+@Composable
+private fun LibraryErrorState(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        contentAlignment = Alignment.Center
+    ) {
+        RulebookCard(
+            modifier = Modifier.padding(RulebookTheme.spacing.md)
+        ) {
+            Column(
+                modifier = Modifier.padding(RulebookTheme.spacing.lg),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Something went wrong",
+                    style = RulebookTheme.typography.displayTitle2,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(RulebookTheme.spacing.sm))
+
+                Text(
+                    text = message,
+                    style = RulebookTheme.typography.body,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(RulebookTheme.spacing.lg))
+
+                RulebookButton(
+                    text = "Try Again",
+                    onClick = onRetry,
+                    variant = ButtonVariant.Primary
+                )
+            }
+        }
+    }
 }
 
 // =============================================================================
@@ -135,6 +205,32 @@ private fun LibraryScreenRefreshingLightPreview() {
     RulebookTheme(darkTheme = false) {
         LibraryScreenContent(
             uiState = LibraryUiState(isRefreshing = true),
+            onRefresh = {},
+            onNavigateToCamera = {},
+            onNavigateToRules = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Error State - Light")
+@Composable
+private fun LibraryScreenErrorLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        LibraryScreenContent(
+            uiState = LibraryUiState(error = "Failed to load games. Please check your connection."),
+            onRefresh = {},
+            onNavigateToCamera = {},
+            onNavigateToRules = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Error State - Dark")
+@Composable
+private fun LibraryScreenErrorDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        LibraryScreenContent(
+            uiState = LibraryUiState(error = "Failed to load games. Please check your connection."),
             onRefresh = {},
             onNavigateToCamera = {},
             onNavigateToRules = {}
