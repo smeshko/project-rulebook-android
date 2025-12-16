@@ -19,12 +19,11 @@ import com.rulebook.core.designsystem.component.RulebookFAB
 
 /**
  * Routes where the bottom navigation bar should be visible.
- * Main screens that are part of the bottom navigation.
+ * Derived from BottomBarDestination to ensure a single source of truth.
  */
-private val MAIN_ROUTES = setOf(
-    Route.Library.route,
-    Route.Settings.route
-)
+private val MAIN_ROUTES: Set<String> by lazy {
+    BottomBarDestination.items.map { it.route }.toSet()
+}
 
 /**
  * Determines if the bottom navigation bar should be shown for the given route.
