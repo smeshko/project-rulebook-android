@@ -1,6 +1,6 @@
 # Story 2.2: Navigation Host & Route Definitions
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -32,10 +32,10 @@ So that screens can be navigated to consistently.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create NavigationDestination.kt (AC: #1)
-  - [ ] Define sealed class Route with route string
-  - [ ] Create Library, Settings, Camera, Rules, Onboarding, Purchase objects
-  - [ ] Add gameId argument pattern for Rules route
+- [x] Task 1: Create NavigationDestination.kt (AC: #1)
+  - [x] Define sealed class Route with route string
+  - [x] Create Library, Settings, Camera, Rules, Onboarding, Purchase objects
+  - [x] Add gameId argument pattern for Rules route
 - [ ] Task 2: Create RulebookNavHost composable (AC: #2)
   - [ ] Create NavHost with startDestination = Library
   - [ ] Add composable() for each route
@@ -223,8 +223,11 @@ implementation(libs.androidx.navigation.compose)
 ### Debug Log References
 
 ### Completion Notes List
+- Task 1: Created NavigationDestination.kt with sealed class Route defining all app destinations (Library, Settings, Camera, Rules, Onboarding, Purchase). Rules route includes gameId argument pattern and createRoute helper function. Added RulebookNavArgs object for centralized argument keys. Unit tests verify all route strings and argument handling.
 
 ### File List
+- app/src/main/kotlin/com/rulebook/navigation/NavigationDestination.kt (new)
+- app/src/test/kotlin/com/rulebook/navigation/NavigationDestinationTest.kt (new)
 
 ## Dependencies
 
