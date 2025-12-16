@@ -54,9 +54,16 @@ fun shouldShowFab(currentRoute: String?): Boolean {
  * RulebookScaffold - Main scaffold wrapper for the Rulebook app.
  *
  * Provides consistent layout structure with:
- * - Bottom navigation bar (visible on main routes)
- * - Floating action button for camera (visible on main routes)
+ * - Bottom navigation bar (visible on main routes, with slide animation)
+ * - Floating action button for camera (visible on main routes, with scale animation)
  * - Content area with proper system bar insets
+ *
+ * ## Edge-to-Edge Support
+ * This scaffold properly handles edge-to-edge display:
+ * - Content respects system bars via WindowInsets.systemBars
+ * - Bottom bar is positioned above the navigation bar
+ * - FAB is positioned above the bottom bar
+ * - innerPadding should be applied to content for proper layout
  *
  * ## Visibility Rules
  * | Route      | Bottom Bar | FAB |

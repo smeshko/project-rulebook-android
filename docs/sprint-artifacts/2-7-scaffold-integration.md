@@ -1,6 +1,6 @@
 # Story 2.7: Scaffold Integration & Screen Composition
 
-Status: in-progress
+Status: code-review
 
 ## Story
 
@@ -43,10 +43,10 @@ So that the navigation bar and FAB are consistently displayed.
   - [x] Wrap NavHost content with RulebookScaffold
   - [x] Pass navigation state to scaffold
   - [x] Wire FAB click to camera navigation
-- [ ] Task 6: Handle edge-to-edge insets
-  - [ ] Content respects system bars
-  - [ ] Bottom bar positioned correctly
-  - [ ] FAB positioned above bottom bar
+- [x] Task 6: Handle edge-to-edge insets
+  - [x] Content respects system bars
+  - [x] Bottom bar positioned correctly
+  - [x] FAB positioned above bottom bar
 
 ## Dev Notes
 
@@ -247,6 +247,7 @@ claude-opus-4-5-20251101
 - Task 3: Added AnimatedVisibility with scaleIn/scaleOut animations for smooth FAB show/hide transitions.
 - Task 4: Added screen transition animations to RulebookNavHost - fade transitions for main tabs (Library, Settings) and slide transitions for detail screens (Camera, Rules, Onboarding, Purchase).
 - Task 5: Integrated RulebookScaffold in RulebookApp.kt, replacing the basic Scaffold with the full navigation-aware scaffold.
+- Task 6: Verified edge-to-edge handling with WindowInsets.systemBars, proper bottom bar positioning, and FAB placement. Updated KDoc with edge-to-edge documentation.
 
 ### File List
 - app/src/main/kotlin/com/rulebook/navigation/RulebookScaffold.kt (new)
