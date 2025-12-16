@@ -1,6 +1,6 @@
 # Story 2.3: Bottom Navigation Bar
 
-Status: in-progress
+Status: Ready for Review
 
 ## Story
 
