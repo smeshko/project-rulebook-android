@@ -32,27 +32,27 @@ fun RulebookNavHost(
     ) {
         // Library - main screen showing saved rulebooks
         composable(route = Route.Library.route) {
-            // Placeholder - actual screen will be provided in Task 5
+            LibraryPlaceholder()
         }
 
         // Settings - app configuration and preferences
         composable(route = Route.Settings.route) {
-            // Placeholder - actual screen will be provided in Task 5
+            SettingsPlaceholder()
         }
 
         // Camera - capture rulebook pages
         composable(route = Route.Camera.route) {
-            // Placeholder - actual screen will be provided in Task 5
+            CameraPlaceholder()
         }
 
         // Onboarding - first-time user experience
         composable(route = Route.Onboarding.route) {
-            // Placeholder - actual screen will be provided in Task 5
+            OnboardingPlaceholder()
         }
 
         // Purchase - premium features and subscriptions
         composable(route = Route.Purchase.route) {
-            // Placeholder - actual screen will be provided in Task 5
+            PurchasePlaceholder()
         }
 
         // Rules - displays rules for a specific game with type-safe gameId argument
@@ -71,8 +71,7 @@ fun RulebookNavHost(
             )
         ) { backStackEntry ->
             val gameId = backStackEntry.arguments?.getString(RulebookNavArgs.GAME_ID) ?: ""
-            // Placeholder - actual screen will be provided in Task 5
-            // Will receive gameId parameter
+            RulesPlaceholder(gameId = gameId)
         }
     }
 }

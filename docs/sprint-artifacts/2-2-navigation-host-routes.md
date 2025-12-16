@@ -48,10 +48,10 @@ So that screens can be navigated to consistently.
   - [x] Add deepLinks parameter to Routes that need them
   - [x] Prepare URI patterns for future use
   - [x] Document deep link scheme
-- [ ] Task 5: Integrate NavHost into RulebookApp
-  - [ ] Add NavController via rememberNavController()
-  - [ ] Replace placeholder with RulebookNavHost
-  - [ ] Create placeholder screens for each destination
+- [x] Task 5: Integrate NavHost into RulebookApp
+  - [x] Add NavController via rememberNavController()
+  - [x] Replace placeholder with RulebookNavHost
+  - [x] Create placeholder screens for each destination
 
 ## Dev Notes
 
@@ -227,12 +227,15 @@ implementation(libs.androidx.navigation.compose)
 - Task 2: Created RulebookNavHost composable with NavHost container. Configured startDestination to Library route. Added composable() entries for all 6 destinations with placeholder content. NavController is accepted as parameter for navigation management.
 - Task 3: Added type-safe navigation arguments for Rules route using navArgument with NavType.StringType. Created NavControllerExtensions.kt with helper functions for all navigation destinations (navigateToRules, navigateToLibrary, navigateToSettings, navigateToCamera, navigateToOnboarding, navigateToPurchase, completeOnboarding).
 - Task 4: Configured deep links for Rules route with pattern "rulebook://rules/{gameId}". Created DeepLinkConfig.kt with centralized scheme configuration and comprehensive documentation including manifest setup, testing instructions, and future deep link patterns.
+- Task 5: Integrated RulebookNavHost into RulebookApp with rememberNavController(). Created PlaceholderScreens.kt with temporary screens for all destinations (LibraryPlaceholder, SettingsPlaceholder, CameraPlaceholder, OnboardingPlaceholder, PurchasePlaceholder, RulesPlaceholder). RulesPlaceholder accepts gameId parameter.
 
 ### File List
 - app/src/main/kotlin/com/rulebook/navigation/NavigationDestination.kt (new)
 - app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (new)
 - app/src/main/kotlin/com/rulebook/navigation/NavControllerExtensions.kt (new)
 - app/src/main/kotlin/com/rulebook/navigation/DeepLinkConfig.kt (new)
+- app/src/main/kotlin/com/rulebook/navigation/PlaceholderScreens.kt (new)
+- app/src/main/kotlin/com/rulebook/RulebookApp.kt (modified)
 - app/src/test/kotlin/com/rulebook/navigation/NavigationDestinationTest.kt (new)
 - app/src/test/kotlin/com/rulebook/navigation/RulebookNavHostTest.kt (new)
 - app/src/test/kotlin/com/rulebook/navigation/NavControllerExtensionsTest.kt (new)
