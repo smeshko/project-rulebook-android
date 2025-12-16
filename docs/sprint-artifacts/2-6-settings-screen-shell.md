@@ -1,6 +1,6 @@
 # Story 2.6: Settings Screen Shell
 
-Status: ready-for-dev
+Status: Done
 
 ## Story
 
@@ -27,41 +27,41 @@ So that I can view app options (full functionality in Epic 9).
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create SettingsScreen composable (AC: #1, #4)
-  - [ ] Create feature/settings module structure
-  - [ ] Create SettingsScreen.kt
-  - [ ] Add RulebookHeaderBar with "Settings" title
-  - [ ] Implement scrollable content with LazyColumn
-- [ ] Task 2: Create SettingsViewModel (AC: #2)
-  - [ ] Create SettingsViewModel.kt
-  - [ ] Create SettingsUiState data class
-  - [ ] Track placeholder states
-  - [ ] Expose StateFlow for UI observation
-- [ ] Task 3: Create section header component (AC: #3)
-  - [ ] Create SettingsSectionHeader composable
-  - [ ] Apply brutalist styling with border
-  - [ ] Use consistent typography
-- [ ] Task 4: Implement Appearance section (AC: #2)
-  - [ ] Add section header "Appearance"
-  - [ ] Add theme toggle placeholder row
-  - [ ] Use brutalist styling
-- [ ] Task 5: Implement Feedback section (AC: #2)
-  - [ ] Add section header "Feedback"
-  - [ ] Add haptics toggle placeholder row
-- [ ] Task 6: Implement Support section (AC: #2)
-  - [ ] Add section header "Support"
-  - [ ] Add placeholder links (Contact, Rate, Share)
-- [ ] Task 7: Implement About section (AC: #2)
-  - [ ] Add section header "About"
-  - [ ] Add version info placeholder
-  - [ ] Add legal links placeholder (Privacy, Terms)
-- [ ] Task 8: Implement Data section (AC: #2)
-  - [ ] Add section header "Data"
-  - [ ] Add clear data placeholder button
-- [ ] Task 9: Create Koin module for settings feature
-  - [ ] Create SettingsModule.kt
-  - [ ] Register SettingsViewModel
-  - [ ] Register in app module
+- [x] Task 1: Create SettingsScreen composable (AC: #1, #4)
+  - [x] Create feature/settings module structure
+  - [x] Create SettingsScreen.kt
+  - [x] Add RulebookHeaderBar with "Settings" title
+  - [x] Implement scrollable content with LazyColumn
+- [x] Task 2: Create SettingsViewModel (AC: #2)
+  - [x] Create SettingsViewModel.kt
+  - [x] Create SettingsUiState data class
+  - [x] Track placeholder states
+  - [x] Expose StateFlow for UI observation
+- [x] Task 3: Create section header component (AC: #3)
+  - [x] Create SettingsSectionHeader composable
+  - [x] Apply brutalist styling with border
+  - [x] Use consistent typography
+- [x] Task 4: Implement Appearance section (AC: #2)
+  - [x] Add section header "Appearance"
+  - [x] Add theme toggle placeholder row
+  - [x] Use brutalist styling
+- [x] Task 5: Implement Feedback section (AC: #2)
+  - [x] Add section header "Feedback"
+  - [x] Add haptics toggle placeholder row
+- [x] Task 6: Implement Support section (AC: #2)
+  - [x] Add section header "Support"
+  - [x] Add placeholder links (Contact, Rate, Share)
+- [x] Task 7: Implement About section (AC: #2)
+  - [x] Add section header "About"
+  - [x] Add version info placeholder
+  - [x] Add legal links placeholder (Privacy, Terms)
+- [x] Task 8: Implement Data section (AC: #2)
+  - [x] Add section header "Data"
+  - [x] Add clear data placeholder button
+- [x] Task 9: Create Koin module for settings feature
+  - [x] Create SettingsModule.kt
+  - [x] Register SettingsViewModel
+  - [x] Register in app module (already registered)
 
 ## Dev Notes
 
@@ -82,9 +82,8 @@ feature/settings/
 │   ├── components/
 │   │   ├── SettingsSectionHeader.kt
 │   │   ├── SettingsToggleRow.kt
-│   │   └── SettingsLinkRow.kt
-│   ├── navigation/
-│   │   └── SettingsNavigation.kt
+│   │   ├── SettingsLinkRow.kt
+│   │   └── SettingsInfoRow.kt
 │   └── di/
 │       └── SettingsModule.kt
 └── build.gradle.kts
@@ -302,13 +301,35 @@ fun SettingsLinkRow(
 - MVI pattern from architecture
 
 ### Agent Model Used
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
 ### Completion Notes List
+- Implemented complete Settings screen shell with all 5 sections (Appearance, Feedback, Support, About, Data)
+- Created SettingsViewModel with StateFlow-based state management (placeholder actions for Epic 9)
+- Created SettingsUiState data class with default values for theme, haptics, and version
+- Created reusable components: SettingsSectionHeader, SettingsToggleRow, SettingsLinkRow, SettingsInfoRow
+- Used RulebookHeaderBar with "Settings" title for brutalist header styling
+- Implemented scrollable LazyColumn with 16dp padding and 8dp item spacing
+- Applied brutalist styling with 3dp borders on all row components
+- Section headers use uppercase text with 60% alpha for visual hierarchy
+- Clear All Data button uses ButtonVariant.Destructive for red styling
+- Added unit tests for SettingsViewModel initial state verification
+- Updated Koin module to register SettingsViewModel
+- All tests pass, build successful
 
 ### File List
+- feature/settings/src/main/kotlin/com/rulebook/feature/settings/SettingsScreen.kt (modified)
+- feature/settings/src/main/kotlin/com/rulebook/feature/settings/SettingsViewModel.kt (new)
+- feature/settings/src/main/kotlin/com/rulebook/feature/settings/SettingsUiState.kt (new)
+- feature/settings/src/main/kotlin/com/rulebook/feature/settings/components/SettingsSectionHeader.kt (new)
+- feature/settings/src/main/kotlin/com/rulebook/feature/settings/components/SettingsToggleRow.kt (new)
+- feature/settings/src/main/kotlin/com/rulebook/feature/settings/components/SettingsLinkRow.kt (new)
+- feature/settings/src/main/kotlin/com/rulebook/feature/settings/components/SettingsInfoRow.kt (new)
+- feature/settings/src/main/kotlin/com/rulebook/feature/settings/di/SettingsModule.kt (modified)
+- feature/settings/src/test/kotlin/com/rulebook/feature/settings/SettingsViewModelTest.kt (new)
+- feature/settings/build.gradle.kts (modified)
 
 ## Dependencies
 

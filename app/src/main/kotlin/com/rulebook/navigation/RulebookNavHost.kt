@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.rulebook.feature.settings.SettingsScreen
 
 /**
  * Navigation host for the Rulebook app.
@@ -48,7 +49,7 @@ fun RulebookNavHost(
         // Settings - app configuration and preferences
         // Back gesture on main screen lets system handle it (exit app)
         composable(route = Route.Settings.route) {
-            SettingsPlaceholder()
+            SettingsScreen()
         }
 
         // Camera - capture rulebook pages
