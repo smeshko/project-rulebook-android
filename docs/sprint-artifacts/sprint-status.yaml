@@ -131,7 +131,7 @@ development_status:
 
   # Story 2.3: Bottom Navigation Bar
   2-3-bottom-navigation-bar:
-    status: in-progress
+    status: done
     story_file: docs/sprint-artifacts/2-3-bottom-navigation-bar.md
 
   # Story 2.4: Floating Action Button for Camera
@@ -156,15 +156,15 @@ development_status:
 
   # Story 2.8: Predictive Back Gesture Support
   2-8-predictive-back-gesture:
-    status: in-review
+    status: done
     story_file: docs/sprint-artifacts/2-8-predictive-back-gesture.md
 
 summary:
   total_stories: 21
-  done: 15
-  ready_for_dev: 4
-  in_progress: 1
-  in_review: 1
+  done: 16
+  ready_for_dev: 5
+  in_progress: 0
+  in_review: 0
   blocked: 0
   epic_status: in-progress
   retrospective: done

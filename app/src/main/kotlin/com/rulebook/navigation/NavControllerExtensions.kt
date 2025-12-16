@@ -1,6 +1,7 @@
 package com.rulebook.navigation
 
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavOptions
 
 /**
@@ -76,5 +77,28 @@ fun NavController.navigateToPurchase(navOptions: NavOptions? = null) {
 fun NavController.completeOnboarding() {
     navigate(Route.Library.route) {
         popUpTo(Route.Onboarding.route) { inclusive = true }
+    }
+}
+
+/**
+ * Navigates to a bottom bar destination with state preservation.
+ *
+ * This function implements the recommended navigation pattern for bottom navigation bars:
+ * - Pops up to the start destination to avoid building up the back stack
+ * - Uses launchSingleTop to avoid multiple copies of the same destination
+ * - Saves and restores state when switching between tabs
+ *
+ * @param route The route to navigate to (should be a bottom bar destination)
+ */
+fun NavController.navigateToBottomBarDestination(route: String) {
+    navigate(route) {
+        // Pop up to start destination to avoid building up back stack
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        // Avoid multiple copies of the same destination
+        launchSingleTop = true
+        // Restore state when navigating back to a previously visited destination
+        restoreState = true
     }
 }
