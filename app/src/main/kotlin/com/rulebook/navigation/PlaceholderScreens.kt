@@ -1,6 +1,5 @@
 package com.rulebook.navigation
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,10 +22,10 @@ import androidx.compose.ui.unit.dp
  * implementation is expected.
  *
  * ## Predictive Back Gesture Support
- * Detail screens (Camera, Rules, Purchase) include `onNavigateBack` callbacks
- * that integrate with the predictive back gesture system on Android 14+.
- * The [BackHandler] composable is used to provide custom back handling while
- * maintaining compatibility with predictive back animations.
+ * Compose Navigation 2.8+ automatically handles predictive back gestures
+ * when `android:enableOnBackInvokedCallback="true"` is set in the manifest.
+ * The NavHost manages back navigation with preview animations - no explicit
+ * BackHandler is needed for standard back-to-previous-screen behavior.
  */
 
 /**
@@ -61,19 +60,13 @@ fun SettingsPlaceholder(modifier: Modifier = Modifier) {
  * Placeholder for Camera screen - capture rulebook pages.
  *
  * Supports predictive back gesture - swipe from left edge shows preview
- * of previous screen before navigating back.
- *
- * @param onNavigateBack Callback invoked when back navigation is triggered
+ * of previous screen before navigating back. Compose Navigation 2.8+
+ * handles the preview animation automatically via NavHost.
  */
 @Composable
-fun CameraPlaceholder(
-    onNavigateBack: () -> Unit = {},
-    modifier: Modifier = Modifier
-) {
-    // BackHandler integrates with predictive back on Android 14+
-    // The onBackInvokedCallback in manifest enables the preview animation
-    BackHandler(enabled = true, onBack = onNavigateBack)
-
+fun CameraPlaceholder(modifier: Modifier = Modifier) {
+    // No BackHandler needed - Compose Navigation handles predictive back
+    // with preview animations automatically when using NavHost
     PlaceholderContent(
         title = "Camera",
         subtitle = "Coming in Epic 3",
@@ -100,18 +93,13 @@ fun OnboardingPlaceholder(modifier: Modifier = Modifier) {
  * Placeholder for Purchase screen - premium features and subscriptions.
  *
  * Supports predictive back gesture - swipe from left edge shows preview
- * of previous screen before navigating back.
- *
- * @param onNavigateBack Callback invoked when back navigation is triggered
+ * of previous screen before navigating back. Compose Navigation 2.8+
+ * handles the preview animation automatically via NavHost.
  */
 @Composable
-fun PurchasePlaceholder(
-    onNavigateBack: () -> Unit = {},
-    modifier: Modifier = Modifier
-) {
-    // BackHandler integrates with predictive back on Android 14+
-    BackHandler(enabled = true, onBack = onNavigateBack)
-
+fun PurchasePlaceholder(modifier: Modifier = Modifier) {
+    // No BackHandler needed - Compose Navigation handles predictive back
+    // with preview animations automatically when using NavHost
     PlaceholderContent(
         title = "Purchase",
         subtitle = "Coming in Epic 6",
@@ -123,20 +111,18 @@ fun PurchasePlaceholder(
  * Placeholder for Rules screen - displays rules for a specific game.
  *
  * Supports predictive back gesture - swipe from left edge shows preview
- * of previous screen before navigating back.
+ * of previous screen before navigating back. Compose Navigation 2.8+
+ * handles the preview animation automatically via NavHost.
  *
  * @param gameId The unique identifier of the game (displayed for debugging)
- * @param onNavigateBack Callback invoked when back navigation is triggered
  */
 @Composable
 fun RulesPlaceholder(
     gameId: String,
-    onNavigateBack: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // BackHandler integrates with predictive back on Android 14+
-    BackHandler(enabled = true, onBack = onNavigateBack)
-
+    // No BackHandler needed - Compose Navigation handles predictive back
+    // with preview animations automatically when using NavHost
     PlaceholderContent(
         title = "Rules",
         subtitle = "Game: $gameId\nComing in Epic 4",

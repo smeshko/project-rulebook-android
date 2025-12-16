@@ -18,10 +18,11 @@ import androidx.navigation.navDeepLink
  * ## Predictive Back Gesture Support
  * This NavHost is configured to work with Android 14+ predictive back gestures:
  * - The `android:enableOnBackInvokedCallback="true"` flag in AndroidManifest.xml enables the feature
- * - Compose Navigation 2.8+ automatically integrates with the predictive back system
- * - Back navigation shows a preview of the previous screen during the gesture
+ * - Compose Navigation 2.8+ automatically handles predictive back with preview animations
+ * - No explicit BackHandler needed - NavHost manages the back stack automatically
+ * - Back gesture shows a preview of the previous screen while the user swipes
  * - Main screens (Library, Settings) let the system handle back (exits app)
- * - Detail screens (Camera, Rules) pop the back stack on back gesture
+ * - Detail screens (Camera, Rules, Purchase) automatically pop the back stack
  *
  * @param navController The navigation controller managing the back stack
  * @param modifier Optional modifier for the NavHost container
@@ -51,11 +52,9 @@ fun RulebookNavHost(
         }
 
         // Camera - capture rulebook pages
-        // Back gesture pops back to previous screen (Library or wherever navigated from)
+        // Predictive back handled automatically by NavHost - shows preview during gesture
         composable(route = Route.Camera.route) {
-            CameraPlaceholder(
-                onNavigateBack = { navController.popBackStack() }
-            )
+            CameraPlaceholder()
         }
 
         // Onboarding - first-time user experience
@@ -65,16 +64,16 @@ fun RulebookNavHost(
         }
 
         // Purchase - premium features and subscriptions
-        // Back gesture pops back to previous screen
+        // Predictive back handled automatically by NavHost - shows preview during gesture
         composable(route = Route.Purchase.route) {
-            PurchasePlaceholder(
-                onNavigateBack = { navController.popBackStack() }
-            )
+            PurchasePlaceholder()
         }
 
         // Rules - displays rules for a specific game with type-safe gameId argument
         // Deep link: rulebook://rules/{gameId}
-        // Back gesture pops back to Library or Camera
+        // Predictive back handled automatically by NavHost - shows preview during gesture
+        // Note: When opened via deep link, Rules is the only destination.
+        // NavHost handles this by finishing the activity when back stack is empty.
         composable(
             route = Route.Rules.route,
             arguments = listOf(
@@ -89,10 +88,7 @@ fun RulebookNavHost(
             )
         ) { backStackEntry ->
             val gameId = backStackEntry.arguments?.getString(RulebookNavArgs.GAME_ID) ?: ""
-            RulesPlaceholder(
-                gameId = gameId,
-                onNavigateBack = { navController.popBackStack() }
-            )
+            RulesPlaceholder(gameId = gameId)
         }
     }
 }

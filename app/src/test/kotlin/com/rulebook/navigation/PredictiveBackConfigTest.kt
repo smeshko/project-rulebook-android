@@ -13,15 +13,17 @@ import org.junit.Test
  * ## Predictive Back Requirements Verified:
  * 1. AndroidManifest has `enableOnBackInvokedCallback="true"` - verified manually
  * 2. Target SDK is 34+ (Android 14) - verified via build configuration
- * 3. Detail screens have onNavigateBack callbacks
+ * 3. Compose Navigation 2.8+ handles predictive back automatically via NavHost
  * 4. Main screens allow system back handling (exit app)
+ * 5. Detail screens use NavHost's built-in back navigation (no explicit BackHandler)
  */
 class PredictiveBackConfigTest {
 
     @Test
-    fun `detail screens support back navigation callbacks`() {
-        // Camera, Rules, and Purchase are detail screens that should have onNavigateBack
-        // This test documents the expected behavior - actual callbacks are verified at compile time
+    fun `detail screens support automatic back navigation via NavHost`() {
+        // Camera, Rules, and Purchase are detail screens
+        // Compose Navigation 2.8+ handles predictive back automatically via NavHost
+        // No explicit BackHandler needed - NavHost manages the back stack
         val detailScreenRoutes = listOf(
             Route.Camera.route,
             Route.Rules.route,
@@ -73,6 +75,11 @@ class PredictiveBackConfigTest {
      * - build.gradle: targetSdk = 34 or higher
      * - Compose Navigation: version 2.8.0 or higher (currently 2.8.4)
      *
+     * Key implementation notes:
+     * - No explicit BackHandler used - NavHost handles predictive back automatically
+     * - When back stack is empty (e.g., deep link to Rules), system exits the activity
+     * - Preview animations are handled by Compose Navigation's integration with OnBackInvokedCallback
+     *
      * Testing on device:
      * 1. Enable gesture navigation in device settings
      * 2. Navigate to Camera or Rules screen
@@ -120,6 +127,12 @@ class PredictiveBackConfigTest {
      * 3. VERIFY: Preview of previous screen shows during gesture
      * 4. Complete gesture
      * 5. VERIFY: Navigation returns to previous screen
+     *
+     * ### Deep Link to Rules (Edge Case)
+     * 1. Open app via deep link: rulebook://rules/test-game-id
+     * 2. VERIFY: Rules screen displays with game ID
+     * 3. Perform back gesture
+     * 4. VERIFY: App exits (no previous screen in back stack)
      *
      * ### Main Screens - Library/Settings (AC: #2)
      * 1. On Library screen (start destination)
