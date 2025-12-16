@@ -141,7 +141,7 @@ development_status:
 
   # Story 2.5: Library Screen Shell with Empty State
   2-5-library-screen-empty-state:
-    status: ready-for-dev
+    status: in-progress
     story_file: docs/sprint-artifacts/2-5-library-screen-empty-state.md
 
   # Story 2.6: Settings Screen Shell
