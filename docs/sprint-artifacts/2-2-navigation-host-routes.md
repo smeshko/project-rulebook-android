@@ -40,10 +40,10 @@ So that screens can be navigated to consistently.
   - [x] Create NavHost with startDestination = Library
   - [x] Add composable() for each route
   - [x] Pass NavController to screen composables
-- [ ] Task 3: Add type-safe navigation arguments (AC: #3)
-  - [ ] Create navArgument for gameId in Rules route
-  - [ ] Use NavType.StringType for arguments
-  - [ ] Create helper extension functions for navigation
+- [x] Task 3: Add type-safe navigation arguments (AC: #3)
+  - [x] Create navArgument for gameId in Rules route
+  - [x] Use NavType.StringType for arguments
+  - [x] Create helper extension functions for navigation
 - [ ] Task 4: Configure deep links structure (AC: #4)
   - [ ] Add deepLinks parameter to Routes that need them
   - [ ] Prepare URI patterns for future use
@@ -225,12 +225,15 @@ implementation(libs.androidx.navigation.compose)
 ### Completion Notes List
 - Task 1: Created NavigationDestination.kt with sealed class Route defining all app destinations (Library, Settings, Camera, Rules, Onboarding, Purchase). Rules route includes gameId argument pattern and createRoute helper function. Added RulebookNavArgs object for centralized argument keys. Unit tests verify all route strings and argument handling.
 - Task 2: Created RulebookNavHost composable with NavHost container. Configured startDestination to Library route. Added composable() entries for all 6 destinations with placeholder content. NavController is accepted as parameter for navigation management.
+- Task 3: Added type-safe navigation arguments for Rules route using navArgument with NavType.StringType. Created NavControllerExtensions.kt with helper functions for all navigation destinations (navigateToRules, navigateToLibrary, navigateToSettings, navigateToCamera, navigateToOnboarding, navigateToPurchase, completeOnboarding).
 
 ### File List
 - app/src/main/kotlin/com/rulebook/navigation/NavigationDestination.kt (new)
 - app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (new)
+- app/src/main/kotlin/com/rulebook/navigation/NavControllerExtensions.kt (new)
 - app/src/test/kotlin/com/rulebook/navigation/NavigationDestinationTest.kt (new)
 - app/src/test/kotlin/com/rulebook/navigation/RulebookNavHostTest.kt (new)
+- app/src/test/kotlin/com/rulebook/navigation/NavControllerExtensionsTest.kt (new)
 
 ## Dependencies
 

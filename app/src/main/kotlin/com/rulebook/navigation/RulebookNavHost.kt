@@ -3,8 +3,10 @@ package com.rulebook.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 
 /**
  * Navigation host for the Rulebook app.
@@ -52,10 +54,18 @@ fun RulebookNavHost(
             // Placeholder - actual screen will be provided in Task 5
         }
 
-        // Rules - displays rules for a specific game
-        // Note: Type-safe arguments will be added in Task 3
-        composable(route = Route.Rules.route) {
+        // Rules - displays rules for a specific game with type-safe gameId argument
+        composable(
+            route = Route.Rules.route,
+            arguments = listOf(
+                navArgument(RulebookNavArgs.GAME_ID) {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val gameId = backStackEntry.arguments?.getString(RulebookNavArgs.GAME_ID) ?: ""
             // Placeholder - actual screen will be provided in Task 5
+            // Will receive gameId parameter
         }
     }
 }
