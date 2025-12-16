@@ -36,10 +36,10 @@ So that screens can be navigated to consistently.
   - [x] Define sealed class Route with route string
   - [x] Create Library, Settings, Camera, Rules, Onboarding, Purchase objects
   - [x] Add gameId argument pattern for Rules route
-- [ ] Task 2: Create RulebookNavHost composable (AC: #2)
-  - [ ] Create NavHost with startDestination = Library
-  - [ ] Add composable() for each route
-  - [ ] Pass NavController to screen composables
+- [x] Task 2: Create RulebookNavHost composable (AC: #2)
+  - [x] Create NavHost with startDestination = Library
+  - [x] Add composable() for each route
+  - [x] Pass NavController to screen composables
 - [ ] Task 3: Add type-safe navigation arguments (AC: #3)
   - [ ] Create navArgument for gameId in Rules route
   - [ ] Use NavType.StringType for arguments
@@ -224,10 +224,13 @@ implementation(libs.androidx.navigation.compose)
 
 ### Completion Notes List
 - Task 1: Created NavigationDestination.kt with sealed class Route defining all app destinations (Library, Settings, Camera, Rules, Onboarding, Purchase). Rules route includes gameId argument pattern and createRoute helper function. Added RulebookNavArgs object for centralized argument keys. Unit tests verify all route strings and argument handling.
+- Task 2: Created RulebookNavHost composable with NavHost container. Configured startDestination to Library route. Added composable() entries for all 6 destinations with placeholder content. NavController is accepted as parameter for navigation management.
 
 ### File List
 - app/src/main/kotlin/com/rulebook/navigation/NavigationDestination.kt (new)
+- app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (new)
 - app/src/test/kotlin/com/rulebook/navigation/NavigationDestinationTest.kt (new)
+- app/src/test/kotlin/com/rulebook/navigation/RulebookNavHostTest.kt (new)
 
 ## Dependencies
 
