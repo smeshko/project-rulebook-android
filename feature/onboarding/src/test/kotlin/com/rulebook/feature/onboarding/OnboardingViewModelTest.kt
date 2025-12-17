@@ -1,5 +1,6 @@
 package com.rulebook.feature.onboarding
 
+import com.rulebook.core.data.repository.CreditRepository
 import com.rulebook.core.data.repository.OnboardingRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,14 +25,16 @@ import kotlin.test.assertTrue
 class OnboardingViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
-    private lateinit var fakeRepository: FakeOnboardingRepository
+    private lateinit var fakeOnboardingRepository: FakeOnboardingRepository
+    private lateinit var fakeCreditRepository: FakeCreditRepository
     private lateinit var viewModel: OnboardingViewModel
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        fakeRepository = FakeOnboardingRepository()
-        viewModel = OnboardingViewModel(fakeRepository)
+        fakeOnboardingRepository = FakeOnboardingRepository()
+        fakeCreditRepository = FakeCreditRepository()
+        viewModel = OnboardingViewModel(fakeOnboardingRepository, fakeCreditRepository)
     }
 
     @After
@@ -94,7 +97,16 @@ class OnboardingViewModelTest {
         viewModel.onGetStartedClicked()
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertTrue(fakeRepository.completedValue)
+        assertTrue(fakeOnboardingRepository.completedValue)
+    }
+
+    @Test
+    fun `onGetStartedClicked should award 3 initial credits`() = runTest {
+        viewModel.onGetStartedClicked()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(3, fakeCreditRepository.creditBalance.first())
+        assertTrue(fakeCreditRepository.awardCalled)
     }
 
     @Test
@@ -120,7 +132,29 @@ class OnboardingViewModelTest {
         viewModel.onSkipClicked()
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertTrue(fakeRepository.completedValue)
+        assertTrue(fakeOnboardingRepository.completedValue)
+    }
+
+    @Test
+    fun `onSkipClicked should award 3 initial credits`() = runTest {
+        viewModel.onSkipClicked()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(3, fakeCreditRepository.creditBalance.first())
+        assertTrue(fakeCreditRepository.awardCalled)
+    }
+
+    @Test
+    fun `credit award is idempotent - second completion does not double credits`() = runTest {
+        // First completion
+        viewModel.onGetStartedClicked()
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(3, fakeCreditRepository.creditBalance.first())
+
+        // Simulate second completion (should not double credits)
+        viewModel.onGetStartedClicked()
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(3, fakeCreditRepository.creditBalance.first())
     }
 
     @Test
@@ -154,5 +188,39 @@ private class FakeOnboardingRepository : OnboardingRepository {
     override suspend fun setOnboardingCompleted(completed: Boolean) {
         completedValue = completed
         _hasCompletedOnboarding.value = completed
+    }
+}
+
+/**
+ * Fake implementation of CreditRepository for testing.
+ */
+private class FakeCreditRepository : CreditRepository {
+    private val _creditBalance = MutableStateFlow(0)
+    override val creditBalance: Flow<Int> = _creditBalance
+
+    var awardCalled: Boolean = false
+        private set
+
+    override suspend fun awardInitialCredits(amount: Int): Boolean {
+        awardCalled = true
+        return if (_creditBalance.value == 0) {
+            _creditBalance.value = amount
+            true
+        } else {
+            false
+        }
+    }
+
+    override suspend fun deductCredit(): Boolean {
+        return if (_creditBalance.value > 0) {
+            _creditBalance.value = _creditBalance.value - 1
+            true
+        } else {
+            false
+        }
+    }
+
+    override suspend fun hasCredits(): Boolean {
+        return _creditBalance.value > 0
     }
 }

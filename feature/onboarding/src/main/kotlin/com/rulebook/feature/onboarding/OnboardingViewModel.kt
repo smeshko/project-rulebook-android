@@ -2,6 +2,7 @@ package com.rulebook.feature.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rulebook.core.data.repository.CreditRepository
 import com.rulebook.core.data.repository.OnboardingRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,9 +18,11 @@ import kotlinx.coroutines.launch
  * navigation actions for the onboarding flow.
  *
  * @param onboardingRepository Repository for persisting onboarding completion state.
+ * @param creditRepository Repository for managing user credit balance.
  */
 class OnboardingViewModel(
-    private val onboardingRepository: OnboardingRepository
+    private val onboardingRepository: OnboardingRepository,
+    private val creditRepository: CreditRepository
 ) : ViewModel() {
 
     private val _currentPage = MutableStateFlow(0)
@@ -63,17 +66,25 @@ class OnboardingViewModel(
 
     /**
      * Called when the "Get Started" button is clicked on the last page.
-     * Marks onboarding as completed and triggers navigation to the library.
+     * Marks onboarding as completed, awards initial credits, and triggers
+     * navigation to the library.
      */
     fun onGetStartedClicked() {
         viewModelScope.launch {
             // Mark onboarding as completed
             onboardingRepository.setOnboardingCompleted(true)
-            // Award initial credits (Story 3.4 - placeholder for now)
-            // creditRepository.awardInitialCredits(3)
+            // Award initial credits (idempotent - safe to call multiple times)
+            creditRepository.awardInitialCredits(INITIAL_CREDITS)
             // Navigate to Library
             _navigationEvent.send(OnboardingNavigationEvent.NavigateToLibrary)
         }
+    }
+
+    companion object {
+        /**
+         * Number of credits awarded to new users upon completing onboarding.
+         */
+        const val INITIAL_CREDITS = 3
     }
 
     /**

@@ -36,11 +36,11 @@ So that I can immediately try the app's core feature.
   - [x] Use DataStore transaction for atomic update
   - [x] Return Boolean indicating if credits were awarded
 
-- [ ] Task 3: Update OnboardingViewModel with credit award (AC: #1, #2)
-  - [ ] Inject `CreditRepository` into OnboardingViewModel
-  - [ ] Update `completeOnboarding()` to award credits
-  - [ ] Ensure both onboarding flag and credits set together
-  - [ ] Handle edge case where user already has credits
+- [x] Task 3: Update OnboardingViewModel with credit award (AC: #1, #2)
+  - [x] Inject `CreditRepository` into OnboardingViewModel
+  - [x] Update `completeOnboarding()` to award credits
+  - [x] Ensure both onboarding flag and credits set together
+  - [x] Handle edge case where user already has credits
 
 - [ ] Task 4: Implement atomic DataStore transaction (AC: #2, #4)
   - [ ] Create `completeOnboardingWithCredits()` in repository
@@ -299,6 +299,11 @@ core/datastore/
   - Checks currentBalance == 0 before awarding
   - Uses DataStore edit block for atomic operation
   - Returns Boolean indicating success
+- Task 3: Updated OnboardingViewModel to inject and use CreditRepository.
+  - Added INITIAL_CREDITS companion object constant (3)
+  - onGetStartedClicked() now awards credits via creditRepository.awardInitialCredits()
+  - Updated Koin module to inject creditRepository
+  - Added unit tests for credit award on completion
 
 ### File List
 
@@ -308,6 +313,9 @@ core/datastore/
 - core/data/src/test/kotlin/com/rulebook/core/data/repository/CreditRepositoryTest.kt (new)
 - core/datastore/src/main/kotlin/com/rulebook/core/datastore/CreditPreferencesSource.kt (new)
 - core/datastore/src/main/kotlin/com/rulebook/core/datastore/RulebookPreferences.kt (modified)
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/OnboardingViewModel.kt (modified)
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/di/OnboardingModule.kt (modified)
+- feature/onboarding/src/test/kotlin/com/rulebook/feature/onboarding/OnboardingViewModelTest.kt (modified)
 
 ## Dependencies
 
