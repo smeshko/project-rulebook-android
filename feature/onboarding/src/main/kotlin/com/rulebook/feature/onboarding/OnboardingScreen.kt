@@ -32,20 +32,30 @@ import org.koin.androidx.compose.koinViewModel
  * - Bottom navigation with Next/Get Started button
  * - Edge-to-edge display with proper insets
  *
- * @param onComplete Callback invoked when onboarding is completed.
- * @param onSkip Callback invoked when user chooses to skip onboarding.
+ * Navigation events are handled through the ViewModel which persists onboarding
+ * completion state and emits navigation events.
+ *
+ * @param onComplete Callback invoked when onboarding is completed (navigates to Library).
  * @param modifier Optional modifier for the screen.
  * @param viewModel The ViewModel managing onboarding state.
  */
 @Composable
 fun OnboardingScreen(
     onComplete: () -> Unit,
-    onSkip: () -> Unit = onComplete,
     modifier: Modifier = Modifier,
     viewModel: OnboardingViewModel = koinViewModel()
 ) {
     val currentPage by viewModel.currentPage.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = { OnboardingPage.entries.size })
+
+    // Handle navigation events from ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvent.collect { event ->
+            when (event) {
+                OnboardingNavigationEvent.NavigateToLibrary -> onComplete()
+            }
+        }
+    }
 
     // Sync pager state with ViewModel when currentPage changes
     LaunchedEffect(currentPage) {
@@ -73,7 +83,7 @@ fun OnboardingScreen(
 
         // Skip button - top right with status bar padding
         TextButton(
-            onClick = onSkip,
+            onClick = { viewModel.onSkipClicked() },
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .windowInsetsPadding(WindowInsets.statusBars)
@@ -94,26 +104,10 @@ fun OnboardingScreen(
                 if (pagerState.currentPage < OnboardingPage.entries.size - 1) {
                     viewModel.onNextClicked()
                 } else {
-                    onComplete()
+                    viewModel.onGetStartedClicked()
                 }
             },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
-}
-
-/**
- * Overload for backward compatibility with existing navigation.
- * Calls onComplete for both complete and skip actions.
- */
-@Composable
-fun OnboardingScreen(
-    onComplete: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    OnboardingScreen(
-        onComplete = onComplete,
-        onSkip = onComplete,
-        modifier = modifier
-    )
 }
