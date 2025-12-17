@@ -23,6 +23,12 @@ class OnboardingViewModel(
     private val onboardingRepository: OnboardingRepository
 ) : ViewModel() {
 
+    /**
+     * Guard to prevent multiple completion attempts from double-taps.
+     * Set to true when completion is in progress to prevent duplicate navigation events.
+     */
+    private var isCompleting = false
+
     private val _currentPage = MutableStateFlow(0)
 
     /**
@@ -69,8 +75,14 @@ class OnboardingViewModel(
      *
      * Uses atomic transaction to ensure both onboarding completion and credit
      * award happen together, preventing partial state updates.
+     *
+     * Guards against double-taps by checking [isCompleting] flag before proceeding.
+     * Only the first tap will trigger completion and navigation.
      */
     fun onGetStartedClicked() {
+        if (isCompleting) return
+        isCompleting = true
+
         viewModelScope.launch {
             // Complete onboarding and award credits atomically
             // This is idempotent - safe to call multiple times
