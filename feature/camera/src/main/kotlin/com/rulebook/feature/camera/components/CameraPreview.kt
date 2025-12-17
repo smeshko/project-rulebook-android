@@ -8,9 +8,11 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -54,11 +56,26 @@ fun CameraPreview(
         }
     }
 
+    // Track whether the composable is still active to prevent binding after disposal
+    val isActiveState = remember { mutableStateOf(true) }
+
     // Handle camera binding and cleanup
     DisposableEffect(lifecycleOwner) {
+        isActiveState.value = true
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
         cameraProviderFuture.addListener({
+            // Skip binding if composable has been disposed or lifecycle is destroyed
+            if (!isActiveState.value) {
+                Log.d(TAG, "Composable disposed before camera ready, skipping bind")
+                return@addListener
+            }
+
+            if (!lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                Log.d(TAG, "Lifecycle not started, skipping camera bind")
+                return@addListener
+            }
+
             try {
                 val cameraProvider = cameraProviderFuture.get()
                 bindCameraPreview(
@@ -74,6 +91,9 @@ fun CameraPreview(
         }, ContextCompat.getMainExecutor(context))
 
         onDispose {
+            // Mark composable as disposed to prevent binding in pending listeners
+            isActiveState.value = false
+
             // Unbind all use cases when leaving the screen
             // Only unbind if the future is already complete to avoid blocking the main thread
             // during back navigation (especially on first launch when camera is still initializing)
@@ -85,9 +105,9 @@ fun CameraPreview(
                     Log.e(TAG, "Error unbinding camera", e)
                 }
             } else {
-                // If camera is still initializing, cancel via the listener mechanism
-                // The camera will be unbound when the provider becomes available
-                Log.d(TAG, "Camera provider not ready on dispose, skipping unbind")
+                // If camera is still initializing, the listener will check isActiveState
+                // and skip binding, so we don't need to unbind here
+                Log.d(TAG, "Camera provider not ready on dispose, listener will skip bind")
             }
         }
     }

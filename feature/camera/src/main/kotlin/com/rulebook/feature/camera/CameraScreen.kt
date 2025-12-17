@@ -127,7 +127,7 @@ fun CameraScreen(
  * @param onRequestPermission Callback to trigger permission request.
  */
 @Composable
-private fun PermissionRationale(
+internal fun PermissionRationale(
     onRequestPermission: () -> Unit
 ) {
     Column(
@@ -164,7 +164,7 @@ private fun PermissionRationale(
  * they need to enable the permission in system settings.
  */
 @Composable
-private fun PermissionDenied() {
+internal fun PermissionDenied() {
     Column(
         modifier = Modifier
             .fillMaxSize()
