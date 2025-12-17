@@ -1,6 +1,6 @@
 # Story 3.4: Credit Award on Completion
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -22,13 +22,13 @@ So that I can immediately try the app's core feature.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create CreditRepository for credit management (AC: #1, #4)
-  - [ ] Create `CreditRepository` interface in `core/data`
-  - [ ] Implement `CreditRepositoryImpl` using DataStore
-  - [ ] Add `creditBalance: Flow<Int>` property
-  - [ ] Add `awardInitialCredits(amount: Int)` suspend function
-  - [ ] Add `deductCredit()` suspend function for future use
-  - [ ] Register repository in Koin module
+- [x] Task 1: Create CreditRepository for credit management (AC: #1, #4)
+  - [x] Create `CreditRepository` interface in `core/data`
+  - [x] Implement `CreditRepositoryImpl` using DataStore
+  - [x] Add `creditBalance: Flow<Int>` property
+  - [x] Add `awardInitialCredits(amount: Int)` suspend function
+  - [x] Add `deductCredit()` suspend function for future use
+  - [x] Register repository in Koin module
 
 - [ ] Task 2: Implement idempotent credit award logic (AC: #1, #4)
   - [ ] Check if credits already > 0 before awarding
@@ -290,7 +290,20 @@ core/datastore/
 
 ### Completion Notes List
 
+- Task 1: Created CreditRepository with interface abstraction pattern matching existing OnboardingRepository.
+  - CreditPreferencesSource interface added to core/datastore for testing abstraction
+  - RulebookPreferences now implements both OnboardingPreferencesSource and CreditPreferencesSource
+  - Added awardInitialCreditsIfNeeded() and deductCredit() methods with idempotent behavior
+  - Unit tests added for all CreditRepository operations
+
 ### File List
+
+- core/data/src/main/kotlin/com/rulebook/core/data/repository/CreditRepository.kt (new)
+- core/data/src/main/kotlin/com/rulebook/core/data/repository/CreditRepositoryImpl.kt (new)
+- core/data/src/main/kotlin/com/rulebook/core/data/di/DataModule.kt (modified)
+- core/data/src/test/kotlin/com/rulebook/core/data/repository/CreditRepositoryTest.kt (new)
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/CreditPreferencesSource.kt (new)
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/RulebookPreferences.kt (modified)
 
 ## Dependencies
 

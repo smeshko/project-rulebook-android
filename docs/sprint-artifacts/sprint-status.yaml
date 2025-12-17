@@ -185,7 +185,7 @@ development_status:
 
   # Story 3.4: Credit Award on Completion
   3-4-credit-award-on-completion:
-    status: ready-for-dev
+    status: in-progress
     story_file: docs/sprint-artifacts/3-4-credit-award-on-completion.md
 
   # Story 3.5: Skip Onboarding Functionality
