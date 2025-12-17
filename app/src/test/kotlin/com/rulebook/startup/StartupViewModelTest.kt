@@ -1,0 +1,108 @@
+package com.rulebook.startup
+
+import com.rulebook.core.data.repository.OnboardingRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+
+/**
+ * Unit tests for StartupViewModel.
+ *
+ * Tests startup destination determination based on onboarding status.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+class StartupViewModelTest {
+
+    private val testDispatcher = StandardTestDispatcher()
+    private lateinit var fakeRepository: FakeOnboardingRepository
+    private lateinit var viewModel: StartupViewModel
+
+    @Before
+    fun setup() {
+        Dispatchers.setMain(testDispatcher)
+        fakeRepository = FakeOnboardingRepository()
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    // ==================== Initial State Tests ====================
+
+    @Test
+    fun `initial state has null destination and isLoading true`() = runTest {
+        viewModel = StartupViewModel(fakeRepository)
+
+        assertNull(viewModel.startupDestination.value)
+        assertTrue(viewModel.isLoading.value)
+    }
+
+    // ==================== Destination Determination Tests ====================
+
+    @Test
+    fun `when onboarding not completed, destination is Onboarding`() = runTest {
+        fakeRepository.setOnboardingCompletedSync(false)
+        viewModel = StartupViewModel(fakeRepository)
+
+        advanceUntilIdle()
+
+        assertEquals(StartupDestination.Onboarding, viewModel.startupDestination.value)
+        assertFalse(viewModel.isLoading.value)
+    }
+
+    @Test
+    fun `when onboarding completed, destination is Library`() = runTest {
+        fakeRepository.setOnboardingCompletedSync(true)
+        viewModel = StartupViewModel(fakeRepository)
+
+        advanceUntilIdle()
+
+        assertEquals(StartupDestination.Library, viewModel.startupDestination.value)
+        assertFalse(viewModel.isLoading.value)
+    }
+
+    // ==================== Loading State Tests ====================
+
+    @Test
+    fun `isLoading becomes false after destination is determined`() = runTest {
+        fakeRepository.setOnboardingCompletedSync(false)
+        viewModel = StartupViewModel(fakeRepository)
+
+        assertTrue(viewModel.isLoading.value)
+
+        advanceUntilIdle()
+
+        assertFalse(viewModel.isLoading.value)
+    }
+}
+
+/**
+ * Fake implementation of OnboardingRepository for testing.
+ */
+class FakeOnboardingRepository : OnboardingRepository {
+    private val _hasCompletedOnboarding = MutableStateFlow(false)
+    override val hasCompletedOnboarding: Flow<Boolean> = _hasCompletedOnboarding
+
+    override suspend fun setOnboardingCompleted(completed: Boolean) {
+        _hasCompletedOnboarding.value = completed
+    }
+
+    fun setOnboardingCompletedSync(value: Boolean) {
+        _hasCompletedOnboarding.value = value
+    }
+}

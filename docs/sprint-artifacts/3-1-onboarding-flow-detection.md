@@ -28,11 +28,11 @@ So that I go directly to the library on subsequent launches.
   - [x] Add `setOnboardingCompleted(Boolean)` suspend function
   - [x] Register repository in Koin module
 
-- [ ] Task 2: Implement startup destination determination (AC: #1, #2)
-  - [ ] Create `StartupDestination` sealed class (Onboarding, Library)
-  - [ ] Create `StartupViewModel` to determine initial route
-  - [ ] Read `hasCompletedOnboarding` during splash hold
-  - [ ] Expose `startupDestination: StateFlow<StartupDestination?>`
+- [x] Task 2: Implement startup destination determination (AC: #1, #2)
+  - [x] Create `StartupDestination` sealed class (Onboarding, Library)
+  - [x] Create `StartupViewModel` to determine initial route
+  - [x] Read `hasCompletedOnboarding` during splash hold
+  - [x] Expose `startupDestination: StateFlow<StartupDestination?>`
 
 - [ ] Task 3: Configure splash screen to hold during check (AC: #2, #3)
   - [ ] Configure `SplashScreen.setKeepOnScreenCondition` in MainActivity
@@ -209,6 +209,7 @@ val appModule = module {
 ### Completion Notes List
 
 - Task 1: Created OnboardingRepository with interface + implementation pattern. Added OnboardingPreferencesSource interface to abstract DataStore access for testability. Updated RulebookPreferences to implement the new interface. Registered in Koin DataModule. Added 7 unit tests for repository behavior.
+- Task 2: Created StartupDestination sealed class with Onboarding and Library variants. Implemented StartupViewModel that reads onboarding status and exposes destination via StateFlow. Includes isLoading state for splash screen coordination. Added 4 unit tests.
 
 ### File List
 
@@ -219,6 +220,10 @@ val appModule = module {
 - core/data/build.gradle.kts (modified - added test dependencies)
 - core/datastore/src/main/kotlin/com/rulebook/core/datastore/OnboardingPreferencesSource.kt (new)
 - core/datastore/src/main/kotlin/com/rulebook/core/datastore/RulebookPreferences.kt (modified - implements interface)
+- app/src/main/kotlin/com/rulebook/startup/StartupDestination.kt (new)
+- app/src/main/kotlin/com/rulebook/startup/StartupViewModel.kt (new)
+- app/src/test/kotlin/com/rulebook/startup/StartupViewModelTest.kt (new)
+- app/build.gradle.kts (modified - added coroutines test dependency)
 
 ## Dependencies
 
