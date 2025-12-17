@@ -12,8 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
+import com.rulebook.navigation.Route
 import com.rulebook.navigation.RulebookNavHost
 import com.rulebook.navigation.RulebookScaffold
+import com.rulebook.startup.StartupDestination
 
 /**
  * Root composable for the Rulebook app.
@@ -23,14 +25,22 @@ import com.rulebook.navigation.RulebookScaffold
  * - Applies WindowInsets for proper edge-to-edge content layout
  * - Provides the RulebookScaffold structure with bottom bar, FAB, and navigation
  *
+ * @param startDestination The initial navigation destination based on onboarding status.
  * @param modifier Optional modifier for the root composable
  */
 @Composable
 fun RulebookApp(
+    startDestination: StartupDestination,
     modifier: Modifier = Modifier
 ) {
     val isDarkTheme = isSystemInDarkTheme()
     val navController = rememberNavController()
+
+    // Map StartupDestination to navigation route
+    val startRoute = when (startDestination) {
+        StartupDestination.Onboarding -> Route.Onboarding.route
+        StartupDestination.Library -> Route.Library.route
+    }
 
     // Configure status bar and navigation bar icon colors based on theme
     // Note: enableEdgeToEdge() in MainActivity handles transparent bars
@@ -47,6 +57,7 @@ fun RulebookApp(
             // Navigation host with proper insets applied
             RulebookNavHost(
                 navController = navController,
+                startDestination = startRoute,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)

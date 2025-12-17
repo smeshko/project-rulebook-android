@@ -39,11 +39,11 @@ So that I go directly to the library on subsequent launches.
   - [x] Hold splash until `startupDestination` is determined
   - [x] Release splash once navigation target is known
 
-- [ ] Task 4: Update navigation to use dynamic start destination (AC: #1, #3)
-  - [ ] Modify `RulebookNavHost` to accept start destination parameter
-  - [ ] Add `Onboarding` route to navigation destinations
-  - [ ] Set NavHost startDestination based on StartupViewModel state
-  - [ ] Ensure no flash by setting destination before NavHost renders
+- [x] Task 4: Update navigation to use dynamic start destination (AC: #1, #3)
+  - [x] Modify `RulebookNavHost` to accept start destination parameter
+  - [x] Add `Onboarding` route to navigation destinations
+  - [x] Set NavHost startDestination based on StartupViewModel state
+  - [x] Ensure no flash by setting destination before NavHost renders
 
 - [ ] Task 5: Add onboarding feature module structure (AC: #1)
   - [ ] Create `feature/onboarding` module
@@ -211,6 +211,7 @@ val appModule = module {
 - Task 1: Created OnboardingRepository with interface + implementation pattern. Added OnboardingPreferencesSource interface to abstract DataStore access for testability. Updated RulebookPreferences to implement the new interface. Registered in Koin DataModule. Added 7 unit tests for repository behavior.
 - Task 2: Created StartupDestination sealed class with Onboarding and Library variants. Implemented StartupViewModel that reads onboarding status and exposes destination via StateFlow. Includes isLoading state for splash screen coordination. Added 4 unit tests.
 - Task 3: Configured AndroidX Splash Screen API. Added splash screen dependency, created Theme.Rulebook.Splash with background color, updated MainActivity to install splash screen and hold it via setKeepOnScreenCondition until StartupViewModel.isLoading is false. Registered StartupViewModel in Koin appModule.
+- Task 4: Updated RulebookApp to accept StartupDestination parameter and map to navigation routes. Updated MainActivity to collect startup destination state and pass to RulebookApp. Updated Onboarding route to use fade transitions since it can now be a start destination. App only renders after destination is determined, preventing any flash.
 
 ### File List
 
@@ -231,6 +232,8 @@ val appModule = module {
 - app/src/main/res/values/themes.xml (modified - added Theme.Rulebook.Splash)
 - app/src/main/res/values/colors.xml (modified - added splash_background color)
 - gradle/libs.versions.toml (modified - added splashscreen dependency)
+- app/src/main/kotlin/com/rulebook/RulebookApp.kt (modified - accepts StartupDestination)
+- app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (modified - Onboarding transitions)
 
 ## Dependencies
 

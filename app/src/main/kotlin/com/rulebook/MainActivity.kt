@@ -4,7 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.startup.StartupViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -37,8 +39,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
+            val startupDestination by startupViewModel.startupDestination.collectAsStateWithLifecycle()
+
             RulebookTheme {
-                RulebookApp()
+                // Only render app once startup destination is determined
+                // Splash screen is held until this point, so no flash occurs
+                startupDestination?.let { destination ->
+                    RulebookApp(startDestination = destination)
+                }
             }
         }
     }
