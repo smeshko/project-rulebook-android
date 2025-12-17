@@ -17,12 +17,12 @@ import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.theme.RulebookTheme
 
 /**
- * Bottom section of the onboarding screen containing the Next/Get Started button.
+ * Bottom section of the onboarding screen containing page indicator and action button.
  *
  * Features:
+ * - Page indicator showing progress through onboarding
  * - Primary action button (Next on page 1, Get Started on page 2)
  * - Navigation bar padding for edge-to-edge display
- * - Space reserved for future page indicator (Story 3.6)
  *
  * @param currentPage The currently displayed page index (0-based).
  * @param pageCount Total number of pages in the pager.
@@ -47,8 +47,13 @@ fun OnboardingBottomSection(
             .padding(bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Page indicator placeholder - will be implemented in Story 3.6
-        Spacer(modifier = Modifier.height(16.dp))
+        // Page indicator
+        OnboardingPageIndicator(
+            pageCount = pageCount,
+            currentPage = currentPage
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Primary action button
         RulebookButton(

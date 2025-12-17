@@ -1,6 +1,6 @@
 # Story 3.6: Onboarding Page Indicator
 
-Status: in-progress
+Status: done
 
 ## Story
 
@@ -36,20 +36,20 @@ So that I know how many screens remain.
   - [x] Inactive dots: Surface variant color, smaller size
   - [x] High contrast between active and inactive
 
-- [ ] Task 3: Position indicators in bottom section (AC: #5)
-  - [ ] Place indicators in `OnboardingBottomSection`
-  - [ ] Position above navigation buttons
-  - [ ] Add appropriate spacing (16-24dp margin)
+- [x] Task 3: Position indicators in bottom section (AC: #5)
+  - [x] Place indicators in `OnboardingBottomSection`
+  - [x] Position above navigation buttons
+  - [x] Add appropriate spacing (16-24dp margin)
 
-- [ ] Task 4: Add animated transitions (AC: #2)
-  - [ ] Animate dot size changes on page transition
-  - [ ] Use `animateDpAsState` for smooth scaling
-  - [ ] Keep animation duration short (150-200ms)
+- [x] Task 4: Add animated transitions (AC: #2)
+  - [x] Animate dot size changes on page transition
+  - [x] Use `animateDpAsState` for smooth scaling
+  - [x] Keep animation duration short (150-200ms)
 
-- [ ] Task 5: Sync with HorizontalPager state (AC: #1)
-  - [ ] Pass `pagerState.currentPage` to indicator
-  - [ ] Update when user swipes between pages
-  - [ ] Update when user taps Next button
+- [x] Task 5: Sync with HorizontalPager state (AC: #1)
+  - [x] Pass `pagerState.currentPage` to indicator
+  - [x] Update when user swipes between pages
+  - [x] Update when user taps Next button
 
 ## Dev Notes
 
@@ -293,10 +293,14 @@ feature/onboarding/components/
 ### Completion Notes List
 - Task 1 Complete: Created OnboardingPageIndicator composable with pageCount/currentPage params, row of animated dots, active/inactive states
 - Task 2 Complete: Brutalist styling already applied - RoundedCornerShape(2dp), primary/surfaceVariant colors, 12dp/8dp sizes
+- Task 3 Complete: Integrated OnboardingPageIndicator into OnboardingBottomSection with 24dp spacing above button
+- Task 4 Complete: Animations already implemented - animateDpAsState/animateColorAsState with 150ms tween duration
+- Task 5 Complete: Syncing already in place - pagerState.currentPage passed through OnboardingBottomSection to indicator
 
 ### File List
 - feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/components/OnboardingPageIndicator.kt (NEW)
 - feature/onboarding/src/test/kotlin/com/rulebook/feature/onboarding/components/OnboardingPageIndicatorTest.kt (NEW)
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/components/OnboardingBottomSection.kt (MODIFIED)
 
 ## Dependencies
 
