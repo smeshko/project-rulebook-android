@@ -65,10 +65,10 @@ so that I can frame my game box photo.
   - [x] Properly release camera on pause/stop
   - [x] Resume camera on return to foreground
 
-- [ ] Task 6: Register Camera Navigation (AC: #1)
-  - [ ] Add `CameraDestination` to navigation graph
-  - [ ] Create navigation extension function `navigateToCamera()`
-  - [ ] Update FAB click handler in MainActivity to navigate to camera
+- [x] Task 6: Register Camera Navigation (AC: #1)
+  - [x] Add `CameraDestination` to navigation graph
+  - [x] Create navigation extension function `navigateToCamera()`
+  - [x] Update FAB click handler in MainActivity to navigate to camera
 
 - [ ] Task 7: Set Up Koin DI for Camera Module (AC: #1)
   - [ ] Create `CameraModule.kt` with Koin definitions
@@ -172,6 +172,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Task 3: Implemented CameraScreen with full-screen layout, immersive mode (hidden system bars), CameraUiState data class, and CameraViewModel with MVI pattern. Unit tests for CameraViewModel added.
 - Task 4: Implemented CameraPreview composable using AndroidView + PreviewView, configured for rear camera, lifecycle-aware binding via ProcessCameraProvider.
 - Task 5: Camera lifecycle handled via DisposableEffect in CameraPreview - unbindAll on dispose, camera bound to lifecycle owner for automatic pause/resume on app backgrounding.
+- Task 6: Created CameraNavigation.kt with route constant and navigation extensions. Updated RulebookNavHost to use CameraScreen instead of placeholder. FAB navigation to camera was already working via RulebookScaffold.
 
 ### File List
 

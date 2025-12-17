@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.rulebook.feature.camera.CameraScreen
 import com.rulebook.feature.library.LibraryScreen
 import com.rulebook.feature.onboarding.OnboardingScreen
 import com.rulebook.feature.settings.SettingsScreen
@@ -83,6 +84,7 @@ fun RulebookNavHost(
         }
 
         // Camera - capture rulebook pages
+        // Full-screen camera preview with immersive mode (hidden system bars)
         // Predictive back handled automatically by NavHost - shows preview during gesture
         // Uses slide transition for detail screen
         composable(
@@ -92,7 +94,7 @@ fun RulebookNavHost(
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
             popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
-            CameraPlaceholder()
+            CameraScreen()
         }
 
         // Onboarding - first-time user experience
