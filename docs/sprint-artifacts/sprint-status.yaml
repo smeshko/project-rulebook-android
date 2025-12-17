@@ -200,13 +200,13 @@ development_status:
 
   # Story 3.7: Onboarding Analytics Events
   3-7-onboarding-analytics-events:
-    status: ready-for-dev
+    status: done
     story_file: docs/sprint-artifacts/3-7-onboarding-analytics-events.md
 
 summary:
   total_stories: 28
-  done: 27
-  ready_for_dev: 1
+  done: 28
+  ready_for_dev: 0
   in_progress: 0
   in_review: 0
   blocked: 0
