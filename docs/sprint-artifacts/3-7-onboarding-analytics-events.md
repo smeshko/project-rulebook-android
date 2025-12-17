@@ -1,6 +1,6 @@
 # Story 3.7: Onboarding Analytics Events
 
-Status: Ready for Review
+Status: done
 
 ## Story
 
