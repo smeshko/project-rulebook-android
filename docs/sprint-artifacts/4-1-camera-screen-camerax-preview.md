@@ -70,10 +70,10 @@ so that I can frame my game box photo.
   - [x] Create navigation extension function `navigateToCamera()`
   - [x] Update FAB click handler in MainActivity to navigate to camera
 
-- [ ] Task 7: Set Up Koin DI for Camera Module (AC: #1)
-  - [ ] Create `CameraModule.kt` with Koin definitions
-  - [ ] Register CameraViewModel in module
-  - [ ] Add camera module to main Koin configuration
+- [x] Task 7: Set Up Koin DI for Camera Module (AC: #1)
+  - [x] Create `CameraModule.kt` with Koin definitions
+  - [x] Register CameraViewModel in module
+  - [x] Add camera module to main Koin configuration
 
 ## Dev Notes
 
@@ -173,8 +173,24 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Task 4: Implemented CameraPreview composable using AndroidView + PreviewView, configured for rear camera, lifecycle-aware binding via ProcessCameraProvider.
 - Task 5: Camera lifecycle handled via DisposableEffect in CameraPreview - unbindAll on dispose, camera bound to lifecycle owner for automatic pause/resume on app backgrounding.
 - Task 6: Created CameraNavigation.kt with route constant and navigation extensions. Updated RulebookNavHost to use CameraScreen instead of placeholder. FAB navigation to camera was already working via RulebookScaffold.
+- Task 7: Updated CameraModule.kt to register CameraViewModel. Module was already registered in AppModule from initial project setup.
 
 ### File List
+
+**New Files:**
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt`
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt`
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt`
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/navigation/CameraNavigation.kt`
+- `feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt`
+
+**Modified Files:**
+- `gradle/libs.versions.toml` - Updated CameraX to 1.4.1, added Accompanist Permissions
+- `feature/camera/build.gradle.kts` - Added Accompanist Permissions and test dependencies
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt` - Full implementation
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/di/CameraModule.kt` - Added CameraViewModel
+- `app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt` - Uses CameraScreen
+- `docs/sprint-artifacts/sprint-status.yaml` - Added Epic 4 and Story 4-1 tracking
 
 ## Epic Dependencies
 
