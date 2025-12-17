@@ -14,6 +14,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -51,6 +53,9 @@ fun OnboardingScreen(
     val pagerState = rememberPagerState(pageCount = { OnboardingPage.entries.size })
     val haptic = LocalHapticFeedback.current
 
+    // Track previous page to detect actual page changes vs initial composition
+    val previousPage = remember { mutableIntStateOf(-1) }
+
     // Handle navigation events from ViewModel
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
@@ -68,10 +73,12 @@ fun OnboardingScreen(
     // Sync ViewModel with pager state when user swipes and provide haptic feedback
     LaunchedEffect(pagerState.currentPage) {
         viewModel.onPageChanged(pagerState.currentPage)
-        // Haptic feedback on page change (but not on initial load)
-        if (pagerState.currentPage > 0 || pagerState.settledPage > 0) {
+        // Haptic feedback on page change (but not on initial composition)
+        // Using previousPage tracking ensures haptic fires when swiping in any direction
+        if (previousPage.intValue != -1 && previousPage.intValue != pagerState.currentPage) {
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         }
+        previousPage.intValue = pagerState.currentPage
     }
 
     Box(
