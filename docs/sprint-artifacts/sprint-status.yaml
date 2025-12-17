@@ -180,7 +180,7 @@ development_status:
 
   # Story 3.3: Onboarding Screen 2 - Getting Started
   3-3-onboarding-screen-2-getting-started:
-    status: ready-for-dev
+    status: in-progress
     story_file: docs/sprint-artifacts/3-3-onboarding-screen-2-getting-started.md
 
   # Story 3.4: Credit Award on Completion
@@ -195,7 +195,7 @@ development_status:
 
   # Story 3.6: Onboarding Page Indicator
   3-6-onboarding-page-indicator:
-    status: ready-for-dev
+    status: in-progress
     story_file: docs/sprint-artifacts/3-6-onboarding-page-indicator.md
 
   # Story 3.7: Onboarding Analytics Events
@@ -206,8 +206,8 @@ development_status:
 summary:
   total_stories: 28
   done: 23
-  ready_for_dev: 5
-  in_progress: 0
+  ready_for_dev: 3
+  in_progress: 2
   in_review: 0
   blocked: 0
   epic_1_status: done
