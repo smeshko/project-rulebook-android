@@ -1,6 +1,6 @@
 # Story 4.1: Camera Screen with CameraX Preview
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -32,11 +32,11 @@ so that I can frame my game box photo.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create Camera Feature Module Structure (AC: #1)
-  - [ ] Create `feature/camera/` module directory
-  - [ ] Add `build.gradle.kts` with CameraX dependencies
-  - [ ] Create module package structure: `com.rulebook.feature.camera`
-  - [ ] Register module in `settings.gradle.kts`
+- [x] Task 1: Create Camera Feature Module Structure (AC: #1)
+  - [x] Create `feature/camera/` module directory
+  - [x] Add `build.gradle.kts` with CameraX dependencies
+  - [x] Create module package structure: `com.rulebook.feature.camera`
+  - [x] Register module in `settings.gradle.kts`
 
 - [ ] Task 2: Add CameraX Dependencies (AC: #1, #2)
   - [ ] Add CameraX dependencies to version catalog (`libs.versions.toml`)
@@ -166,6 +166,8 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### Debug Log References
 
 ### Completion Notes List
+
+- Task 1: Camera feature module structure already existed from initial project setup. Module directory, build.gradle.kts with CameraX deps, package structure, and settings.gradle.kts registration were already in place. Added components/ and navigation/ subdirectories for upcoming tasks.
 
 ### File List
 
