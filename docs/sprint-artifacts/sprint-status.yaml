@@ -170,7 +170,7 @@ development_status:
 
   # Story 3.1: Onboarding Flow Detection
   3-1-onboarding-flow-detection:
-    status: in-progress
+    status: done
     story_file: docs/sprint-artifacts/3-1-onboarding-flow-detection.md
 
   # Story 3.2: Onboarding Screen 1 - Value Proposition
@@ -205,9 +205,9 @@ development_status:
 
 summary:
   total_stories: 28
-  done: 21
+  done: 22
   ready_for_dev: 6
-  in_progress: 1
+  in_progress: 0
   in_review: 0
   blocked: 0
   epic_1_status: done
