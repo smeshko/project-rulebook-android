@@ -1,6 +1,6 @@
 # Story 3.5: Skip Onboarding Functionality
 
-Status: Ready for Review
+Status: done
 
 ## Story
 
