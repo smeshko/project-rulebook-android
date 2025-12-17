@@ -1,6 +1,6 @@
 # Story 3.4: Credit Award on Completion
 
-Status: in-progress
+Status: Ready for Review
 
 ## Story
 
@@ -284,7 +284,7 @@ core/datastore/
 - Architecture: Repository pattern implementation
 
 ### Agent Model Used
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
