@@ -17,4 +17,9 @@ dependencies {
 
     // Permissions
     implementation(libs.accompanist.permissions)
+
+    // Testing
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotlin.test)
 }
