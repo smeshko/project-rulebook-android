@@ -42,11 +42,11 @@ So that I can immediately try the app's core feature.
   - [x] Ensure both onboarding flag and credits set together
   - [x] Handle edge case where user already has credits
 
-- [ ] Task 4: Implement atomic DataStore transaction (AC: #2, #4)
-  - [ ] Create `completeOnboardingWithCredits()` in repository
-  - [ ] Use DataStore `edit` block for atomic update
-  - [ ] Set both `hasCompletedOnboarding` and `creditBalance` together
-  - [ ] Ensure no partial state updates possible
+- [x] Task 4: Implement atomic DataStore transaction (AC: #2, #4)
+  - [x] Create `completeOnboardingWithCredits()` in repository
+  - [x] Use DataStore `edit` block for atomic update
+  - [x] Set both `hasCompletedOnboarding` and `creditBalance` together
+  - [x] Ensure no partial state updates possible
 
 - [ ] Task 5: Add navigation to Library after completion (AC: #3)
   - [ ] Emit `NavigateToLibrary` event from ViewModel
@@ -304,6 +304,12 @@ core/datastore/
   - onGetStartedClicked() now awards credits via creditRepository.awardInitialCredits()
   - Updated Koin module to inject creditRepository
   - Added unit tests for credit award on completion
+- Task 4: Implemented atomic DataStore transaction for completion+credits.
+  - Created completeOnboardingWithCredits() in OnboardingPreferencesSource and RulebookPreferences
+  - Single DataStore edit block sets both hasCompletedOnboarding and creditBalance
+  - Idempotent: only acts if not already completed
+  - Refactored ViewModel to use atomic method instead of separate calls
+  - Removed separate CreditRepository dependency from ViewModel (cleaner API)
 
 ### File List
 
@@ -316,6 +322,10 @@ core/datastore/
 - feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/OnboardingViewModel.kt (modified)
 - feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/di/OnboardingModule.kt (modified)
 - feature/onboarding/src/test/kotlin/com/rulebook/feature/onboarding/OnboardingViewModelTest.kt (modified)
+- core/data/src/main/kotlin/com/rulebook/core/data/repository/OnboardingRepository.kt (modified)
+- core/data/src/main/kotlin/com/rulebook/core/data/repository/OnboardingRepositoryImpl.kt (modified)
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/OnboardingPreferencesSource.kt (modified)
+- app/src/test/kotlin/com/rulebook/startup/StartupViewModelTest.kt (modified)
 
 ## Dependencies
 

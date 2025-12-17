@@ -58,6 +58,30 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
     }
 
     /**
+     * Completes onboarding and awards initial credits in a single atomic transaction.
+     *
+     * This is idempotent - if onboarding was already completed, no changes are made.
+     * Both values are set together in a single DataStore edit block to prevent
+     * partial state updates (e.g., if app crashes mid-operation).
+     *
+     * @param creditAmount The number of credits to award.
+     * @return true if onboarding was completed and credits were awarded,
+     *         false if onboarding was already completed.
+     */
+    override suspend fun completeOnboardingWithCredits(creditAmount: Int): Boolean {
+        var wasCompleted = false
+        context.dataStore.edit { preferences ->
+            val alreadyCompleted = preferences[Keys.ONBOARDING_COMPLETED] ?: false
+            if (!alreadyCompleted) {
+                preferences[Keys.ONBOARDING_COMPLETED] = true
+                preferences[Keys.CREDIT_BALANCE] = creditAmount
+                wasCompleted = true
+            }
+        }
+        return wasCompleted
+    }
+
+    /**
      * Flow of current credit balance.
      * Default: `0`
      */

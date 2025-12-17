@@ -1,6 +1,5 @@
 package com.rulebook.feature.onboarding
 
-import com.rulebook.core.data.repository.CreditRepository
 import com.rulebook.core.data.repository.OnboardingRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,15 +25,13 @@ class OnboardingViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var fakeOnboardingRepository: FakeOnboardingRepository
-    private lateinit var fakeCreditRepository: FakeCreditRepository
     private lateinit var viewModel: OnboardingViewModel
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         fakeOnboardingRepository = FakeOnboardingRepository()
-        fakeCreditRepository = FakeCreditRepository()
-        viewModel = OnboardingViewModel(fakeOnboardingRepository, fakeCreditRepository)
+        viewModel = OnboardingViewModel(fakeOnboardingRepository)
     }
 
     @After
@@ -93,20 +90,13 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `onGetStartedClicked should mark onboarding as completed`() = runTest {
+    fun `onGetStartedClicked should mark onboarding as completed and award credits atomically`() = runTest {
         viewModel.onGetStartedClicked()
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertTrue(fakeOnboardingRepository.completedValue)
-    }
-
-    @Test
-    fun `onGetStartedClicked should award 3 initial credits`() = runTest {
-        viewModel.onGetStartedClicked()
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertEquals(3, fakeCreditRepository.creditBalance.first())
-        assertTrue(fakeCreditRepository.awardCalled)
+        assertEquals(3, fakeOnboardingRepository.creditBalance)
+        assertTrue(fakeOnboardingRepository.atomicCompletionCalled)
     }
 
     @Test
@@ -128,33 +118,26 @@ class OnboardingViewModelTest {
     }
 
     @Test
-    fun `onSkipClicked should mark onboarding as completed`() = runTest {
+    fun `onSkipClicked should mark onboarding as completed and award credits atomically`() = runTest {
         viewModel.onSkipClicked()
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertTrue(fakeOnboardingRepository.completedValue)
+        assertEquals(3, fakeOnboardingRepository.creditBalance)
+        assertTrue(fakeOnboardingRepository.atomicCompletionCalled)
     }
 
     @Test
-    fun `onSkipClicked should award 3 initial credits`() = runTest {
-        viewModel.onSkipClicked()
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        assertEquals(3, fakeCreditRepository.creditBalance.first())
-        assertTrue(fakeCreditRepository.awardCalled)
-    }
-
-    @Test
-    fun `credit award is idempotent - second completion does not double credits`() = runTest {
+    fun `atomic completion is idempotent - second completion does not double credits`() = runTest {
         // First completion
         viewModel.onGetStartedClicked()
         testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals(3, fakeCreditRepository.creditBalance.first())
+        assertEquals(3, fakeOnboardingRepository.creditBalance)
 
-        // Simulate second completion (should not double credits)
+        // Simulate second completion (should not double credits due to idempotency)
         viewModel.onGetStartedClicked()
         testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals(3, fakeCreditRepository.creditBalance.first())
+        assertEquals(3, fakeOnboardingRepository.creditBalance)
     }
 
     @Test
@@ -177,6 +160,7 @@ class OnboardingViewModelTest {
 
 /**
  * Fake implementation of OnboardingRepository for testing.
+ * Supports the atomic completeOnboardingWithCredits operation.
  */
 private class FakeOnboardingRepository : OnboardingRepository {
     private val _hasCompletedOnboarding = MutableStateFlow(false)
@@ -185,42 +169,26 @@ private class FakeOnboardingRepository : OnboardingRepository {
     var completedValue: Boolean = false
         private set
 
+    var creditBalance: Int = 0
+        private set
+
+    var atomicCompletionCalled: Boolean = false
+        private set
+
     override suspend fun setOnboardingCompleted(completed: Boolean) {
         completedValue = completed
         _hasCompletedOnboarding.value = completed
     }
-}
 
-/**
- * Fake implementation of CreditRepository for testing.
- */
-private class FakeCreditRepository : CreditRepository {
-    private val _creditBalance = MutableStateFlow(0)
-    override val creditBalance: Flow<Int> = _creditBalance
-
-    var awardCalled: Boolean = false
-        private set
-
-    override suspend fun awardInitialCredits(amount: Int): Boolean {
-        awardCalled = true
-        return if (_creditBalance.value == 0) {
-            _creditBalance.value = amount
+    override suspend fun completeOnboardingWithCredits(creditAmount: Int): Boolean {
+        atomicCompletionCalled = true
+        return if (!completedValue) {
+            completedValue = true
+            creditBalance = creditAmount
+            _hasCompletedOnboarding.value = true
             true
         } else {
             false
         }
-    }
-
-    override suspend fun deductCredit(): Boolean {
-        return if (_creditBalance.value > 0) {
-            _creditBalance.value = _creditBalance.value - 1
-            true
-        } else {
-            false
-        }
-    }
-
-    override suspend fun hasCredits(): Boolean {
-        return _creditBalance.value > 0
     }
 }

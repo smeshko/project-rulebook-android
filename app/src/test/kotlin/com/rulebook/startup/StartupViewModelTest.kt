@@ -124,6 +124,11 @@ class FakeOnboardingRepository : OnboardingRepository {
         _hasCompletedOnboarding.value = completed
     }
 
+    override suspend fun completeOnboardingWithCredits(creditAmount: Int): Boolean {
+        _hasCompletedOnboarding.value = true
+        return true
+    }
+
     fun setOnboardingCompletedSync(value: Boolean) {
         _hasCompletedOnboarding.value = value
     }
@@ -139,6 +144,10 @@ class ErrorThrowingOnboardingRepository : OnboardingRepository {
     }
 
     override suspend fun setOnboardingCompleted(completed: Boolean) {
+        throw java.io.IOException("Simulated DataStore IO error")
+    }
+
+    override suspend fun completeOnboardingWithCredits(creditAmount: Int): Boolean {
         throw java.io.IOException("Simulated DataStore IO error")
     }
 }

@@ -2,7 +2,6 @@ package com.rulebook.feature.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rulebook.core.data.repository.CreditRepository
 import com.rulebook.core.data.repository.OnboardingRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,12 +16,11 @@ import kotlinx.coroutines.launch
  * Manages the current page state for the HorizontalPager and provides
  * navigation actions for the onboarding flow.
  *
- * @param onboardingRepository Repository for persisting onboarding completion state.
- * @param creditRepository Repository for managing user credit balance.
+ * @param onboardingRepository Repository for persisting onboarding completion state
+ *                             and awarding initial credits atomically.
  */
 class OnboardingViewModel(
-    private val onboardingRepository: OnboardingRepository,
-    private val creditRepository: CreditRepository
+    private val onboardingRepository: OnboardingRepository
 ) : ViewModel() {
 
     private val _currentPage = MutableStateFlow(0)
@@ -68,13 +66,15 @@ class OnboardingViewModel(
      * Called when the "Get Started" button is clicked on the last page.
      * Marks onboarding as completed, awards initial credits, and triggers
      * navigation to the library.
+     *
+     * Uses atomic transaction to ensure both onboarding completion and credit
+     * award happen together, preventing partial state updates.
      */
     fun onGetStartedClicked() {
         viewModelScope.launch {
-            // Mark onboarding as completed
-            onboardingRepository.setOnboardingCompleted(true)
-            // Award initial credits (idempotent - safe to call multiple times)
-            creditRepository.awardInitialCredits(INITIAL_CREDITS)
+            // Complete onboarding and award credits atomically
+            // This is idempotent - safe to call multiple times
+            onboardingRepository.completeOnboardingWithCredits(INITIAL_CREDITS)
             // Navigate to Library
             _navigationEvent.send(OnboardingNavigationEvent.NavigateToLibrary)
         }
