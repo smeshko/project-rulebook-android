@@ -1,6 +1,6 @@
 # Story 3.5: Skip Onboarding Functionality
 
-Status: ready-for-dev
+Status: Ready for Review
 
 ## Story
 
@@ -24,33 +24,33 @@ So that I can start using the app immediately.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Verify Skip button visibility on both pages (AC: #4)
-  - [ ] Confirm Skip button positioned in OnboardingScreen (parent)
-  - [ ] Verify button visible when on page 1
-  - [ ] Verify button visible when on page 2
-  - [ ] Use consistent positioning (top-right with status bar padding)
+- [x] Task 1: Verify Skip button visibility on both pages (AC: #4)
+  - [x] Confirm Skip button positioned in OnboardingScreen (parent)
+  - [x] Verify button visible when on page 1
+  - [x] Verify button visible when on page 2
+  - [x] Use consistent positioning (top-right with status bar padding)
 
-- [ ] Task 2: Wire Skip button to completion logic (AC: #1, #2, #3)
-  - [ ] Call `viewModel.onSkipClicked()` from Skip button
-  - [ ] `onSkipClicked()` calls same `completeOnboarding()` as Get Started
-  - [ ] Ensure atomic credit award and flag setting
-  - [ ] Trigger navigation to Library
+- [x] Task 2: Wire Skip button to completion logic (AC: #1, #2, #3)
+  - [x] Call `viewModel.onSkipClicked()` from Skip button
+  - [x] `onSkipClicked()` calls same `completeOnboarding()` as Get Started
+  - [x] Ensure atomic credit award and flag setting
+  - [x] Trigger navigation to Library
 
-- [ ] Task 3: Verify no confirmation dialog (AC: #5)
-  - [ ] Skip executes immediately on tap
-  - [ ] No AlertDialog or BottomSheet confirmation
-  - [ ] Single tap completes action
+- [x] Task 3: Verify no confirmation dialog (AC: #5)
+  - [x] Skip executes immediately on tap
+  - [x] No AlertDialog or BottomSheet confirmation
+  - [x] Single tap completes action
 
-- [ ] Task 4: Style Skip button appropriately (AC: #4)
-  - [ ] Use `TextButton` style (secondary/text variant)
-  - [ ] Color: `onSurfaceVariant` or subtle secondary
-  - [ ] Typography: `labelLarge`
-  - [ ] No heavy decoration or background
+- [x] Task 4: Style Skip button appropriately (AC: #4)
+  - [x] Use `TextButton` style (secondary/text variant)
+  - [x] Color: `onSurfaceVariant` or subtle secondary
+  - [x] Typography: `labelLarge`
+  - [x] No heavy decoration or background
 
-- [ ] Task 5: Add accessibility support (AC: #4)
-  - [ ] Add contentDescription for Skip button
-  - [ ] Ensure adequate touch target (48dp minimum)
-  - [ ] Support TalkBack announcement
+- [x] Task 5: Add accessibility support (AC: #4)
+  - [x] Add contentDescription for Skip button
+  - [x] Ensure adequate touch target (48dp minimum)
+  - [x] Support TalkBack announcement
 
 ## Dev Notes
 
@@ -260,13 +260,19 @@ No new files - updates to existing:
 - Architecture: ViewModel event handling pattern
 
 ### Agent Model Used
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
 ### Completion Notes List
+- Skip button implementation already existed from Story 3.4 foundation work
+- Enhanced with 48dp minimum touch target for accessibility compliance
+- Added semantic contentDescription for TalkBack support
+- Button positioned at parent Box level ensuring visibility on all pager pages
+- Uses same atomic completion flow as Get Started button
 
 ### File List
+- `feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/OnboardingScreen.kt` (modified)
 
 ## Dependencies
 

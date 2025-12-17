@@ -190,7 +190,7 @@ development_status:
 
   # Story 3.5: Skip Onboarding Functionality
   3-5-skip-onboarding-functionality:
-    status: ready-for-dev
+    status: review
     story_file: docs/sprint-artifacts/3-5-skip-onboarding-functionality.md
 
   # Story 3.6: Onboarding Page Indicator
@@ -206,9 +206,9 @@ development_status:
 summary:
   total_stories: 28
   done: 25
-  ready_for_dev: 3
+  ready_for_dev: 2
   in_progress: 0
-  in_review: 0
+  in_review: 1
   blocked: 0
   epic_1_status: done
   epic_2_status: done
