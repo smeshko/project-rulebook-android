@@ -121,6 +121,7 @@ androidx-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersi
 androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
 androidx-test-core = { module = "androidx.test:core", version = "1.6.1" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version = "1.9.0" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 # Build-logic dependencies (for convention plugins)
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
