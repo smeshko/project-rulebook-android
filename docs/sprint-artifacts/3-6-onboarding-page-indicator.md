@@ -1,6 +1,6 @@
 # Story 3.6: Onboarding Page Indicator
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -24,17 +24,17 @@ So that I know how many screens remain.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create OnboardingPageIndicator composable (AC: #1, #2, #3)
-  - [ ] Create `OnboardingPageIndicator.kt` in `feature/onboarding/components`
-  - [ ] Accept `pageCount: Int` and `currentPage: Int` parameters
-  - [ ] Render row of dots matching page count
-  - [ ] Highlight current page dot (different size/color)
+- [x] Task 1: Create OnboardingPageIndicator composable (AC: #1, #2, #3)
+  - [x] Create `OnboardingPageIndicator.kt` in `feature/onboarding/components`
+  - [x] Accept `pageCount: Int` and `currentPage: Int` parameters
+  - [x] Render row of dots matching page count
+  - [x] Highlight current page dot (different size/color)
 
-- [ ] Task 2: Apply brutalist styling to indicators (AC: #4)
-  - [ ] Use sharp-edged dots (square with slight rounding, not circles)
-  - [ ] Active dot: Primary accent color, larger size
-  - [ ] Inactive dots: Surface variant color, smaller size
-  - [ ] High contrast between active and inactive
+- [x] Task 2: Apply brutalist styling to indicators (AC: #4)
+  - [x] Use sharp-edged dots (square with slight rounding, not circles)
+  - [x] Active dot: Primary accent color, larger size
+  - [x] Inactive dots: Surface variant color, smaller size
+  - [x] High contrast between active and inactive
 
 - [ ] Task 3: Position indicators in bottom section (AC: #5)
   - [ ] Place indicators in `OnboardingBottomSection`
@@ -291,8 +291,12 @@ feature/onboarding/components/
 ### Debug Log References
 
 ### Completion Notes List
+- Task 1 Complete: Created OnboardingPageIndicator composable with pageCount/currentPage params, row of animated dots, active/inactive states
+- Task 2 Complete: Brutalist styling already applied - RoundedCornerShape(2dp), primary/surfaceVariant colors, 12dp/8dp sizes
 
 ### File List
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/components/OnboardingPageIndicator.kt (NEW)
+- feature/onboarding/src/test/kotlin/com/rulebook/feature/onboarding/components/OnboardingPageIndicatorTest.kt (NEW)
 
 ## Dependencies
 
