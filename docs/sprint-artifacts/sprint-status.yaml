@@ -175,7 +175,7 @@ development_status:
 
   # Story 3.2: Onboarding Screen 1 - Value Proposition
   3-2-onboarding-screen-1-value-proposition:
-    status: review
+    status: done
     story_file: docs/sprint-artifacts/3-2-onboarding-screen-1-value-proposition.md
 
   # Story 3.3: Onboarding Screen 2 - Getting Started
@@ -205,10 +205,10 @@ development_status:
 
 summary:
   total_stories: 28
-  done: 22
+  done: 23
   ready_for_dev: 5
   in_progress: 0
-  in_review: 1
+  in_review: 0
   blocked: 0
   epic_1_status: done
   epic_2_status: done

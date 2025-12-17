@@ -1,6 +1,6 @@
 # Story 3.2: Onboarding Screen 1 - Value Proposition
 
-Status: Ready for Review
+Status: done
 
 ## Story
 
