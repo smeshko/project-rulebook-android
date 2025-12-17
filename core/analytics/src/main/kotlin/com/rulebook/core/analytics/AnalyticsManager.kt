@@ -19,4 +19,40 @@ interface AnalyticsManager {
      * @param screenName The name of the screen being viewed
      */
     fun trackScreenView(screenName: String)
+
+    /**
+     * Track when onboarding screen is first displayed.
+     * This is a convenience method that fires the "onboarding_started" event.
+     */
+    fun trackOnboardingStarted() {
+        trackEvent("onboarding_started")
+    }
+
+    /**
+     * Track when a specific onboarding page is viewed.
+     * This is a convenience method that fires the "onboarding_page_viewed" event.
+     *
+     * @param pageNumber The 1-indexed page number (1 = Value Proposition, 2 = Getting Started)
+     */
+    fun trackOnboardingPageViewed(pageNumber: Int) {
+        trackEvent("onboarding_page_viewed", mapOf("page" to pageNumber.toString()))
+    }
+
+    /**
+     * Track when onboarding is completed by tapping "Get Started".
+     * This is a convenience method that fires the "onboarding_completed" event.
+     */
+    fun trackOnboardingCompleted() {
+        trackEvent("onboarding_completed", mapOf("method" to "get_started"))
+    }
+
+    /**
+     * Track when onboarding is skipped.
+     * This is a convenience method that fires the "onboarding_skipped" event.
+     *
+     * @param pageNumber The 1-indexed page number where skip was tapped
+     */
+    fun trackOnboardingSkipped(pageNumber: Int) {
+        trackEvent("onboarding_skipped", mapOf("page" to pageNumber.toString()))
+    }
 }

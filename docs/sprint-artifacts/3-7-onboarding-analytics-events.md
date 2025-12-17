@@ -23,28 +23,28 @@ So that I can optimize the first-time experience.
 ## Tasks / Subtasks
 
 - [ ] Task 1: Track onboarding_started event (AC: #1, #2)
-  - [ ] Add `trackOnboardingStarted()` to AnalyticsManager interface
-  - [ ] Implement using `trackEvent("onboarding_started")`
+  - [x] Add `trackOnboardingStarted()` to AnalyticsManager interface
+  - [x] Implement using `trackEvent("onboarding_started")`
   - [ ] Fire event when OnboardingScreen first appears
   - [ ] Use LaunchedEffect(Unit) for one-time tracking
 
 - [ ] Task 2: Track onboarding_page_viewed event (AC: #1, #2)
-  - [ ] Add `trackOnboardingPageViewed(pageNumber: Int)` to interface
-  - [ ] Implement using `trackEvent("onboarding_page_viewed", mapOf("page" to pageNumber))`
+  - [x] Add `trackOnboardingPageViewed(pageNumber: Int)` to interface
+  - [x] Implement using `trackEvent("onboarding_page_viewed", mapOf("page" to pageNumber))`
   - [ ] Fire when user views each page (including swipe)
   - [ ] Track page 1 on start, page 2 on transition
 
 - [ ] Task 3: Track onboarding_completed event (AC: #1, #2)
-  - [ ] Add `trackOnboardingCompleted()` to interface
-  - [ ] Implement using `trackEvent("onboarding_completed")`
+  - [x] Add `trackOnboardingCompleted()` to interface
+  - [x] Implement using `trackEvent("onboarding_completed")`
   - [ ] Fire when "Get Started" is tapped (in completeOnboarding)
-  - [ ] Include completion method: "get_started"
+  - [x] Include completion method: "get_started"
 
 - [ ] Task 4: Track onboarding_skipped event (AC: #1, #2)
-  - [ ] Add `trackOnboardingSkipped(pageNumber: Int)` to interface
-  - [ ] Implement using `trackEvent("onboarding_skipped", mapOf("page" to pageNumber))`
+  - [x] Add `trackOnboardingSkipped(pageNumber: Int)` to interface
+  - [x] Implement using `trackEvent("onboarding_skipped", mapOf("page" to pageNumber))`
   - [ ] Fire when "Skip" is tapped
-  - [ ] Include which page user was on when skipping
+  - [x] Include which page user was on when skipping
 
 - [ ] Task 5: Wire analytics in OnboardingViewModel (AC: #1)
   - [ ] Inject `AnalyticsManager` into OnboardingViewModel
