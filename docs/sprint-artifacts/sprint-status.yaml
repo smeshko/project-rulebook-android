@@ -195,7 +195,7 @@ development_status:
 
   # Story 3.6: Onboarding Page Indicator
   3-6-onboarding-page-indicator:
-    status: ready-for-dev
+    status: review
     story_file: docs/sprint-artifacts/3-6-onboarding-page-indicator.md
 
   # Story 3.7: Onboarding Analytics Events
@@ -206,9 +206,9 @@ development_status:
 summary:
   total_stories: 28
   done: 23
-  ready_for_dev: 5
+  ready_for_dev: 4
   in_progress: 0
-  in_review: 0
+  in_review: 1
   blocked: 0
   epic_1_status: done
   epic_2_status: done
