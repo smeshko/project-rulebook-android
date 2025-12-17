@@ -5,6 +5,7 @@ import com.rulebook.core.data.repository.GameRepository
 import com.rulebook.core.model.Game
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -34,7 +35,7 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `initial state shows empty list when repository returns empty`() = runTest {
+    fun `initial state shows empty list when repository returns empty`() = runTest(testDispatcher) {
         // Given
         val repository = FakeGameRepository(games = emptyList())
 
@@ -51,7 +52,7 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `initial state shows games when repository returns data`() = runTest {
+    fun `initial state shows games when repository returns data`() = runTest(testDispatcher) {
         // Given
         val games = listOf(
             Game(
@@ -76,14 +77,16 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `refresh updates isRefreshing state`() = runTest {
+    fun `refresh updates isRefreshing state`() = runTest(testDispatcher) {
         // Given
         val repository = FakeGameRepository(games = emptyList())
         val viewModel = LibraryViewModel(repository)
         advanceUntilIdle()
 
-        // When
+        // When - start refresh (this queues the coroutine)
         viewModel.refresh()
+        // Advance scheduler to execute the first state update (isRefreshing = true)
+        testDispatcher.scheduler.runCurrent()
 
         // Then - isRefreshing should be true during refresh
         assertTrue(viewModel.uiState.value.isRefreshing)
@@ -94,7 +97,7 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `error state is captured when repository fails`() = runTest {
+    fun `error state is captured when repository fails`() = runTest(testDispatcher) {
         // Given
         val repository = FakeGameRepository(error = "Network error")
 
@@ -108,7 +111,7 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `isEmpty is false when error state is present`() = runTest {
+    fun `isEmpty is false when error state is present`() = runTest(testDispatcher) {
         // Given - repository returns error with no games
         val repository = FakeGameRepository(error = "Network error")
 
@@ -125,7 +128,7 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `refresh clears error state immediately`() = runTest {
+    fun `refresh clears error state immediately`() = runTest(testDispatcher) {
         // Given - repository returns error
         val repository = FakeGameRepository(error = "Network error")
         val viewModel = LibraryViewModel(repository)
@@ -134,8 +137,10 @@ class LibraryViewModelTest {
         // Verify initial error state
         assertEquals("Network error", viewModel.uiState.value.error)
 
-        // When - start refresh
+        // When - start refresh (this queues the coroutine)
         viewModel.refresh()
+        // Advance scheduler to execute the first state update
+        testDispatcher.scheduler.runCurrent()
 
         // Then - error should be cleared immediately (before refresh completes)
         assertTrue(viewModel.uiState.value.isRefreshing)
@@ -150,6 +155,9 @@ class LibraryViewModelTest {
 
 /**
  * Fake implementation of GameRepository for testing.
+ *
+ * Uses delay(1) to force actual suspension, allowing tests to observe
+ * intermediate states (like isRefreshing = true) before operations complete.
  */
 private class FakeGameRepository(
     private val games: List<Game> = emptyList(),
@@ -157,6 +165,7 @@ private class FakeGameRepository(
 ) : GameRepository {
 
     override suspend fun getGames(): Result<List<Game>> {
+        delay(1) // Force suspension to allow intermediate state observation
         return if (error != null) {
             Result.Error(error)
         } else {

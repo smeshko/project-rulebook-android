@@ -325,3 +325,172 @@ LEGEND:
 **UX Patterns Incorporated:** Bottom nav + FAB, empty states, edge-to-edge, predictive back
 
 ---
+
+## Manual Testing Checklist
+
+### Prerequisites
+- Android 14+ device or emulator (API 34+)
+- Gesture navigation enabled (Settings > System > Gestures > System navigation)
+
+---
+
+### 1. Edge-to-Edge Display (Story 2.1)
+
+| # | Test | Expected Result | Pass |
+|---|------|-----------------|------|
+| 1.1 | Launch app | Content extends under status bar | ☐ |
+| 1.2 | Check status bar | Transparent with appropriate icon colors | ☐ |
+| 1.3 | Check navigation bar | Transparent or matches bottom nav color | ☐ |
+| 1.4 | Verify content insets | Content doesn't overlap with system UI | ☐ |
+| 1.5 | Toggle dark mode (system) | Status bar icons adapt (light/dark) | ☐ |
+
+---
+
+### 2. Bottom Navigation Bar (Story 2.3)
+
+| # | Test | Expected Result | Pass |
+|---|------|-----------------|------|
+| 2.1 | View bottom nav | Two tabs visible: "Library" and "Settings" | ☐ |
+| 2.2 | Check tab icons | Each tab has icon + label | ☐ |
+| 2.3 | Tap Library tab | Library screen shown, tab highlighted pink | ☐ |
+| 2.4 | Tap Settings tab | Settings screen shown, tab highlighted pink | ☐ |
+| 2.5 | Check brutalist styling | Thick top border (3dp), flat appearance | ☐ |
+| 2.6 | Switch tabs multiple times | State preserved when returning to tab | ☐ |
+| 2.7 | Check icon states | Outlined when unselected, filled when selected | ☐ |
+
+---
+
+### 3. Floating Action Button (Story 2.4)
+
+| # | Test | Expected Result | Pass |
+|---|------|-----------------|------|
+| 3.1 | View FAB on Library | Pink FAB visible bottom-right, above nav bar | ☐ |
+| 3.2 | View FAB on Settings | Pink FAB visible bottom-right | ☐ |
+| 3.3 | Check FAB styling | Pink fill, black border, camera icon | ☐ |
+| 3.4 | Tap FAB | Navigates to Camera screen | ☐ |
+| 3.5 | Check FAB press feedback | Ripple effect on tap | ☐ |
+| 3.6 | Navigate to Camera | FAB disappears with scale animation | ☐ |
+| 3.7 | Return to Library | FAB reappears with scale animation | ☐ |
+
+---
+
+### 4. Library Screen - Empty State (Story 2.5)
+
+| # | Test | Expected Result | Pass |
+|---|------|-----------------|------|
+| 4.1 | View Library (no games) | Empty state displayed | ☐ |
+| 4.2 | Check empty state icon | Game controller icon visible | ☐ |
+| 4.3 | Check headline | "No games yet" displayed | ☐ |
+| 4.4 | Check subtext | "Scan your first game to get started" | ☐ |
+| 4.5 | Check CTA button | "Scan a Game" button visible | ☐ |
+| 4.6 | Tap CTA button | Navigates to Camera screen | ☐ |
+| 4.7 | Check header bar | "Library" title with brutalist styling | ☐ |
+| 4.8 | Pull down to refresh | Refresh indicator appears | ☐ |
+
+---
+
+### 5. Settings Screen Shell (Story 2.6)
+
+| # | Test | Expected Result | Pass |
+|---|------|-----------------|------|
+| 5.1 | Navigate to Settings | Settings screen displayed | ☐ |
+| 5.2 | Check header | "Settings" title with brutalist styling | ☐ |
+| 5.3 | Scroll content | Screen scrolls if content exceeds viewport | ☐ |
+| **Appearance Section** |
+| 5.4 | Find Appearance section | Section header "APPEARANCE" visible | ☐ |
+| 5.5 | Check Dark Mode toggle | Toggle row with switch visible | ☐ |
+| **Feedback Section** |
+| 5.6 | Find Feedback section | Section header "FEEDBACK" visible | ☐ |
+| 5.7 | Check Haptic toggle | Toggle row with switch visible | ☐ |
+| **Support Section** |
+| 5.8 | Find Support section | Section header "SUPPORT" visible | ☐ |
+| 5.9 | Check links | "Contact Us", "Rate the App" rows visible | ☐ |
+| **About Section** |
+| 5.10 | Find About section | Section header "ABOUT" visible | ☐ |
+| 5.11 | Check version | Version info displayed (e.g., "1.0.0") | ☐ |
+| 5.12 | Check legal links | "Privacy Policy", "Terms of Service" visible | ☐ |
+| **Data Section** |
+| 5.13 | Find Data section | Section header "DATA" visible | ☐ |
+| 5.14 | Check clear button | "Clear All Data" red button visible | ☐ |
+| 5.15 | Check brutalist rows | All rows have 3dp black border | ☐ |
+
+---
+
+### 6. Screen Transitions (Story 2.7)
+
+| # | Test | Expected Result | Pass |
+|---|------|-----------------|------|
+| 6.1 | Switch Library ↔ Settings | Fade transition (300ms) | ☐ |
+| 6.2 | Tap FAB → Camera | Slide in from right (300ms) | ☐ |
+| 6.3 | Back from Camera | Slide out to right (300ms) | ☐ |
+| 6.4 | Bottom bar on Camera | Hidden with slide down animation | ☐ |
+| 6.5 | Return to Library | Bottom bar slides up | ☐ |
+
+---
+
+### 7. Navigation Routes (Story 2.2)
+
+| # | Test | Expected Result | Pass |
+|---|------|-----------------|------|
+| 7.1 | App start | Opens on Library screen | ☐ |
+| 7.2 | Navigate to Camera | Camera placeholder screen shown | ☐ |
+| 7.3 | Navigate to Settings | Settings screen shown | ☐ |
+| 7.4 | Check placeholder screens | Onboarding, Purchase, Rules show placeholders | ☐ |
+
+---
+
+### 8. Predictive Back Gesture (Story 2.8)
+
+| # | Test | Expected Result | Pass |
+|---|------|-----------------|------|
+| 8.1 | Go to Camera screen | Camera screen displayed | ☐ |
+| 8.2 | Start back gesture (left edge) | Preview of Library screen appears | ☐ |
+| 8.3 | Complete back gesture | Navigates back to Library | ☐ |
+| 8.4 | Start + cancel gesture | Returns to Camera screen | ☐ |
+| 8.5 | Back from Settings tab | System handles (no navigation) | ☐ |
+| 8.6 | Animation follows system | Smooth, native-feeling animation | ☐ |
+
+---
+
+### 9. Visibility Rules Matrix
+
+Verify bottom bar and FAB visibility on each screen:
+
+| Screen | Bottom Bar | FAB | Pass |
+|--------|------------|-----|------|
+| Library | ✓ Visible | ✓ Visible | ☐ |
+| Settings | ✓ Visible | ✓ Visible | ☐ |
+| Camera | ✗ Hidden | ✗ Hidden | ☐ |
+| Rules (placeholder) | ✗ Hidden | ✗ Hidden | ☐ |
+| Onboarding (placeholder) | ✗ Hidden | ✗ Hidden | ☐ |
+| Purchase (placeholder) | ✗ Hidden | ✗ Hidden | ☐ |
+
+---
+
+### 10. Theme/Dark Mode (if system dark mode enabled)
+
+| # | Test | Expected Result | Pass |
+|---|------|-----------------|------|
+| 10.1 | Enable system dark mode | App follows system theme | ☐ |
+| 10.2 | Check colors adapt | Background, text colors change | ☐ |
+| 10.3 | Check brutalist elements | Borders still visible in dark mode | ☐ |
+| 10.4 | Status bar icons | Light icons on dark background | ☐ |
+
+---
+
+### Quick Smoke Test (5 minutes)
+
+If short on time, test these critical paths:
+
+1. ☐ App launches to Library with empty state
+2. ☐ Bottom nav switches between Library and Settings
+3. ☐ FAB visible on both main screens, tapping goes to Camera
+4. ☐ FAB and bottom bar hidden on Camera screen
+5. ☐ Predictive back gesture shows preview and navigates back
+6. ☐ Settings screen scrolls and shows all 5 sections
+
+---
+
+**Tester:** _________________ **Date:** _________________ **Build:** _________________
+
+---

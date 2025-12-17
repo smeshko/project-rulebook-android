@@ -19,12 +19,16 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.rulebook.core.designsystem.component.RulebookFAB
 
 /**
- * Routes where the bottom navigation bar should be visible.
- * Derived from BottomBarDestination to ensure a single source of truth.
+ * Routes where the bottom navigation bar and FAB should be visible.
+ * These are the "main" routes that show the full app chrome.
+ *
+ * Note: Defined as string literals rather than derived from BottomBarDestination
+ * to avoid Android framework dependencies (ImageVector) in unit tests.
  */
-private val MAIN_ROUTES: Set<String> by lazy {
-    BottomBarDestination.items.map { it.route }.toSet()
-}
+private val MAIN_ROUTES: Set<String> = setOf(
+    Route.Library.route,
+    Route.Settings.route
+)
 
 /**
  * Determines if the bottom navigation bar should be shown for the given route.
