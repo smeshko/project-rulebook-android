@@ -21,12 +21,12 @@ So that I go directly to the library on subsequent launches.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create OnboardingRepository for state management (AC: #1)
-  - [ ] Create `OnboardingRepository` interface in `core/data`
-  - [ ] Implement `OnboardingRepositoryImpl` using DataStore
-  - [ ] Add `hasCompletedOnboarding` Flow<Boolean> property
-  - [ ] Add `setOnboardingCompleted(Boolean)` suspend function
-  - [ ] Register repository in Koin module
+- [x] Task 1: Create OnboardingRepository for state management (AC: #1)
+  - [x] Create `OnboardingRepository` interface in `core/data`
+  - [x] Implement `OnboardingRepositoryImpl` using DataStore
+  - [x] Add `hasCompletedOnboarding` Flow<Boolean> property
+  - [x] Add `setOnboardingCompleted(Boolean)` suspend function
+  - [x] Register repository in Koin module
 
 - [ ] Task 2: Implement startup destination determination (AC: #1, #2)
   - [ ] Create `StartupDestination` sealed class (Onboarding, Library)
@@ -208,7 +208,17 @@ val appModule = module {
 
 ### Completion Notes List
 
+- Task 1: Created OnboardingRepository with interface + implementation pattern. Added OnboardingPreferencesSource interface to abstract DataStore access for testability. Updated RulebookPreferences to implement the new interface. Registered in Koin DataModule. Added 7 unit tests for repository behavior.
+
 ### File List
+
+- core/data/src/main/kotlin/com/rulebook/core/data/repository/OnboardingRepository.kt (new)
+- core/data/src/main/kotlin/com/rulebook/core/data/repository/OnboardingRepositoryImpl.kt (new)
+- core/data/src/main/kotlin/com/rulebook/core/data/di/DataModule.kt (modified)
+- core/data/src/test/kotlin/com/rulebook/core/data/repository/OnboardingRepositoryTest.kt (new)
+- core/data/build.gradle.kts (modified - added test dependencies)
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/OnboardingPreferencesSource.kt (new)
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/RulebookPreferences.kt (modified - implements interface)
 
 ## Dependencies
 

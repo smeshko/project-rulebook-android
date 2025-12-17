@@ -19,10 +19,13 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  * Provides reactive [Flow] access to preferences and suspend functions for updates.
  * All preferences have sensible defaults when not yet set.
  *
+ * Implements [OnboardingPreferencesSource] to allow OnboardingRepository to
+ * access onboarding-related preferences through an abstraction.
+ *
  * @param context Application context for DataStore access. Must be Application context
  *                to avoid memory leaks.
  */
-class RulebookPreferences(private val context: Context) {
+class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource {
 
     /**
      * Preference keys used for DataStore storage.
@@ -39,13 +42,13 @@ class RulebookPreferences(private val context: Context) {
      * Flow of onboarding completion status.
      * Default: `false`
      */
-    val hasCompletedOnboarding: Flow<Boolean> = context.dataStore.data
+    override val hasCompletedOnboarding: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[Keys.ONBOARDING_COMPLETED] ?: false }
 
     /**
      * Sets the onboarding completion status.
      */
-    suspend fun setOnboardingCompleted(completed: Boolean) {
+    override suspend fun setOnboardingCompleted(completed: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[Keys.ONBOARDING_COMPLETED] = completed
         }
