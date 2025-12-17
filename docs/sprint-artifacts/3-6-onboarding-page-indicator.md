@@ -41,10 +41,10 @@ So that I know how many screens remain.
   - [x] Position above navigation buttons
   - [x] Add appropriate spacing (16-24dp margin)
 
-- [ ] Task 4: Add animated transitions (AC: #2)
-  - [ ] Animate dot size changes on page transition
-  - [ ] Use `animateDpAsState` for smooth scaling
-  - [ ] Keep animation duration short (150-200ms)
+- [x] Task 4: Add animated transitions (AC: #2)
+  - [x] Animate dot size changes on page transition
+  - [x] Use `animateDpAsState` for smooth scaling
+  - [x] Keep animation duration short (150-200ms)
 
 - [ ] Task 5: Sync with HorizontalPager state (AC: #1)
   - [ ] Pass `pagerState.currentPage` to indicator
@@ -294,6 +294,7 @@ feature/onboarding/components/
 - Task 1 Complete: Created OnboardingPageIndicator composable with pageCount/currentPage params, row of animated dots, active/inactive states
 - Task 2 Complete: Brutalist styling already applied - RoundedCornerShape(2dp), primary/surfaceVariant colors, 12dp/8dp sizes
 - Task 3 Complete: Integrated OnboardingPageIndicator into OnboardingBottomSection with 24dp spacing above button
+- Task 4 Complete: Animations already implemented - animateDpAsState/animateColorAsState with 150ms tween duration
 
 ### File List
 - feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/components/OnboardingPageIndicator.kt (NEW)
