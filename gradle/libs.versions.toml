@@ -30,6 +30,9 @@ coil = "3.0.3"
 # DataStore
 datastore = "1.1.1"
 
+# Splash Screen
+splashscreen = "1.0.1"
+
 # Camera
 cameraX = "1.4.0"
 
@@ -96,6 +99,9 @@ coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version
 
 # DataStore
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+
+# Splash Screen
+androidx-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
 
 # Camera
 camerax-core = { module = "androidx.camera:camera-core", version.ref = "cameraX" }

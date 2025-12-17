@@ -34,10 +34,10 @@ So that I go directly to the library on subsequent launches.
   - [x] Read `hasCompletedOnboarding` during splash hold
   - [x] Expose `startupDestination: StateFlow<StartupDestination?>`
 
-- [ ] Task 3: Configure splash screen to hold during check (AC: #2, #3)
-  - [ ] Configure `SplashScreen.setKeepOnScreenCondition` in MainActivity
-  - [ ] Hold splash until `startupDestination` is determined
-  - [ ] Release splash once navigation target is known
+- [x] Task 3: Configure splash screen to hold during check (AC: #2, #3)
+  - [x] Configure `SplashScreen.setKeepOnScreenCondition` in MainActivity
+  - [x] Hold splash until `startupDestination` is determined
+  - [x] Release splash once navigation target is known
 
 - [ ] Task 4: Update navigation to use dynamic start destination (AC: #1, #3)
   - [ ] Modify `RulebookNavHost` to accept start destination parameter
@@ -210,6 +210,7 @@ val appModule = module {
 
 - Task 1: Created OnboardingRepository with interface + implementation pattern. Added OnboardingPreferencesSource interface to abstract DataStore access for testability. Updated RulebookPreferences to implement the new interface. Registered in Koin DataModule. Added 7 unit tests for repository behavior.
 - Task 2: Created StartupDestination sealed class with Onboarding and Library variants. Implemented StartupViewModel that reads onboarding status and exposes destination via StateFlow. Includes isLoading state for splash screen coordination. Added 4 unit tests.
+- Task 3: Configured AndroidX Splash Screen API. Added splash screen dependency, created Theme.Rulebook.Splash with background color, updated MainActivity to install splash screen and hold it via setKeepOnScreenCondition until StartupViewModel.isLoading is false. Registered StartupViewModel in Koin appModule.
 
 ### File List
 
@@ -223,7 +224,13 @@ val appModule = module {
 - app/src/main/kotlin/com/rulebook/startup/StartupDestination.kt (new)
 - app/src/main/kotlin/com/rulebook/startup/StartupViewModel.kt (new)
 - app/src/test/kotlin/com/rulebook/startup/StartupViewModelTest.kt (new)
-- app/build.gradle.kts (modified - added coroutines test dependency)
+- app/build.gradle.kts (modified - added coroutines test dependency, splash screen dependency)
+- app/src/main/kotlin/com/rulebook/di/AppModule.kt (modified - added appModule with StartupViewModel)
+- app/src/main/kotlin/com/rulebook/MainActivity.kt (modified - splash screen integration)
+- app/src/main/AndroidManifest.xml (modified - splash theme for MainActivity)
+- app/src/main/res/values/themes.xml (modified - added Theme.Rulebook.Splash)
+- app/src/main/res/values/colors.xml (modified - added splash_background color)
+- gradle/libs.versions.toml (modified - added splashscreen dependency)
 
 ## Dependencies
 
