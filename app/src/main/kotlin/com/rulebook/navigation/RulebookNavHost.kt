@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.rulebook.feature.library.LibraryScreen
+import com.rulebook.feature.onboarding.OnboardingScreen
 import com.rulebook.feature.settings.SettingsScreen
 
 /**
@@ -95,16 +96,21 @@ fun RulebookNavHost(
         }
 
         // Onboarding - first-time user experience
-        // Back gesture during onboarding should be handled by the screen
-        // Uses slide transition
+        // Can be a start destination for new users
+        // Uses fade transition (consistent with other start destinations)
         composable(
             route = Route.Onboarding.route,
-            enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
-            exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
-            popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
-            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
+            enterTransition = { fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
-            OnboardingPlaceholder()
+            OnboardingScreen(
+                onComplete = {
+                    // Navigate to Library and clear onboarding from back stack
+                    navController.navigate(Route.Library.route) {
+                        popUpTo(Route.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
         }
 
         // Purchase - premium features and subscriptions

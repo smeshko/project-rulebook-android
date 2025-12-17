@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.splashscreen)
 
     // Compose
     implementation(platform(libs.compose.bom))
@@ -82,6 +83,7 @@ dependencies {
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.koin.test)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.compose.bom))
