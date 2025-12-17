@@ -38,13 +38,13 @@ so that I can frame my game box photo.
   - [x] Create module package structure: `com.rulebook.feature.camera`
   - [x] Register module in `settings.gradle.kts`
 
-- [ ] Task 2: Add CameraX Dependencies (AC: #1, #2)
-  - [ ] Add CameraX dependencies to version catalog (`libs.versions.toml`)
+- [x] Task 2: Add CameraX Dependencies (AC: #1, #2)
+  - [x] Add CameraX dependencies to version catalog (`libs.versions.toml`)
     - `androidx.camera:camera-core:1.4.1`
     - `androidx.camera:camera-camera2:1.4.1`
     - `androidx.camera:camera-lifecycle:1.4.1`
     - `androidx.camera:camera-view:1.4.1`
-  - [ ] Add Accompanist Permissions dependency for runtime permissions
+  - [x] Add Accompanist Permissions dependency for runtime permissions
 
 - [ ] Task 3: Implement CameraScreen Composable (AC: #1, #3, #4)
   - [ ] Create `CameraScreen.kt` with full-screen layout
@@ -168,6 +168,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### Completion Notes List
 
 - Task 1: Camera feature module structure already existed from initial project setup. Module directory, build.gradle.kts with CameraX deps, package structure, and settings.gradle.kts registration were already in place. Added components/ and navigation/ subdirectories for upcoming tasks.
+- Task 2: Updated CameraX dependencies from 1.4.0 to 1.4.1. Added Accompanist Permissions library (v0.36.0) to version catalog and camera module.
 
 ### File List
 
