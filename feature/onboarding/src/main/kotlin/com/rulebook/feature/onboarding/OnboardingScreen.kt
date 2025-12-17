@@ -16,6 +16,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rulebook.feature.onboarding.components.OnboardingBottomSection
@@ -47,6 +49,7 @@ fun OnboardingScreen(
 ) {
     val currentPage by viewModel.currentPage.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = { OnboardingPage.entries.size })
+    val haptic = LocalHapticFeedback.current
 
     // Handle navigation events from ViewModel
     LaunchedEffect(Unit) {
@@ -62,9 +65,13 @@ fun OnboardingScreen(
         pagerState.animateScrollToPage(currentPage)
     }
 
-    // Sync ViewModel with pager state when user swipes
+    // Sync ViewModel with pager state when user swipes and provide haptic feedback
     LaunchedEffect(pagerState.currentPage) {
         viewModel.onPageChanged(pagerState.currentPage)
+        // Haptic feedback on page change (but not on initial load)
+        if (pagerState.currentPage > 0 || pagerState.settledPage > 0) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
     }
 
     Box(
