@@ -1,6 +1,6 @@
 # Story 3.6: Onboarding Page Indicator
 
-Status: Ready for Review
+Status: done
 
 ## Story
 
