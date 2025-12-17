@@ -1,5 +1,6 @@
 package com.rulebook.feature.onboarding
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -8,6 +9,7 @@ import kotlin.test.assertEquals
 /**
  * Unit tests for OnboardingViewModel.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class OnboardingViewModelTest {
 
     @Test
