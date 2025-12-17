@@ -46,10 +46,10 @@ So that I know how many screens remain.
   - [x] Use `animateDpAsState` for smooth scaling
   - [x] Keep animation duration short (150-200ms)
 
-- [ ] Task 5: Sync with HorizontalPager state (AC: #1)
-  - [ ] Pass `pagerState.currentPage` to indicator
-  - [ ] Update when user swipes between pages
-  - [ ] Update when user taps Next button
+- [x] Task 5: Sync with HorizontalPager state (AC: #1)
+  - [x] Pass `pagerState.currentPage` to indicator
+  - [x] Update when user swipes between pages
+  - [x] Update when user taps Next button
 
 ## Dev Notes
 
@@ -295,6 +295,7 @@ feature/onboarding/components/
 - Task 2 Complete: Brutalist styling already applied - RoundedCornerShape(2dp), primary/surfaceVariant colors, 12dp/8dp sizes
 - Task 3 Complete: Integrated OnboardingPageIndicator into OnboardingBottomSection with 24dp spacing above button
 - Task 4 Complete: Animations already implemented - animateDpAsState/animateColorAsState with 150ms tween duration
+- Task 5 Complete: Syncing already in place - pagerState.currentPage passed through OnboardingBottomSection to indicator
 
 ### File List
 - feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/components/OnboardingPageIndicator.kt (NEW)
