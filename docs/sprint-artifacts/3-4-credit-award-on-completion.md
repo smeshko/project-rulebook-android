@@ -48,11 +48,11 @@ So that I can immediately try the app's core feature.
   - [x] Set both `hasCompletedOnboarding` and `creditBalance` together
   - [x] Ensure no partial state updates possible
 
-- [ ] Task 5: Add navigation to Library after completion (AC: #3)
-  - [ ] Emit `NavigateToLibrary` event from ViewModel
-  - [ ] Collect event in OnboardingScreen
-  - [ ] Call `navController.navigateToLibrary()` with popUpTo
-  - [ ] Clear onboarding from back stack
+- [x] Task 5: Add navigation to Library after completion (AC: #3)
+  - [x] Emit `NavigateToLibrary` event from ViewModel
+  - [x] Collect event in OnboardingScreen
+  - [x] Call `navController.navigateToLibrary()` with popUpTo
+  - [x] Clear onboarding from back stack
 
 ## Dev Notes
 
@@ -310,6 +310,10 @@ core/datastore/
   - Idempotent: only acts if not already completed
   - Refactored ViewModel to use atomic method instead of separate calls
   - Removed separate CreditRepository dependency from ViewModel (cleaner API)
+- Task 5: Navigation to Library was already implemented in Story 3.3.
+  - ViewModel emits NavigateToLibrary event after completion
+  - OnboardingScreen collects event and calls onComplete() callback
+  - NavHost navigates to Library with popUpTo(inclusive=true) to clear back stack
 
 ### File List
 
