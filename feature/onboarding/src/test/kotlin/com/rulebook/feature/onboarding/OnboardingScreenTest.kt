@@ -46,13 +46,13 @@ class OnboardingScreenTest {
 
     @Test
     fun `OnboardingPage GettingStarted should have correct headline`() {
-        assertEquals("Get started for free", OnboardingPage.GettingStarted.headline)
+        assertEquals("3 free scans on us", OnboardingPage.GettingStarted.headline)
     }
 
     @Test
     fun `OnboardingPage GettingStarted should have correct subtext`() {
         assertEquals(
-            "Your first game is on us. Additional scans available via credit packs.",
+            "Start building your game library today",
             OnboardingPage.GettingStarted.subtext
         )
     }

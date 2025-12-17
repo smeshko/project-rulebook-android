@@ -14,8 +14,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rulebook.feature.onboarding.components.OnboardingBottomSection
@@ -32,29 +36,49 @@ import org.koin.androidx.compose.koinViewModel
  * - Bottom navigation with Next/Get Started button
  * - Edge-to-edge display with proper insets
  *
- * @param onComplete Callback invoked when onboarding is completed.
- * @param onSkip Callback invoked when user chooses to skip onboarding.
+ * Navigation events are handled through the ViewModel which persists onboarding
+ * completion state and emits navigation events.
+ *
+ * @param onComplete Callback invoked when onboarding is completed (navigates to Library).
  * @param modifier Optional modifier for the screen.
  * @param viewModel The ViewModel managing onboarding state.
  */
 @Composable
 fun OnboardingScreen(
     onComplete: () -> Unit,
-    onSkip: () -> Unit = onComplete,
     modifier: Modifier = Modifier,
     viewModel: OnboardingViewModel = koinViewModel()
 ) {
     val currentPage by viewModel.currentPage.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = { OnboardingPage.entries.size })
+    val haptic = LocalHapticFeedback.current
+
+    // Track previous page to detect actual page changes vs initial composition
+    val previousPage = remember { mutableIntStateOf(-1) }
+
+    // Handle navigation events from ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvent.collect { event ->
+            when (event) {
+                OnboardingNavigationEvent.NavigateToLibrary -> onComplete()
+            }
+        }
+    }
 
     // Sync pager state with ViewModel when currentPage changes
     LaunchedEffect(currentPage) {
         pagerState.animateScrollToPage(currentPage)
     }
 
-    // Sync ViewModel with pager state when user swipes
+    // Sync ViewModel with pager state when user swipes and provide haptic feedback
     LaunchedEffect(pagerState.currentPage) {
         viewModel.onPageChanged(pagerState.currentPage)
+        // Haptic feedback on page change (but not on initial composition)
+        // Using previousPage tracking ensures haptic fires when swiping in any direction
+        if (previousPage.intValue != -1 && previousPage.intValue != pagerState.currentPage) {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+        previousPage.intValue = pagerState.currentPage
     }
 
     Box(
@@ -73,7 +97,7 @@ fun OnboardingScreen(
 
         // Skip button - top right with status bar padding
         TextButton(
-            onClick = onSkip,
+            onClick = { viewModel.onSkipClicked() },
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .windowInsetsPadding(WindowInsets.statusBars)
@@ -94,26 +118,10 @@ fun OnboardingScreen(
                 if (pagerState.currentPage < OnboardingPage.entries.size - 1) {
                     viewModel.onNextClicked()
                 } else {
-                    onComplete()
+                    viewModel.onGetStartedClicked()
                 }
             },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
-}
-
-/**
- * Overload for backward compatibility with existing navigation.
- * Calls onComplete for both complete and skip actions.
- */
-@Composable
-fun OnboardingScreen(
-    onComplete: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    OnboardingScreen(
-        onComplete = onComplete,
-        onSkip = onComplete,
-        modifier = modifier
-    )
 }

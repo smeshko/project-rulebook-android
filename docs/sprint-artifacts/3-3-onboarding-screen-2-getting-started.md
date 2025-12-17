@@ -1,6 +1,6 @@
 # Story 3.3: Onboarding Screen 2 - Getting Started
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -25,34 +25,34 @@ So that I can scan my first game immediately.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create OnboardingPage2Content composable (AC: #1, #3)
-  - [ ] Create `OnboardingPage2Content.kt` in `feature/onboarding/components`
-  - [ ] Add bold headline "3 free scans on us" using `displayLarge` typography
-  - [ ] Add subtext "Start building your game library today" with `bodyLarge`
-  - [ ] Add illustration area representing gift/credits concept
-  - [ ] Apply brutalist styling consistent with page 1
+- [x] Task 1: Create OnboardingPage2Content composable (AC: #1, #3)
+  - [x] Create `OnboardingPage2Content.kt` in `feature/onboarding/components`
+  - [x] Add bold headline "3 free scans on us" using `displayLarge` typography
+  - [x] Add subtext "Start building your game library today" with `bodyLarge`
+  - [x] Add illustration area representing gift/credits concept
+  - [x] Apply brutalist styling consistent with page 1
 
-- [ ] Task 2: Implement Get Started button (AC: #1, #2)
-  - [ ] Add "Get Started" `RulebookButton` (primary variant)
-  - [ ] Position button at bottom of page
-  - [ ] Wire button to `onComplete` callback
-  - [ ] Add press feedback with brutalist animation
+- [x] Task 2: Implement Get Started button (AC: #1, #2)
+  - [x] Add "Get Started" `RulebookButton` (primary variant)
+  - [x] Position button at bottom of page
+  - [x] Wire button to `onComplete` callback
+  - [x] Add press feedback with brutalist animation
 
-- [ ] Task 3: Wire completion to ViewModel (AC: #2)
-  - [ ] Add `onGetStartedClicked()` method to OnboardingViewModel
-  - [ ] Method calls `onboardingRepository.setOnboardingCompleted(true)`
-  - [ ] Method triggers credit award (handled in Story 3.4)
-  - [ ] Emit navigation event after completion
+- [x] Task 3: Wire completion to ViewModel (AC: #2)
+  - [x] Add `onGetStartedClicked()` method to OnboardingViewModel
+  - [x] Method calls `onboardingRepository.setOnboardingCompleted(true)`
+  - [x] Method triggers credit award (handled in Story 3.4)
+  - [x] Emit navigation event after completion
 
-- [ ] Task 4: Ensure Skip button still visible (AC: #1)
-  - [ ] Verify Skip button from OnboardingScreen is visible on page 2
-  - [ ] Skip triggers same completion flow as Get Started
-  - [ ] Skip is positioned consistently across both pages
+- [x] Task 4: Ensure Skip button still visible (AC: #1)
+  - [x] Verify Skip button from OnboardingScreen is visible on page 2
+  - [x] Skip triggers same completion flow as Get Started
+  - [x] Skip is positioned consistently across both pages
 
-- [ ] Task 5: Add swipe gesture support (AC: #1)
-  - [ ] Verify HorizontalPager swipe between pages works
-  - [ ] Add haptic feedback on page change
-  - [ ] Ensure smooth page transitions
+- [x] Task 5: Add swipe gesture support (AC: #1)
+  - [x] Verify HorizontalPager swipe between pages works
+  - [x] Add haptic feedback on page change
+  - [x] Ensure smooth page transitions
 
 ## Dev Notes
 
@@ -275,13 +275,29 @@ feature/onboarding/components/
 - Architecture: Feature module components
 
 ### Agent Model Used
-{{agent_model_name_version}}
+Claude Opus 4.5
 
 ### Debug Log References
+- All tests pass (17 tests total in onboarding module)
+- Full regression suite passes
 
 ### Completion Notes List
+- Updated OnboardingPage.GettingStarted with correct headline and subtext
+- OnboardingPage2Content now uses secondaryContainer colors for gift theme
+- OnboardingViewModel now accepts OnboardingRepository and emits navigation events
+- Added onGetStartedClicked() and onSkipClicked() methods
+- Added haptic feedback on page change using LongPress feedback type
+- Koin module updated to inject OnboardingRepository
+- Skip button and Get Started both trigger the same completion flow
 
 ### File List
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/OnboardingPage.kt (modified)
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/OnboardingScreen.kt (modified)
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/OnboardingViewModel.kt (modified)
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/components/OnboardingPage2Content.kt (modified)
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/di/OnboardingModule.kt (modified)
+- feature/onboarding/src/test/kotlin/com/rulebook/feature/onboarding/OnboardingScreenTest.kt (modified)
+- feature/onboarding/src/test/kotlin/com/rulebook/feature/onboarding/OnboardingViewModelTest.kt (modified)
 
 ## Dependencies
 

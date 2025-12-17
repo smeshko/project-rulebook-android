@@ -24,10 +24,10 @@ enum class OnboardingPage(
 
     /**
      * Second onboarding page - Getting Started.
-     * Explains the free credits and purchase model.
+     * Explains the free credits gift and how to start building the game library.
      */
     GettingStarted(
-        headline = "Get started for free",
-        subtext = "Your first game is on us. Additional scans available via credit packs."
+        headline = "3 free scans on us",
+        subtext = "Start building your game library today"
     )
 }
