@@ -1,23 +1,37 @@
 package com.rulebook.feature.camera
 
+import android.Manifest
 import android.app.Activity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.rulebook.feature.camera.components.CameraPreview
 import org.koin.androidx.compose.koinViewModel
 
@@ -25,6 +39,7 @@ import org.koin.androidx.compose.koinViewModel
  * Camera screen composable with full-screen immersive camera preview.
  *
  * This screen provides:
+ * - Camera permission handling with rationale
  * - Full-screen camera preview using CameraX
  * - Immersive mode with hidden system bars (status bar and navigation bar)
  * - Loading state while camera initializes
@@ -36,15 +51,24 @@ import org.koin.androidx.compose.koinViewModel
  * @param modifier Optional modifier for the screen container.
  * @param viewModel The ViewModel managing camera state.
  */
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CameraScreen(
     modifier: Modifier = Modifier,
     viewModel: CameraViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
     // Handle immersive mode - hide system bars
     ImmersiveMode()
+
+    // Request permission on first composition if not granted
+    LaunchedEffect(Unit) {
+        if (!cameraPermissionState.status.isGranted) {
+            cameraPermissionState.launchPermissionRequest()
+        }
+    }
 
     Box(
         modifier = modifier
@@ -52,28 +76,115 @@ fun CameraScreen(
             .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
-        // Camera preview fills the screen
-        CameraPreview(
-            modifier = Modifier.fillMaxSize(),
-            onPreviewReady = { viewModel.onCameraReady() },
-            onError = { viewModel.onCameraError(it) }
+        when {
+            // Permission granted - show camera preview
+            cameraPermissionState.status.isGranted -> {
+                CameraPreview(
+                    modifier = Modifier.fillMaxSize(),
+                    onPreviewReady = { viewModel.onCameraReady() },
+                    onError = { viewModel.onCameraError(it) }
+                )
+
+                // Show loading indicator while camera initializes
+                if (!uiState.isCameraReady && uiState.error == null) {
+                    CircularProgressIndicator(
+                        color = Color.White
+                    )
+                }
+
+                // Show error message if camera fails
+                uiState.error?.let { error ->
+                    Text(
+                        text = error,
+                        color = Color.White,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+
+            // Permission denied but can show rationale
+            cameraPermissionState.status.shouldShowRationale -> {
+                PermissionRationale(
+                    onRequestPermission = { cameraPermissionState.launchPermissionRequest() }
+                )
+            }
+
+            // Permission denied permanently or waiting for initial request
+            else -> {
+                PermissionDenied()
+            }
+        }
+    }
+}
+
+/**
+ * Composable showing rationale for camera permission request.
+ *
+ * Displayed when the user has denied the permission once but hasn't selected
+ * "Don't ask again". Explains why the permission is needed and offers a button
+ * to request again.
+ *
+ * @param onRequestPermission Callback to trigger permission request.
+ */
+@Composable
+private fun PermissionRationale(
+    onRequestPermission: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Camera Permission Required",
+            color = Color.White,
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center
         )
-
-        // Show loading indicator while camera initializes
-        if (!uiState.isCameraReady && uiState.error == null) {
-            CircularProgressIndicator(
-                color = Color.White
-            )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "The camera is needed to capture photos of your game boxes for rule extraction.",
+            color = Color.White.copy(alpha = 0.8f),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(onClick = onRequestPermission) {
+            Text("Grant Permission")
         }
+    }
+}
 
-        // Show error message if camera fails
-        uiState.error?.let { error ->
-            Text(
-                text = error,
-                color = Color.White,
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
+/**
+ * Composable shown when camera permission is denied.
+ *
+ * Displayed when the permission has been permanently denied. Informs the user
+ * they need to enable the permission in system settings.
+ */
+@Composable
+private fun PermissionDenied() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Camera Permission Denied",
+            color = Color.White,
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Please enable camera permission in your device settings to use this feature.",
+            color = Color.White.copy(alpha = 0.8f),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
+        )
     }
 }
 

@@ -75,11 +75,19 @@ fun CameraPreview(
 
         onDispose {
             // Unbind all use cases when leaving the screen
-            try {
-                val cameraProvider = cameraProviderFuture.get()
-                cameraProvider.unbindAll()
-            } catch (e: Exception) {
-                Log.e(TAG, "Error unbinding camera", e)
+            // Only unbind if the future is already complete to avoid blocking the main thread
+            // during back navigation (especially on first launch when camera is still initializing)
+            if (cameraProviderFuture.isDone) {
+                try {
+                    val cameraProvider = cameraProviderFuture.get()
+                    cameraProvider.unbindAll()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error unbinding camera", e)
+                }
+            } else {
+                // If camera is still initializing, cancel via the listener mechanism
+                // The camera will be unbound when the provider becomes available
+                Log.d(TAG, "Camera provider not ready on dispose, skipping unbind")
             }
         }
     }
