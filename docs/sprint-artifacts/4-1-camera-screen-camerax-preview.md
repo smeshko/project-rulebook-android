@@ -1,6 +1,6 @@
 # Story 4.1: Camera Screen with CameraX Preview
 
-Status: in-progress
+Status: Ready for Review
 
 ## Story
 
