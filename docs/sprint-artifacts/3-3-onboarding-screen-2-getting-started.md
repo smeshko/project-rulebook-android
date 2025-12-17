@@ -1,6 +1,6 @@
 # Story 3.3: Onboarding Screen 2 - Getting Started
 
-Status: Ready for Review
+Status: done
 
 ## Story
 

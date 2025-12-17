@@ -180,7 +180,7 @@ development_status:
 
   # Story 3.3: Onboarding Screen 2 - Getting Started
   3-3-onboarding-screen-2-getting-started:
-    status: review
+    status: done
     story_file: docs/sprint-artifacts/3-3-onboarding-screen-2-getting-started.md
 
   # Story 3.4: Credit Award on Completion
@@ -205,10 +205,10 @@ development_status:
 
 summary:
   total_stories: 28
-  done: 23
+  done: 24
   ready_for_dev: 4
   in_progress: 0
-  in_review: 1
+  in_review: 0
   blocked: 0
   epic_1_status: done
   epic_2_status: done
