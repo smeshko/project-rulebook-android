@@ -1,6 +1,6 @@
 # Story 3.7: Onboarding Analytics Events
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -22,34 +22,34 @@ So that I can optimize the first-time experience.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Track onboarding_started event (AC: #1, #2)
-  - [ ] Add `trackOnboardingStarted()` to AnalyticsManager interface
-  - [ ] Implement using `trackEvent("onboarding_started")`
-  - [ ] Fire event when OnboardingScreen first appears
-  - [ ] Use LaunchedEffect(Unit) for one-time tracking
+- [x] Task 1: Track onboarding_started event (AC: #1, #2)
+  - [x] Add `trackOnboardingStarted()` to AnalyticsManager interface
+  - [x] Implement using `trackEvent("onboarding_started")`
+  - [x] Fire event when OnboardingScreen first appears
+  - [x] Use LaunchedEffect(Unit) for one-time tracking (implemented in ViewModel init)
 
-- [ ] Task 2: Track onboarding_page_viewed event (AC: #1, #2)
-  - [ ] Add `trackOnboardingPageViewed(pageNumber: Int)` to interface
-  - [ ] Implement using `trackEvent("onboarding_page_viewed", mapOf("page" to pageNumber))`
-  - [ ] Fire when user views each page (including swipe)
-  - [ ] Track page 1 on start, page 2 on transition
+- [x] Task 2: Track onboarding_page_viewed event (AC: #1, #2)
+  - [x] Add `trackOnboardingPageViewed(pageNumber: Int)` to interface
+  - [x] Implement using `trackEvent("onboarding_page_viewed", mapOf("page" to pageNumber))`
+  - [x] Fire when user views each page (including swipe)
+  - [x] Track page 1 on start, page 2 on transition
 
-- [ ] Task 3: Track onboarding_completed event (AC: #1, #2)
-  - [ ] Add `trackOnboardingCompleted()` to interface
-  - [ ] Implement using `trackEvent("onboarding_completed")`
-  - [ ] Fire when "Get Started" is tapped (in completeOnboarding)
-  - [ ] Include completion method: "get_started"
+- [x] Task 3: Track onboarding_completed event (AC: #1, #2)
+  - [x] Add `trackOnboardingCompleted()` to interface
+  - [x] Implement using `trackEvent("onboarding_completed")`
+  - [x] Fire when "Get Started" is tapped (in completeOnboarding)
+  - [x] Include completion method: "get_started"
 
-- [ ] Task 4: Track onboarding_skipped event (AC: #1, #2)
-  - [ ] Add `trackOnboardingSkipped(pageNumber: Int)` to interface
-  - [ ] Implement using `trackEvent("onboarding_skipped", mapOf("page" to pageNumber))`
-  - [ ] Fire when "Skip" is tapped
-  - [ ] Include which page user was on when skipping
+- [x] Task 4: Track onboarding_skipped event (AC: #1, #2)
+  - [x] Add `trackOnboardingSkipped(pageNumber: Int)` to interface
+  - [x] Implement using `trackEvent("onboarding_skipped", mapOf("page" to pageNumber))`
+  - [x] Fire when "Skip" is tapped
+  - [x] Include which page user was on when skipping
 
-- [ ] Task 5: Wire analytics in OnboardingViewModel (AC: #1)
-  - [ ] Inject `AnalyticsManager` into OnboardingViewModel
-  - [ ] Call appropriate tracking methods at each event point
-  - [ ] Ensure events fire before navigation
+- [x] Task 5: Wire analytics in OnboardingViewModel (AC: #1)
+  - [x] Inject `AnalyticsManager` into OnboardingViewModel
+  - [x] Call appropriate tracking methods at each event point
+  - [x] Ensure events fire before navigation
 
 ## Dev Notes
 
@@ -292,13 +292,26 @@ Updates to existing files:
 - Story 3.5: Skip logic where skipped event fires
 
 ### Agent Model Used
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
 ### Completion Notes List
+- Added 4 convenience methods to AnalyticsManager interface for onboarding events
+- Injected AnalyticsManager into OnboardingViewModel
+- Events fire: onboarding_started and page_viewed(1) on init, page_viewed on page change, completed on Get Started, skipped with page on Skip
+- Added core:analytics dependency to feature:onboarding module
+- Updated Koin module to inject AnalyticsManager
+- Added 8 analytics-specific unit tests to OnboardingViewModelTest
+- All tests pass (292 tasks executed)
 
 ### File List
+- core/analytics/src/main/kotlin/com/rulebook/core/analytics/AnalyticsManager.kt (modified - added 4 convenience methods)
+- core/analytics/src/test/kotlin/com/rulebook/core/analytics/AnalyticsManagerTest.kt (modified - added 6 tests)
+- feature/onboarding/build.gradle.kts (modified - added core:analytics dependency)
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/OnboardingViewModel.kt (modified - added analytics tracking)
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/di/OnboardingModule.kt (modified - inject AnalyticsManager)
+- feature/onboarding/src/test/kotlin/com/rulebook/feature/onboarding/OnboardingViewModelTest.kt (modified - added analytics tests)
 
 ## Dependencies
 

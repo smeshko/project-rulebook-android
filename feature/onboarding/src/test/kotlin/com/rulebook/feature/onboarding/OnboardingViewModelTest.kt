@@ -1,5 +1,6 @@
 package com.rulebook.feature.onboarding
 
+import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.data.repository.OnboardingRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,13 +26,15 @@ class OnboardingViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var fakeOnboardingRepository: FakeOnboardingRepository
+    private lateinit var fakeAnalyticsManager: FakeAnalyticsManager
     private lateinit var viewModel: OnboardingViewModel
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         fakeOnboardingRepository = FakeOnboardingRepository()
-        viewModel = OnboardingViewModel(fakeOnboardingRepository)
+        fakeAnalyticsManager = FakeAnalyticsManager()
+        viewModel = OnboardingViewModel(fakeOnboardingRepository, fakeAnalyticsManager)
     }
 
     @After
@@ -156,6 +159,114 @@ class OnboardingViewModelTest {
         assertEquals(OnboardingNavigationEvent.NavigateToLibrary, receivedEvent)
         job.cancel()
     }
+
+    // Analytics Tests
+
+    @Test
+    fun `onboarding_started event fires on ViewModel init`() = runTest {
+        // ViewModel is created in setup, so event should already be tracked
+        val startedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "onboarding_started" }
+
+        assertEquals(1, startedEvents.size)
+    }
+
+    @Test
+    fun `onboarding_page_viewed event fires for page 1 on init`() = runTest {
+        val pageViewedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "onboarding_page_viewed" }
+
+        assertEquals(1, pageViewedEvents.size)
+        assertEquals("1", pageViewedEvents[0].properties["page"])
+    }
+
+    @Test
+    fun `onboarding_page_viewed event fires when page changes`() = runTest {
+        // Clear initial events
+        fakeAnalyticsManager.clear()
+
+        viewModel.onPageChanged(1)
+
+        val pageViewedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "onboarding_page_viewed" }
+        assertEquals(1, pageViewedEvents.size)
+        assertEquals("2", pageViewedEvents[0].properties["page"])
+    }
+
+    @Test
+    fun `onboarding_page_viewed event does not fire when page is same`() = runTest {
+        // Clear initial events
+        fakeAnalyticsManager.clear()
+
+        // Change to same page (0)
+        viewModel.onPageChanged(0)
+
+        val pageViewedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "onboarding_page_viewed" }
+        assertEquals(0, pageViewedEvents.size)
+    }
+
+    @Test
+    fun `onboarding_completed event fires on Get Started click`() = runTest {
+        // Clear initial events
+        fakeAnalyticsManager.clear()
+
+        viewModel.onGetStartedClicked()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val completedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "onboarding_completed" }
+        assertEquals(1, completedEvents.size)
+        assertEquals("get_started", completedEvents[0].properties["method"])
+    }
+
+    @Test
+    fun `onboarding_skipped event fires on Skip click with page 1`() = runTest {
+        // Clear initial events
+        fakeAnalyticsManager.clear()
+
+        // On page 0 (page 1 in 1-indexed)
+        viewModel.onSkipClicked()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val skippedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "onboarding_skipped" }
+        assertEquals(1, skippedEvents.size)
+        assertEquals("1", skippedEvents[0].properties["page"])
+    }
+
+    @Test
+    fun `onboarding_skipped event fires on Skip click with page 2`() = runTest {
+        // Clear initial events
+        fakeAnalyticsManager.clear()
+
+        // Navigate to page 2
+        viewModel.onPageChanged(1)
+        fakeAnalyticsManager.clear() // Clear the page view event
+
+        viewModel.onSkipClicked()
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val skippedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "onboarding_skipped" }
+        assertEquals(1, skippedEvents.size)
+        assertEquals("2", skippedEvents[0].properties["page"])
+    }
+
+    @Test
+    fun `analytics events fire in correct order`() = runTest {
+        // Verify the order: onboarding_started, then onboarding_page_viewed(1)
+        assertEquals(2, fakeAnalyticsManager.trackedEvents.size)
+        assertEquals("onboarding_started", fakeAnalyticsManager.trackedEvents[0].name)
+        assertEquals("onboarding_page_viewed", fakeAnalyticsManager.trackedEvents[1].name)
+        assertEquals("1", fakeAnalyticsManager.trackedEvents[1].properties["page"])
+    }
+
+    @Test
+    fun `onboarding_page_viewed event fires when Next button clicked`() = runTest {
+        // Clear initial events
+        fakeAnalyticsManager.clear()
+
+        // Click Next to go from page 0 to page 1
+        viewModel.onNextClicked()
+
+        val pageViewedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "onboarding_page_viewed" }
+        assertEquals(1, pageViewedEvents.size)
+        assertEquals("2", pageViewedEvents[0].properties["page"])
+    }
 }
 
 /**
@@ -190,5 +301,36 @@ private class FakeOnboardingRepository : OnboardingRepository {
         } else {
             false
         }
+    }
+}
+
+/**
+ * Fake implementation of AnalyticsManager for testing.
+ * Records all tracked events for verification in tests.
+ */
+private class FakeAnalyticsManager : AnalyticsManager {
+
+    data class TrackedEvent(
+        val name: String,
+        val properties: Map<String, String>
+    )
+
+    private val _trackedEvents = mutableListOf<TrackedEvent>()
+    val trackedEvents: List<TrackedEvent> get() = _trackedEvents.toList()
+
+    private val _trackedScreenViews = mutableListOf<String>()
+    val trackedScreenViews: List<String> get() = _trackedScreenViews.toList()
+
+    override fun trackEvent(name: String, properties: Map<String, String>) {
+        _trackedEvents.add(TrackedEvent(name, properties))
+    }
+
+    override fun trackScreenView(screenName: String) {
+        _trackedScreenViews.add(screenName)
+    }
+
+    fun clear() {
+        _trackedEvents.clear()
+        _trackedScreenViews.clear()
     }
 }

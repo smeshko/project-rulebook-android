@@ -2,6 +2,7 @@ package com.rulebook.feature.onboarding
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
@@ -20,6 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rulebook.feature.onboarding.components.OnboardingBottomSection
@@ -96,12 +99,17 @@ fun OnboardingScreen(
         }
 
         // Skip button - top right with status bar padding
+        // Positioned at parent level (not inside pager) so it's visible on all pages
         TextButton(
             onClick = { viewModel.onSkipClicked() },
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .padding(horizontal = 8.dp)
+                .defaultMinSize(minHeight = 48.dp, minWidth = 48.dp)
+                .semantics {
+                    contentDescription = "Skip onboarding and go to library"
+                }
         ) {
             Text(
                 text = "Skip",

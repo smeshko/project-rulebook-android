@@ -72,4 +72,58 @@ class AnalyticsManagerTest {
         assertTrue(analyticsManager.trackedEvents.isEmpty())
         assertTrue(analyticsManager.trackedScreenViews.isEmpty())
     }
+
+    @Test
+    fun `trackOnboardingStarted fires onboarding_started event`() {
+        analyticsManager.trackOnboardingStarted()
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("onboarding_started", analyticsManager.trackedEvents[0].name)
+        assertTrue(analyticsManager.trackedEvents[0].properties.isEmpty())
+    }
+
+    @Test
+    fun `trackOnboardingPageViewed fires event with page number`() {
+        analyticsManager.trackOnboardingPageViewed(pageNumber = 1)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("onboarding_page_viewed", analyticsManager.trackedEvents[0].name)
+        assertEquals("1", analyticsManager.trackedEvents[0].properties["page"])
+    }
+
+    @Test
+    fun `trackOnboardingPageViewed fires event with page 2`() {
+        analyticsManager.trackOnboardingPageViewed(pageNumber = 2)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("onboarding_page_viewed", analyticsManager.trackedEvents[0].name)
+        assertEquals("2", analyticsManager.trackedEvents[0].properties["page"])
+    }
+
+    @Test
+    fun `trackOnboardingCompleted fires event with get_started method`() {
+        analyticsManager.trackOnboardingCompleted()
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("onboarding_completed", analyticsManager.trackedEvents[0].name)
+        assertEquals("get_started", analyticsManager.trackedEvents[0].properties["method"])
+    }
+
+    @Test
+    fun `trackOnboardingSkipped fires event with page number`() {
+        analyticsManager.trackOnboardingSkipped(pageNumber = 1)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("onboarding_skipped", analyticsManager.trackedEvents[0].name)
+        assertEquals("1", analyticsManager.trackedEvents[0].properties["page"])
+    }
+
+    @Test
+    fun `trackOnboardingSkipped fires event with page 2`() {
+        analyticsManager.trackOnboardingSkipped(pageNumber = 2)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("onboarding_skipped", analyticsManager.trackedEvents[0].name)
+        assertEquals("2", analyticsManager.trackedEvents[0].properties["page"])
+    }
 }
