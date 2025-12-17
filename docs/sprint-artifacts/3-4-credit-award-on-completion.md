@@ -1,6 +1,6 @@
 # Story 3.4: Credit Award on Completion
 
-Status: Ready for Review
+Status: Done
 
 ## Story
 
