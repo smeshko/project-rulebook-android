@@ -190,6 +190,73 @@ So that I can optimize the first-time experience.
 
 ---
 
+## Epic 3: Dependency Flowchart
+
+```
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  WAVE 1: Start Immediately                                                ║
+╠═══════════════════════════════════════════════════════════════════════════╣
+║                                                                           ║
+║  [3-1] Onboarding Flow Detection                                          ║
+║        Creates feature/onboarding module, navigation routes, splash hold  ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+                                    │
+                                    ▼
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  WAVE 2: After 3-1                                                        ║
+╠═══════════════════════════════════════════════════════════════════════════╣
+║                                                                           ║
+║  [3-2] Onboarding Screen 1 - Value Proposition                            ║
+║        HorizontalPager setup, page 1 content, ViewModel foundation        ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+                                    │
+                                    ▼
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  WAVE 3: After 3-2 (PARALLEL)                                             ║
+╠═══════════════════════════════════════════════════════════════════════════╣
+║                                                                           ║
+║  [3-3] Screen 2 - Getting Started    ║    [3-6] Page Indicator            ║
+║        Page 2 content, Get Started   ║         Dots showing progress      ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+                     │
+                     ▼
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  WAVE 4: After 3-3                                                        ║
+╠═══════════════════════════════════════════════════════════════════════════╣
+║                                                                           ║
+║  [3-4] Credit Award on Completion                                         ║
+║        CreditRepository, atomic DataStore transaction, 3 credits          ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+                                    │
+                                    ▼
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  WAVE 5: After 3-4 (PARALLEL)                                             ║
+╠═══════════════════════════════════════════════════════════════════════════╣
+║                                                                           ║
+║  [3-5] Skip Functionality            ║    [3-7] Analytics Events          ║
+║        Wire Skip button to           ║         Track started, viewed,     ║
+║        completion logic              ║         completed, skipped         ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+Legend:
+  ─────────────────────────────────────
+  │ Sequential dependency (must wait)
+  ║ Parallel execution possible
+  ─────────────────────────────────────
+
+Execution Summary:
+  • Total Waves: 5
+  • Critical Path: 3-1 → 3-2 → 3-3 → 3-4 → 3-5/3-7
+  • Parallelization: Wave 3 (2 stories), Wave 5 (2 stories)
+```
+
+---
+
 **Epic 3 Complete: Onboarding Experience**
 
 **Stories Created:** 7

@@ -165,14 +165,53 @@ development_status:
     status: done
     story_file: docs/sprint-artifacts/2-8-predictive-back-gesture.md
 
+  # Epic 3: Onboarding Experience
+  epic-3: backlog
+
+  # Story 3.1: Onboarding Flow Detection
+  3-1-onboarding-flow-detection:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/3-1-onboarding-flow-detection.md
+
+  # Story 3.2: Onboarding Screen 1 - Value Proposition
+  3-2-onboarding-screen-1-value-proposition:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/3-2-onboarding-screen-1-value-proposition.md
+
+  # Story 3.3: Onboarding Screen 2 - Getting Started
+  3-3-onboarding-screen-2-getting-started:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/3-3-onboarding-screen-2-getting-started.md
+
+  # Story 3.4: Credit Award on Completion
+  3-4-credit-award-on-completion:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/3-4-credit-award-on-completion.md
+
+  # Story 3.5: Skip Onboarding Functionality
+  3-5-skip-onboarding-functionality:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/3-5-skip-onboarding-functionality.md
+
+  # Story 3.6: Onboarding Page Indicator
+  3-6-onboarding-page-indicator:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/3-6-onboarding-page-indicator.md
+
+  # Story 3.7: Onboarding Analytics Events
+  3-7-onboarding-analytics-events:
+    status: ready-for-dev
+    story_file: docs/sprint-artifacts/3-7-onboarding-analytics-events.md
+
 summary:
-  total_stories: 21
+  total_stories: 28
   done: 21
-  ready_for_dev: 0
+  ready_for_dev: 7
   in_progress: 0
   in_review: 0
   blocked: 0
   epic_1_status: done
   epic_2_status: done
+  epic_3_status: backlog
   retrospective_epic_1: done
   retrospective_epic_2: done
