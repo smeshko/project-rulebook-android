@@ -259,6 +259,50 @@ So that I can exit if I change my mind.
 
 ---
 
+## Epic 4: Dependency Flowchart
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║  WAVE 1: Start Immediately                                                         ║
+╠═══════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                    ║
+║  [4-1] Camera Screen with CameraX Preview                                          ║
+║        └─ Foundation for all camera functionality                                  ║
+║                                                                                    ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
+                                        │
+                                        ▼
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║  WAVE 2: After 4-1 (PARALLEL x8)                                                   ║
+╠═══════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                    ║
+║  [4-2] Photo Capture Button     ║  [4-3] Flash/Torch Control                       ║
+║  [4-4] Pinch-to-Zoom Gesture    ║  [4-5] Tap-to-Focus                              ║
+║  [4-6] Gallery Picker           ║  [4-8] Credit Balance Display                    ║
+║  [4-9] Permission Handling      ║  [4-10] Close/Back Navigation                    ║
+║                                                                                    ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
+                    │                                   │
+                    └───────────┬───────────────────────┘
+                                │
+                                ▼
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║  WAVE 3: After 4-2 AND 4-6                                                         ║
+╠═══════════════════════════════════════════════════════════════════════════════════╣
+║                                                                                    ║
+║  [4-7] Image Compression Before Upload                                             ║
+║        └─ Requires captured images from 4-2 OR gallery images from 4-6             ║
+║                                                                                    ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
+
+Legend:
+  ═══ Wave boundary
+  │ ▼ Sequential dependency
+  ║   ║ Parallel stories (can be developed simultaneously)
+```
+
+---
+
 **Epic 4 Complete: Photo Capture Flow**
 
 **Stories Created:** 10

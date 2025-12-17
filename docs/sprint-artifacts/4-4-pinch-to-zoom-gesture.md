@@ -1,0 +1,214 @@
+# Story 4.4: Pinch-to-Zoom Gesture
+
+Status: ready-for-dev
+
+## Story
+
+As a user,
+I want to zoom the camera with a pinch gesture,
+so that I can focus on the game box from a distance.
+
+## Acceptance Criteria
+
+1. **Given** the camera preview is active (FR7)
+   **When** the user performs a pinch gesture
+   **Then** the camera zooms in (spread) or out (pinch)
+
+2. **Given** the user is zooming
+   **When** the gesture is active
+   **Then** zoom is smooth and responsive
+
+3. **Given** the user is zooming
+   **When** reaching zoom limits
+   **Then** zoom level is bounded (1x to max supported)
+
+4. **Given** the user is zooming
+   **When** the zoom level changes
+   **Then** an optional zoom level indicator appears briefly
+
+## Tasks / Subtasks
+
+- [ ] Task 1: Add Zoom State to CameraUiState (AC: #1, #3)
+  - [ ] Add `zoomRatio: Float` to CameraUiState (default 1.0f)
+  - [ ] Add `minZoomRatio: Float` to CameraUiState
+  - [ ] Add `maxZoomRatio: Float` to CameraUiState
+  - [ ] Add `showZoomIndicator: Boolean` to CameraUiState
+
+- [ ] Task 2: Get Zoom Bounds from CameraInfo (AC: #3)
+  - [ ] Query `cameraInfo.zoomState` after camera binding
+  - [ ] Extract `minZoomRatio` and `maxZoomRatio`
+  - [ ] Store bounds in ViewModel state
+
+- [ ] Task 3: Implement Pinch-to-Zoom Gesture Detection (AC: #1, #2)
+  - [ ] Add `pointerInput` modifier with `detectTransformGestures`
+  - [ ] Calculate new zoom ratio from gesture scale
+  - [ ] Clamp zoom ratio within bounds
+  - [ ] Update state with new zoom ratio
+
+- [ ] Task 4: Apply Zoom to Camera (AC: #1, #2)
+  - [ ] Use `camera.cameraControl.setZoomRatio(ratio)`
+  - [ ] Apply zoom immediately on gesture change
+  - [ ] Handle zoom change result (success/failure)
+
+- [ ] Task 5: Create ZoomIndicator Composable (AC: #4)
+  - [ ] Create `ZoomIndicator.kt` in `feature/camera/components/`
+  - [ ] Display current zoom level (e.g., "1.5x")
+  - [ ] Animate appearance and disappearance
+  - [ ] Position unobtrusively (center or corner)
+
+- [ ] Task 6: Implement Zoom Indicator Auto-Hide (AC: #4)
+  - [ ] Show indicator when zoom changes
+  - [ ] Auto-hide after 1.5-2 seconds of inactivity
+  - [ ] Use `LaunchedEffect` with delay for hiding
+
+## Dev Notes
+
+### Zoom Gesture Detection
+```kotlin
+@Composable
+fun ZoomablePreview(
+    onZoomChange: (Float) -> Unit,
+    currentZoom: Float,
+    minZoom: Float,
+    maxZoom: Float,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    var scale by remember { mutableStateOf(1f) }
+
+    Box(
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectTransformGestures { _, _, zoom, _ ->
+                    // Calculate new zoom based on gesture
+                    val newZoom = (currentZoom * zoom).coerceIn(minZoom, maxZoom)
+                    onZoomChange(newZoom)
+                }
+            }
+    ) {
+        content()
+    }
+}
+```
+
+### Alternative: ScaleGestureDetector (AndroidView)
+```kotlin
+// If using PreviewView directly with AndroidView
+val scaleGestureDetector = ScaleGestureDetector(
+    context,
+    object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        override fun onScale(detector: ScaleGestureDetector): Boolean {
+            val scaleFactor = detector.scaleFactor
+            val newZoom = (currentZoom * scaleFactor).coerceIn(minZoom, maxZoom)
+            cameraControl.setZoomRatio(newZoom)
+            return true
+        }
+    }
+)
+```
+
+### CameraX Zoom Control
+```kotlin
+// Get zoom state
+val zoomState = camera.cameraInfo.zoomState.value
+val minZoom = zoomState?.minZoomRatio ?: 1f
+val maxZoom = zoomState?.maxZoomRatio ?: 1f
+
+// Apply zoom
+camera.cameraControl.setZoomRatio(newZoomRatio)
+    .addListener({}, ContextCompat.getMainExecutor(context))
+```
+
+### Zoom Indicator Composable
+```kotlin
+@Composable
+fun ZoomIndicator(
+    zoomRatio: Float,
+    visible: Boolean,
+    modifier: Modifier = Modifier
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(),
+        exit = fadeOut(),
+        modifier = modifier
+    ) {
+        Surface(
+            color = Color.Black.copy(alpha = 0.5f),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text(
+                text = "%.1fx".format(zoomRatio),
+                color = Color.White,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+            )
+        }
+    }
+}
+```
+
+### Auto-Hide Logic
+```kotlin
+@Composable
+fun CameraScreen(/* ... */) {
+    var showZoomIndicator by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.zoomRatio) {
+        showZoomIndicator = true
+        delay(1500)
+        showZoomIndicator = false
+    }
+
+    // Use showZoomIndicator for ZoomIndicator visibility
+}
+```
+
+### Project Structure Notes
+
+- Zoom gesture: Integrated into `CameraPreview.kt`
+- Zoom indicator: `feature/camera/components/ZoomIndicator.kt`
+- Integration: Update `CameraViewModel.kt` and `CameraScreen.kt`
+
+### References
+
+- [Source: docs/architecture.md#CameraX] - CameraX camera control APIs
+- [Source: docs/prd.md#FR7] - Users can zoom the camera view (pinch gesture)
+- [Source: docs/epics/epic-4-photo-capture-flow.md#Story 4.4] - Full story definition
+
+### Testing Requirements
+
+- Test zoom gesture increases/decreases zoom ratio
+- Test zoom is clamped at min/max bounds
+- Test zoom indicator appears and auto-hides
+- Manual test zoom smoothness on physical device
+
+### Dependencies
+
+- **Prerequisites:** Story 4.1 (camera preview must be active)
+- **Parallel with:** Stories 4.2, 4.3, 4.5, 4.6, 4.8, 4.9, 4.10
+
+## Dev Agent Record
+
+### Context Reference
+
+<!-- Path(s) to story context XML will be added here by context workflow -->
+
+### Agent Model Used
+
+Claude Opus 4.5 (claude-opus-4-5-20251101)
+
+### Debug Log References
+
+### Completion Notes List
+
+### File List
+
+## Epic Dependencies
+
+- **Depends On:** Story 4.1
+- **Blocks:** None
+- **Can Parallel With:** Story 4.2, Story 4.3, Story 4.5, Story 4.6, Story 4.8, Story 4.9, Story 4.10
+
+### Dependency Rationale
+- Story 4.1: Requires camera preview for zoom gesture handling

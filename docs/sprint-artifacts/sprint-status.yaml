@@ -166,7 +166,13 @@ development_status:
     story_file: docs/sprint-artifacts/2-8-predictive-back-gesture.md
 
   # Epic 3: Onboarding Experience
-  epic-3: backlog
+  epic-3: done
+
+  # Epic 3 Retrospective
+  epic-3-retrospective:
+    status: done
+    completed_date: "2025-12-17"
+    retro_file: docs/sprint-artifacts/epic-3-retro-2025-12-17.md
 
   # Story 3.1: Onboarding Flow Detection
   3-1-onboarding-flow-detection:
@@ -212,6 +218,7 @@ summary:
   blocked: 0
   epic_1_status: done
   epic_2_status: done
-  epic_3_status: backlog
+  epic_3_status: done
   retrospective_epic_1: done
   retrospective_epic_2: done
+  retrospective_epic_3: done
