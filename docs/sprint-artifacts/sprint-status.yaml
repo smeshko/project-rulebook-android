@@ -195,7 +195,7 @@ development_status:
 
   # Story 3.6: Onboarding Page Indicator
   3-6-onboarding-page-indicator:
-    status: ready-for-dev
+    status: done
     story_file: docs/sprint-artifacts/3-6-onboarding-page-indicator.md
 
   # Story 3.7: Onboarding Analytics Events

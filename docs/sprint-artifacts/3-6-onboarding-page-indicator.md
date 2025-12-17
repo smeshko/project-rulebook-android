@@ -1,6 +1,6 @@
 # Story 3.6: Onboarding Page Indicator
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -24,32 +24,32 @@ So that I know how many screens remain.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create OnboardingPageIndicator composable (AC: #1, #2, #3)
-  - [ ] Create `OnboardingPageIndicator.kt` in `feature/onboarding/components`
-  - [ ] Accept `pageCount: Int` and `currentPage: Int` parameters
-  - [ ] Render row of dots matching page count
-  - [ ] Highlight current page dot (different size/color)
+- [x] Task 1: Create OnboardingPageIndicator composable (AC: #1, #2, #3)
+  - [x] Create `OnboardingPageIndicator.kt` in `feature/onboarding/components`
+  - [x] Accept `pageCount: Int` and `currentPage: Int` parameters
+  - [x] Render row of dots matching page count
+  - [x] Highlight current page dot (different size/color)
 
-- [ ] Task 2: Apply brutalist styling to indicators (AC: #4)
-  - [ ] Use sharp-edged dots (square with slight rounding, not circles)
-  - [ ] Active dot: Primary accent color, larger size
-  - [ ] Inactive dots: Surface variant color, smaller size
-  - [ ] High contrast between active and inactive
+- [x] Task 2: Apply brutalist styling to indicators (AC: #4)
+  - [x] Use sharp-edged dots (square with slight rounding, not circles)
+  - [x] Active dot: Primary accent color, larger size
+  - [x] Inactive dots: Surface variant color, smaller size
+  - [x] High contrast between active and inactive
 
-- [ ] Task 3: Position indicators in bottom section (AC: #5)
-  - [ ] Place indicators in `OnboardingBottomSection`
-  - [ ] Position above navigation buttons
-  - [ ] Add appropriate spacing (16-24dp margin)
+- [x] Task 3: Position indicators in bottom section (AC: #5)
+  - [x] Place indicators in `OnboardingBottomSection`
+  - [x] Position above navigation buttons
+  - [x] Add appropriate spacing (16-24dp margin)
 
-- [ ] Task 4: Add animated transitions (AC: #2)
-  - [ ] Animate dot size changes on page transition
-  - [ ] Use `animateDpAsState` for smooth scaling
-  - [ ] Keep animation duration short (150-200ms)
+- [x] Task 4: Add animated transitions (AC: #2)
+  - [x] Animate dot size changes on page transition
+  - [x] Use `animateDpAsState` for smooth scaling
+  - [x] Keep animation duration short (150-200ms)
 
-- [ ] Task 5: Sync with HorizontalPager state (AC: #1)
-  - [ ] Pass `pagerState.currentPage` to indicator
-  - [ ] Update when user swipes between pages
-  - [ ] Update when user taps Next button
+- [x] Task 5: Sync with HorizontalPager state (AC: #1)
+  - [x] Pass `pagerState.currentPage` to indicator
+  - [x] Update when user swipes between pages
+  - [x] Update when user taps Next button
 
 ## Dev Notes
 
@@ -291,8 +291,16 @@ feature/onboarding/components/
 ### Debug Log References
 
 ### Completion Notes List
+- Task 1 Complete: Created OnboardingPageIndicator composable with pageCount/currentPage params, row of animated dots, active/inactive states
+- Task 2 Complete: Brutalist styling already applied - RoundedCornerShape(2dp), primary/surfaceVariant colors, 12dp/8dp sizes
+- Task 3 Complete: Integrated OnboardingPageIndicator into OnboardingBottomSection with 24dp spacing above button
+- Task 4 Complete: Animations already implemented - animateDpAsState/animateColorAsState with 150ms tween duration
+- Task 5 Complete: Syncing already in place - pagerState.currentPage passed through OnboardingBottomSection to indicator
 
 ### File List
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/components/OnboardingPageIndicator.kt (NEW)
+- feature/onboarding/src/test/kotlin/com/rulebook/feature/onboarding/components/OnboardingPageIndicatorTest.kt (NEW)
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/components/OnboardingBottomSection.kt (MODIFIED)
 
 ## Dependencies
 
