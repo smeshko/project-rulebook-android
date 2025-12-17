@@ -254,6 +254,19 @@ class OnboardingViewModelTest {
         assertEquals("onboarding_page_viewed", fakeAnalyticsManager.trackedEvents[1].name)
         assertEquals("1", fakeAnalyticsManager.trackedEvents[1].properties["page"])
     }
+
+    @Test
+    fun `onboarding_page_viewed event fires when Next button clicked`() = runTest {
+        // Clear initial events
+        fakeAnalyticsManager.clear()
+
+        // Click Next to go from page 0 to page 1
+        viewModel.onNextClicked()
+
+        val pageViewedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "onboarding_page_viewed" }
+        assertEquals(1, pageViewedEvents.size)
+        assertEquals("2", pageViewedEvents[0].properties["page"])
+    }
 }
 
 /**
