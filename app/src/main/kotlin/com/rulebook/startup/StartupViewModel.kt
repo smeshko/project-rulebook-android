@@ -52,15 +52,21 @@ class StartupViewModel(
 
     private fun determineStartupDestination() {
         viewModelScope.launch {
-            val hasCompletedOnboarding = onboardingRepository.hasCompletedOnboarding.first()
+            try {
+                val hasCompletedOnboarding = onboardingRepository.hasCompletedOnboarding.first()
 
-            _startupDestination.value = if (hasCompletedOnboarding) {
-                StartupDestination.Library
-            } else {
-                StartupDestination.Onboarding
+                _startupDestination.value = if (hasCompletedOnboarding) {
+                    StartupDestination.Library
+                } else {
+                    StartupDestination.Onboarding
+                }
+            } catch (e: Exception) {
+                // If DataStore read fails (IO error, corruption, etc.), default to onboarding
+                // to ensure the app remains functional rather than showing an infinite splash
+                _startupDestination.value = StartupDestination.Onboarding
+            } finally {
+                _isLoading.value = false
             }
-
-            _isLoading.value = false
         }
     }
 }

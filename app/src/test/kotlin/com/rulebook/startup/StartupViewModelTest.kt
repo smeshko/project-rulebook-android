@@ -89,6 +89,28 @@ class StartupViewModelTest {
 
         assertFalse(viewModel.isLoading.value)
     }
+
+    // ==================== Error Handling Tests ====================
+
+    @Test
+    fun `when repository throws exception, destination defaults to Onboarding`() = runTest {
+        val errorRepository = ErrorThrowingOnboardingRepository()
+        viewModel = StartupViewModel(errorRepository)
+
+        advanceUntilIdle()
+
+        assertEquals(StartupDestination.Onboarding, viewModel.startupDestination.value)
+    }
+
+    @Test
+    fun `when repository throws exception, isLoading becomes false`() = runTest {
+        val errorRepository = ErrorThrowingOnboardingRepository()
+        viewModel = StartupViewModel(errorRepository)
+
+        advanceUntilIdle()
+
+        assertFalse(viewModel.isLoading.value)
+    }
 }
 
 /**
@@ -104,5 +126,19 @@ class FakeOnboardingRepository : OnboardingRepository {
 
     fun setOnboardingCompletedSync(value: Boolean) {
         _hasCompletedOnboarding.value = value
+    }
+}
+
+/**
+ * Fake implementation that throws an exception when reading onboarding status.
+ * Used to test error handling in StartupViewModel.
+ */
+class ErrorThrowingOnboardingRepository : OnboardingRepository {
+    override val hasCompletedOnboarding: Flow<Boolean> = kotlinx.coroutines.flow.flow {
+        throw java.io.IOException("Simulated DataStore IO error")
+    }
+
+    override suspend fun setOnboardingCompleted(completed: Boolean) {
+        throw java.io.IOException("Simulated DataStore IO error")
     }
 }
