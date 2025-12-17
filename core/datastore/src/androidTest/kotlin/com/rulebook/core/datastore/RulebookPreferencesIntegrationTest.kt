@@ -168,4 +168,119 @@ class RulebookPreferencesIntegrationTest {
         assertEquals(ThemeMode.DARK, preferences.themeMode.first())
         assertFalse(preferences.hapticsEnabled.first())
     }
+
+    // ==================== Atomic Credit Operations Tests ====================
+
+    @Test
+    fun completeOnboardingWithCredits_setsOnboardingAndCreditsAtomically() = runTest {
+        val result = preferences.completeOnboardingWithCredits(3)
+
+        assertTrue(result)
+        assertTrue(preferences.hasCompletedOnboarding.first())
+        assertEquals(3, preferences.creditBalance.first())
+    }
+
+    @Test
+    fun completeOnboardingWithCredits_isIdempotent() = runTest {
+        // First completion should succeed
+        val firstResult = preferences.completeOnboardingWithCredits(3)
+        assertTrue(firstResult)
+
+        // Second completion should be no-op
+        val secondResult = preferences.completeOnboardingWithCredits(3)
+        assertFalse(secondResult)
+
+        // Values should remain unchanged
+        assertTrue(preferences.hasCompletedOnboarding.first())
+        assertEquals(3, preferences.creditBalance.first())
+    }
+
+    @Test
+    fun completeOnboardingWithCredits_doesNotModifyWhenAlreadyCompleted() = runTest {
+        // Manually complete onboarding with different credit value
+        preferences.setOnboardingCompleted(true)
+        preferences.setCreditBalance(10)
+
+        // Attempt atomic completion should be no-op
+        val result = preferences.completeOnboardingWithCredits(3)
+
+        assertFalse(result)
+        assertTrue(preferences.hasCompletedOnboarding.first())
+        assertEquals(10, preferences.creditBalance.first()) // Original value preserved
+    }
+
+    @Test
+    fun awardInitialCreditsIfNeeded_awardsWhenBalanceIsZero() = runTest {
+        val result = preferences.awardInitialCreditsIfNeeded(3)
+
+        assertTrue(result)
+        assertEquals(3, preferences.creditBalance.first())
+    }
+
+    @Test
+    fun awardInitialCreditsIfNeeded_doesNotAwardWhenBalanceIsPositive() = runTest {
+        preferences.setCreditBalance(5)
+
+        val result = preferences.awardInitialCreditsIfNeeded(3)
+
+        assertFalse(result)
+        assertEquals(5, preferences.creditBalance.first()) // Original value preserved
+    }
+
+    @Test
+    fun awardInitialCreditsIfNeeded_isIdempotent() = runTest {
+        preferences.awardInitialCreditsIfNeeded(3)
+        val result = preferences.awardInitialCreditsIfNeeded(3)
+
+        assertFalse(result)
+        assertEquals(3, preferences.creditBalance.first())
+    }
+
+    @Test
+    fun deductCredit_reducesBalanceByOne() = runTest {
+        preferences.setCreditBalance(3)
+
+        val result = preferences.deductCredit()
+
+        assertTrue(result)
+        assertEquals(2, preferences.creditBalance.first())
+    }
+
+    @Test
+    fun deductCredit_returnsFalseWhenBalanceIsZero() = runTest {
+        assertEquals(0, preferences.creditBalance.first())
+
+        val result = preferences.deductCredit()
+
+        assertFalse(result)
+        assertEquals(0, preferences.creditBalance.first())
+    }
+
+    @Test
+    fun deductCredit_canReduceBalanceToZero() = runTest {
+        preferences.setCreditBalance(1)
+
+        val result = preferences.deductCredit()
+
+        assertTrue(result)
+        assertEquals(0, preferences.creditBalance.first())
+    }
+
+    @Test
+    fun multipleDeductCredit_reducesSequentially() = runTest {
+        preferences.setCreditBalance(3)
+
+        assertTrue(preferences.deductCredit())
+        assertEquals(2, preferences.creditBalance.first())
+
+        assertTrue(preferences.deductCredit())
+        assertEquals(1, preferences.creditBalance.first())
+
+        assertTrue(preferences.deductCredit())
+        assertEquals(0, preferences.creditBalance.first())
+
+        // Fourth deduction should fail
+        assertFalse(preferences.deductCredit())
+        assertEquals(0, preferences.creditBalance.first())
+    }
 }

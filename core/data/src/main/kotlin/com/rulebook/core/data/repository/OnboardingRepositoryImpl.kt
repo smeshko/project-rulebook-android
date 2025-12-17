@@ -21,4 +21,8 @@ class OnboardingRepositoryImpl(
     override suspend fun setOnboardingCompleted(completed: Boolean) {
         preferencesSource.setOnboardingCompleted(completed)
     }
+
+    override suspend fun completeOnboardingWithCredits(creditAmount: Int): Boolean {
+        return preferencesSource.completeOnboardingWithCredits(creditAmount)
+    }
 }

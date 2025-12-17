@@ -79,6 +79,38 @@ class OnboardingRepositoryTest {
         repository.setOnboardingCompleted(true)
         assertTrue(fakePreferences.onboardingCompletedValue)
     }
+
+    // ==================== completeOnboardingWithCredits Tests ====================
+
+    @Test
+    fun `completeOnboardingWithCredits sets both onboarding and credits atomically`() = runTest {
+        val result = repository.completeOnboardingWithCredits(3)
+
+        assertTrue(result)
+        assertTrue(fakePreferences.onboardingCompletedValue)
+        assertEquals(3, fakePreferences.creditBalanceValue)
+    }
+
+    @Test
+    fun `completeOnboardingWithCredits returns false when already completed`() = runTest {
+        // Complete once
+        repository.completeOnboardingWithCredits(3)
+
+        // Try to complete again
+        val result = repository.completeOnboardingWithCredits(3)
+
+        assertFalse(result)
+        assertEquals(3, fakePreferences.creditBalanceValue) // Credits unchanged
+    }
+
+    @Test
+    fun `completeOnboardingWithCredits is idempotent - does not double credits`() = runTest {
+        repository.completeOnboardingWithCredits(3)
+        assertEquals(3, fakePreferences.creditBalanceValue)
+
+        repository.completeOnboardingWithCredits(3)
+        assertEquals(3, fakePreferences.creditBalanceValue) // Still 3, not 6
+    }
 }
 
 /**
@@ -91,9 +123,23 @@ class FakeOnboardingPreferencesSource : OnboardingPreferencesSource {
     var onboardingCompletedValue: Boolean = false
         private set
 
+    var creditBalanceValue: Int = 0
+        private set
+
     override suspend fun setOnboardingCompleted(completed: Boolean) {
         onboardingCompletedValue = completed
         _hasCompletedOnboarding.value = completed
+    }
+
+    override suspend fun completeOnboardingWithCredits(creditAmount: Int): Boolean {
+        return if (!onboardingCompletedValue) {
+            onboardingCompletedValue = true
+            creditBalanceValue = creditAmount
+            _hasCompletedOnboarding.value = true
+            true
+        } else {
+            false
+        }
     }
 
     fun setOnboardingCompletedValue(value: Boolean) {

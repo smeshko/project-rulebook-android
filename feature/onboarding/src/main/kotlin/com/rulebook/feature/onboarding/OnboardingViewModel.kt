@@ -16,7 +16,8 @@ import kotlinx.coroutines.launch
  * Manages the current page state for the HorizontalPager and provides
  * navigation actions for the onboarding flow.
  *
- * @param onboardingRepository Repository for persisting onboarding completion state.
+ * @param onboardingRepository Repository for persisting onboarding completion state
+ *                             and awarding initial credits atomically.
  */
 class OnboardingViewModel(
     private val onboardingRepository: OnboardingRepository
@@ -63,17 +64,27 @@ class OnboardingViewModel(
 
     /**
      * Called when the "Get Started" button is clicked on the last page.
-     * Marks onboarding as completed and triggers navigation to the library.
+     * Marks onboarding as completed, awards initial credits, and triggers
+     * navigation to the library.
+     *
+     * Uses atomic transaction to ensure both onboarding completion and credit
+     * award happen together, preventing partial state updates.
      */
     fun onGetStartedClicked() {
         viewModelScope.launch {
-            // Mark onboarding as completed
-            onboardingRepository.setOnboardingCompleted(true)
-            // Award initial credits (Story 3.4 - placeholder for now)
-            // creditRepository.awardInitialCredits(3)
+            // Complete onboarding and award credits atomically
+            // This is idempotent - safe to call multiple times
+            onboardingRepository.completeOnboardingWithCredits(INITIAL_CREDITS)
             // Navigate to Library
             _navigationEvent.send(OnboardingNavigationEvent.NavigateToLibrary)
         }
+    }
+
+    companion object {
+        /**
+         * Number of credits awarded to new users upon completing onboarding.
+         */
+        const val INITIAL_CREDITS = 3
     }
 
     /**

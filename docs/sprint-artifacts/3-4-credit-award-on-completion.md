@@ -1,6 +1,6 @@
 # Story 3.4: Credit Award on Completion
 
-Status: ready-for-dev
+Status: Done
 
 ## Story
 
@@ -22,37 +22,37 @@ So that I can immediately try the app's core feature.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create CreditRepository for credit management (AC: #1, #4)
-  - [ ] Create `CreditRepository` interface in `core/data`
-  - [ ] Implement `CreditRepositoryImpl` using DataStore
-  - [ ] Add `creditBalance: Flow<Int>` property
-  - [ ] Add `awardInitialCredits(amount: Int)` suspend function
-  - [ ] Add `deductCredit()` suspend function for future use
-  - [ ] Register repository in Koin module
+- [x] Task 1: Create CreditRepository for credit management (AC: #1, #4)
+  - [x] Create `CreditRepository` interface in `core/data`
+  - [x] Implement `CreditRepositoryImpl` using DataStore
+  - [x] Add `creditBalance: Flow<Int>` property
+  - [x] Add `awardInitialCredits(amount: Int)` suspend function
+  - [x] Add `deductCredit()` suspend function for future use
+  - [x] Register repository in Koin module
 
-- [ ] Task 2: Implement idempotent credit award logic (AC: #1, #4)
-  - [ ] Check if credits already > 0 before awarding
-  - [ ] Only set to 3 if current balance is 0
-  - [ ] Use DataStore transaction for atomic update
-  - [ ] Return Boolean indicating if credits were awarded
+- [x] Task 2: Implement idempotent credit award logic (AC: #1, #4)
+  - [x] Check if credits already > 0 before awarding
+  - [x] Only set to 3 if current balance is 0
+  - [x] Use DataStore transaction for atomic update
+  - [x] Return Boolean indicating if credits were awarded
 
-- [ ] Task 3: Update OnboardingViewModel with credit award (AC: #1, #2)
-  - [ ] Inject `CreditRepository` into OnboardingViewModel
-  - [ ] Update `completeOnboarding()` to award credits
-  - [ ] Ensure both onboarding flag and credits set together
-  - [ ] Handle edge case where user already has credits
+- [x] Task 3: Update OnboardingViewModel with credit award (AC: #1, #2)
+  - [x] Inject `CreditRepository` into OnboardingViewModel
+  - [x] Update `completeOnboarding()` to award credits
+  - [x] Ensure both onboarding flag and credits set together
+  - [x] Handle edge case where user already has credits
 
-- [ ] Task 4: Implement atomic DataStore transaction (AC: #2, #4)
-  - [ ] Create `completeOnboardingWithCredits()` in repository
-  - [ ] Use DataStore `edit` block for atomic update
-  - [ ] Set both `hasCompletedOnboarding` and `creditBalance` together
-  - [ ] Ensure no partial state updates possible
+- [x] Task 4: Implement atomic DataStore transaction (AC: #2, #4)
+  - [x] Create `completeOnboardingWithCredits()` in repository
+  - [x] Use DataStore `edit` block for atomic update
+  - [x] Set both `hasCompletedOnboarding` and `creditBalance` together
+  - [x] Ensure no partial state updates possible
 
-- [ ] Task 5: Add navigation to Library after completion (AC: #3)
-  - [ ] Emit `NavigateToLibrary` event from ViewModel
-  - [ ] Collect event in OnboardingScreen
-  - [ ] Call `navController.navigateToLibrary()` with popUpTo
-  - [ ] Clear onboarding from back stack
+- [x] Task 5: Add navigation to Library after completion (AC: #3)
+  - [x] Emit `NavigateToLibrary` event from ViewModel
+  - [x] Collect event in OnboardingScreen
+  - [x] Call `navController.navigateToLibrary()` with popUpTo
+  - [x] Clear onboarding from back stack
 
 ## Dev Notes
 
@@ -284,13 +284,52 @@ core/datastore/
 - Architecture: Repository pattern implementation
 
 ### Agent Model Used
-{{agent_model_name_version}}
+Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Debug Log References
 
 ### Completion Notes List
 
+- Task 1: Created CreditRepository with interface abstraction pattern matching existing OnboardingRepository.
+  - CreditPreferencesSource interface added to core/datastore for testing abstraction
+  - RulebookPreferences now implements both OnboardingPreferencesSource and CreditPreferencesSource
+  - Added awardInitialCreditsIfNeeded() and deductCredit() methods with idempotent behavior
+  - Unit tests added for all CreditRepository operations
+- Task 2: Idempotent credit award logic was implemented as part of Task 1 in awardInitialCreditsIfNeeded().
+  - Checks currentBalance == 0 before awarding
+  - Uses DataStore edit block for atomic operation
+  - Returns Boolean indicating success
+- Task 3: Updated OnboardingViewModel to inject and use CreditRepository.
+  - Added INITIAL_CREDITS companion object constant (3)
+  - onGetStartedClicked() now awards credits via creditRepository.awardInitialCredits()
+  - Updated Koin module to inject creditRepository
+  - Added unit tests for credit award on completion
+- Task 4: Implemented atomic DataStore transaction for completion+credits.
+  - Created completeOnboardingWithCredits() in OnboardingPreferencesSource and RulebookPreferences
+  - Single DataStore edit block sets both hasCompletedOnboarding and creditBalance
+  - Idempotent: only acts if not already completed
+  - Refactored ViewModel to use atomic method instead of separate calls
+  - Removed separate CreditRepository dependency from ViewModel (cleaner API)
+- Task 5: Navigation to Library was already implemented in Story 3.3.
+  - ViewModel emits NavigateToLibrary event after completion
+  - OnboardingScreen collects event and calls onComplete() callback
+  - NavHost navigates to Library with popUpTo(inclusive=true) to clear back stack
+
 ### File List
+
+- core/data/src/main/kotlin/com/rulebook/core/data/repository/CreditRepository.kt (new)
+- core/data/src/main/kotlin/com/rulebook/core/data/repository/CreditRepositoryImpl.kt (new)
+- core/data/src/main/kotlin/com/rulebook/core/data/di/DataModule.kt (modified)
+- core/data/src/test/kotlin/com/rulebook/core/data/repository/CreditRepositoryTest.kt (new)
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/CreditPreferencesSource.kt (new)
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/RulebookPreferences.kt (modified)
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/OnboardingViewModel.kt (modified)
+- feature/onboarding/src/main/kotlin/com/rulebook/feature/onboarding/di/OnboardingModule.kt (modified)
+- feature/onboarding/src/test/kotlin/com/rulebook/feature/onboarding/OnboardingViewModelTest.kt (modified)
+- core/data/src/main/kotlin/com/rulebook/core/data/repository/OnboardingRepository.kt (modified)
+- core/data/src/main/kotlin/com/rulebook/core/data/repository/OnboardingRepositoryImpl.kt (modified)
+- core/datastore/src/main/kotlin/com/rulebook/core/datastore/OnboardingPreferencesSource.kt (modified)
+- app/src/test/kotlin/com/rulebook/startup/StartupViewModelTest.kt (modified)
 
 ## Dependencies
 

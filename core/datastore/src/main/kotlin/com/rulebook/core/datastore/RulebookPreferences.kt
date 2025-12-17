@@ -22,10 +22,13 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  * Implements [OnboardingPreferencesSource] to allow OnboardingRepository to
  * access onboarding-related preferences through an abstraction.
  *
+ * Implements [CreditPreferencesSource] to allow CreditRepository to
+ * access credit balance preferences through an abstraction.
+ *
  * @param context Application context for DataStore access. Must be Application context
  *                to avoid memory leaks.
  */
-class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource {
+class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource {
 
     /**
      * Preference keys used for DataStore storage.
@@ -55,10 +58,34 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
     }
 
     /**
+     * Completes onboarding and awards initial credits in a single atomic transaction.
+     *
+     * This is idempotent - if onboarding was already completed, no changes are made.
+     * Both values are set together in a single DataStore edit block to prevent
+     * partial state updates (e.g., if app crashes mid-operation).
+     *
+     * @param creditAmount The number of credits to award.
+     * @return true if onboarding was completed and credits were awarded,
+     *         false if onboarding was already completed.
+     */
+    override suspend fun completeOnboardingWithCredits(creditAmount: Int): Boolean {
+        var wasCompleted = false
+        context.dataStore.edit { preferences ->
+            val alreadyCompleted = preferences[Keys.ONBOARDING_COMPLETED] ?: false
+            if (!alreadyCompleted) {
+                preferences[Keys.ONBOARDING_COMPLETED] = true
+                preferences[Keys.CREDIT_BALANCE] = creditAmount
+                wasCompleted = true
+            }
+        }
+        return wasCompleted
+    }
+
+    /**
      * Flow of current credit balance.
      * Default: `0`
      */
-    val creditBalance: Flow<Int> = context.dataStore.data
+    override val creditBalance: Flow<Int> = context.dataStore.data
         .map { preferences -> preferences[Keys.CREDIT_BALANCE] ?: 0 }
 
     /**
@@ -69,6 +96,42 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
         context.dataStore.edit { preferences ->
             preferences[Keys.CREDIT_BALANCE] = balance.coerceAtLeast(0)
         }
+    }
+
+    /**
+     * Awards initial credits if the current balance is 0.
+     * This is an idempotent operation - credits are only awarded once.
+     *
+     * @param amount The number of credits to award.
+     * @return true if credits were awarded, false if balance was already positive.
+     */
+    override suspend fun awardInitialCreditsIfNeeded(amount: Int): Boolean {
+        var awarded = false
+        context.dataStore.edit { preferences ->
+            val currentBalance = preferences[Keys.CREDIT_BALANCE] ?: 0
+            if (currentBalance == 0) {
+                preferences[Keys.CREDIT_BALANCE] = amount
+                awarded = true
+            }
+        }
+        return awarded
+    }
+
+    /**
+     * Deducts one credit from the balance.
+     *
+     * @return true if a credit was deducted, false if balance was already 0.
+     */
+    override suspend fun deductCredit(): Boolean {
+        var success = false
+        context.dataStore.edit { preferences ->
+            val currentBalance = preferences[Keys.CREDIT_BALANCE] ?: 0
+            if (currentBalance > 0) {
+                preferences[Keys.CREDIT_BALANCE] = currentBalance - 1
+                success = true
+            }
+        }
+        return success
     }
 
     /**

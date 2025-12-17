@@ -25,4 +25,20 @@ interface OnboardingRepository {
      * @param completed Whether onboarding has been completed.
      */
     suspend fun setOnboardingCompleted(completed: Boolean)
+
+    /**
+     * Completes onboarding and awards initial credits in a single atomic operation.
+     *
+     * This is the preferred method to use when completing onboarding as it ensures
+     * both the completion flag and credit balance are set together atomically.
+     * This prevents partial state updates if the app crashes mid-operation.
+     *
+     * This operation is idempotent - if onboarding was already completed,
+     * no changes are made and the method returns false.
+     *
+     * @param creditAmount The number of credits to award to the user.
+     * @return true if onboarding was completed and credits were awarded,
+     *         false if onboarding was already completed.
+     */
+    suspend fun completeOnboardingWithCredits(creditAmount: Int): Boolean
 }
