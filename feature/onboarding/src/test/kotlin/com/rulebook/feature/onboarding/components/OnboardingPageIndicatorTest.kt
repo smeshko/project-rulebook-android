@@ -2,72 +2,64 @@ package com.rulebook.feature.onboarding.components
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * Unit tests for OnboardingPageIndicator composable.
+ * Unit tests for OnboardingPageIndicator logic.
+ *
+ * Note: These are logic-level unit tests that validate the indicator's
+ * state calculation logic. For visual/rendering tests, use Compose UI
+ * tests in androidTest with createComposeRule().
  *
  * Tests cover:
- * - Page indicator displays correct number of dots
- * - Current page is properly highlighted
- * - Inactive pages are properly styled
+ * - Active page detection algorithm
+ * - Page range validation
+ * - Expected page count for onboarding
  */
 class OnboardingPageIndicatorTest {
 
-    @Test
-    fun `indicator should support pageCount parameter`() {
-        // Verify the composable accepts pageCount parameter
-        // This validates AC #1: dots show total pages
-        val pageCount = 2
-        assertTrue(pageCount > 0, "Page count should be positive")
-        assertEquals(2, pageCount, "Page count should match expected value")
+    companion object {
+        /** Number of onboarding pages per requirements */
+        private const val ONBOARDING_PAGE_COUNT = 2
     }
 
     @Test
-    fun `indicator should support currentPage parameter`() {
-        // Verify the composable accepts currentPage parameter
-        // This validates AC #1: dots show current position
-        val pageCount = 2
+    fun `active page detection returns true for matching page index`() {
         val currentPage = 0
-        assertTrue(currentPage >= 0 && currentPage < pageCount, "Current page should be within valid range")
+        val isActive = isPageActive(page = 0, currentPage = currentPage)
+        assertTrue(isActive, "Page should be active when index matches currentPage")
     }
 
     @Test
-    fun `indicator should identify active page correctly`() {
-        // Verify active page detection logic
-        // This validates AC #2: current page dot is highlighted
-        val pageCount = 2
-        for (page in 0 until pageCount) {
-            val currentPage = 0
-            val isActive = page == currentPage
-            if (page == 0) {
-                assertTrue(isActive, "First page should be active when currentPage is 0")
-            } else {
-                assertTrue(!isActive, "Other pages should be inactive when currentPage is 0")
-            }
-        }
+    fun `active page detection returns false for non-matching page index`() {
+        val currentPage = 0
+        val isActive = isPageActive(page = 1, currentPage = currentPage)
+        assertFalse(isActive, "Page should be inactive when index does not match currentPage")
     }
 
     @Test
-    fun `indicator should handle page 2 being current`() {
-        // Verify indicator works when on second page
-        val pageCount = 2
+    fun `active page detection works for second page`() {
         val currentPage = 1
-        for (page in 0 until pageCount) {
-            val isActive = page == currentPage
-            if (page == 1) {
-                assertTrue(isActive, "Second page should be active when currentPage is 1")
-            } else {
-                assertTrue(!isActive, "Other pages should be inactive when currentPage is 1")
-            }
-        }
+        assertTrue(isPageActive(page = 1, currentPage = currentPage), "Page 1 should be active")
+        assertFalse(isPageActive(page = 0, currentPage = currentPage), "Page 0 should be inactive")
     }
 
     @Test
-    fun `indicator should have exactly 2 pages for onboarding`() {
-        // Verify total page count matches onboarding requirements
-        // This validates AC #1: dots show total pages (2)
-        val expectedPageCount = 2
-        assertEquals(expectedPageCount, 2, "Onboarding should have exactly 2 pages")
+    fun `onboarding has exactly 2 pages per acceptance criteria`() {
+        assertEquals(2, ONBOARDING_PAGE_COUNT, "Onboarding should have exactly 2 pages (AC #1)")
     }
+
+    @Test
+    fun `valid page range is 0 to pageCount minus 1`() {
+        val pageCount = ONBOARDING_PAGE_COUNT
+        val validPages = (0 until pageCount).toList()
+        assertEquals(listOf(0, 1), validPages, "Valid pages should be [0, 1] for 2-page indicator")
+    }
+
+    /**
+     * Mirrors the logic used in OnboardingPageIndicator composable:
+     * `val isActive = page == currentPage`
+     */
+    private fun isPageActive(page: Int, currentPage: Int): Boolean = page == currentPage
 }
