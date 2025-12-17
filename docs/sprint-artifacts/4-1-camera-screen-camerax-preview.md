@@ -1,6 +1,6 @@
 # Story 4.1: Camera Screen with CameraX Preview
 
-Status: Ready for Review
+Status: done
 
 ## Story
 
