@@ -30,11 +30,11 @@ So that I can immediately try the app's core feature.
   - [x] Add `deductCredit()` suspend function for future use
   - [x] Register repository in Koin module
 
-- [ ] Task 2: Implement idempotent credit award logic (AC: #1, #4)
-  - [ ] Check if credits already > 0 before awarding
-  - [ ] Only set to 3 if current balance is 0
-  - [ ] Use DataStore transaction for atomic update
-  - [ ] Return Boolean indicating if credits were awarded
+- [x] Task 2: Implement idempotent credit award logic (AC: #1, #4)
+  - [x] Check if credits already > 0 before awarding
+  - [x] Only set to 3 if current balance is 0
+  - [x] Use DataStore transaction for atomic update
+  - [x] Return Boolean indicating if credits were awarded
 
 - [ ] Task 3: Update OnboardingViewModel with credit award (AC: #1, #2)
   - [ ] Inject `CreditRepository` into OnboardingViewModel
@@ -295,6 +295,10 @@ core/datastore/
   - RulebookPreferences now implements both OnboardingPreferencesSource and CreditPreferencesSource
   - Added awardInitialCreditsIfNeeded() and deductCredit() methods with idempotent behavior
   - Unit tests added for all CreditRepository operations
+- Task 2: Idempotent credit award logic was implemented as part of Task 1 in awardInitialCreditsIfNeeded().
+  - Checks currentBalance == 0 before awarding
+  - Uses DataStore edit block for atomic operation
+  - Returns Boolean indicating success
 
 ### File List
 
