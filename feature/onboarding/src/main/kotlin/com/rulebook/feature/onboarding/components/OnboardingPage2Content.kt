@@ -28,11 +28,11 @@ import com.rulebook.feature.onboarding.OnboardingPage
  * Content composable for onboarding page 2 - Getting Started.
  *
  * Displays:
- * - Illustration placeholder with gift icon
- * - Bold headline "Get started for free" using displayLarge typography
- * - Subtext explaining the free credit and purchase model
+ * - Illustration placeholder with gift icon representing free credits
+ * - Bold headline "3 free scans on us" using displayLarge typography
+ * - Subtext "Start building your game library today"
  *
- * Uses brutalist styling with accent colors and bold fonts.
+ * Uses brutalist styling with secondary container colors for the gift theme.
  *
  * @param modifier Optional modifier for the content.
  */
@@ -49,12 +49,12 @@ fun OnboardingPage2Content(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Illustration placeholder
+        // Gift/Credits illustration - uses secondaryContainer for gift theme
         Box(
             modifier = Modifier
                 .size(200.dp)
                 .background(
-                    color = MaterialTheme.colorScheme.primaryContainer,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
                     shape = RoundedCornerShape(16.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -63,7 +63,7 @@ fun OnboardingPage2Content(
                 imageVector = Icons.Outlined.CardGiftcard,
                 contentDescription = null,
                 modifier = Modifier.size(80.dp),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
 
