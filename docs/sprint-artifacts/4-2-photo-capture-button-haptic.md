@@ -42,11 +42,11 @@ so that I can submit my game box image for analysis.
   - [x] Create `capturePhoto()` function in ViewModel
   - [x] Handle image capture callback
 
-- [ ] Task 2: Create CaptureButton Composable (AC: #4, #5)
-  - [ ] Create `CaptureButton.kt` in `feature/camera/components/`
-  - [ ] Apply brutalist styling: large circle (72dp), thick border (4dp)
-  - [ ] Use design system colors: background, border from theme
-  - [ ] Ensure minimum touch target of 48dp (actual 72dp for prominence)
+- [x] Task 2: Create CaptureButton Composable (AC: #4, #5)
+  - [x] Create `CaptureButton.kt` in `feature/camera/components/`
+  - [x] Apply brutalist styling: large circle (72dp), thick border (4dp)
+  - [x] Use design system colors: background, border from theme
+  - [x] Ensure minimum touch target of 48dp (actual 72dp for prominence)
 
 - [ ] Task 3: Implement Haptic Feedback (AC: #2)
   - [ ] Get Vibrator service from context
@@ -220,13 +220,16 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### Completion Notes List
 
 - Task 1: Added ImageCapture use case to CameraX. Updated CameraUiState with isCapturing and capturedImageUri fields. Added capture state management methods to CameraViewModel (onCaptureStarted, onCaptureSuccess, onCaptureError, clearCapturedImage). Updated CameraPreview to bind ImageCapture with Preview and expose capture functionality via callback.
+- Task 2: Created CaptureButton composable with brutalist styling (72dp circle, 4dp border, inner 56dp circle). Uses white colors for visibility on camera preview. Includes enabled/disabled state with alpha dimming.
 
 ### File List
 
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CaptureButton.kt (new)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
+- feature/camera/src/androidTest/kotlin/com/rulebook/feature/camera/CaptureButtonTest.kt (new)
 
 ## Epic Dependencies
 
