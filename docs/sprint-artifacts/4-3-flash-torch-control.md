@@ -1,6 +1,6 @@
 # Story 4.3: Flash/Torch Control
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -32,43 +32,43 @@ so that I can photograph game boxes in low-light conditions.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add Flash Mode State to CameraUiState (AC: #1, #2)
-  - [ ] Create `FlashMode` enum: OFF, ON, AUTO
-  - [ ] Add `flashMode: FlashMode` to CameraUiState
-  - [ ] Add `hasFlashUnit: Boolean` to CameraUiState
-  - [ ] Create `cycleFlashMode()` action in ViewModel
+- [x] Task 1: Add Flash Mode State to CameraUiState (AC: #1, #2)
+  - [x] Create `FlashMode` enum: OFF, ON, AUTO
+  - [x] Add `flashMode: FlashMode` to CameraUiState
+  - [x] Add `hasFlashUnit: Boolean` to CameraUiState
+  - [x] Create `cycleFlashMode()` action in ViewModel
 
-- [ ] Task 2: Check Flash Unit Availability (AC: #5)
-  - [ ] Query `CameraInfo.hasFlashUnit()` after camera binding
-  - [ ] Update `hasFlashUnit` in state
-  - [ ] Conditionally show/hide flash toggle based on state
+- [x] Task 2: Check Flash Unit Availability (AC: #5)
+  - [x] Query `CameraInfo.hasFlashUnit()` after camera binding
+  - [x] Update `hasFlashUnit` in state
+  - [x] Conditionally show/hide flash toggle based on state
 
-- [ ] Task 3: Create FlashToggle Composable (AC: #2, #4)
-  - [ ] Create `FlashToggle.kt` in `feature/camera/components/`
-  - [ ] Design three-state toggle icon (off/on/auto)
-  - [ ] Position in top-left or top-right of camera overlay
-  - [ ] Apply brutalist styling with clear tap target
+- [x] Task 3: Create FlashToggle Composable (AC: #2, #4)
+  - [x] Create `FlashToggle.kt` in `feature/camera/components/`
+  - [x] Design three-state toggle icon (off/on/auto)
+  - [x] Position in top-left or top-right of camera overlay
+  - [x] Apply brutalist styling with clear tap target
 
-- [ ] Task 4: Implement Flash Mode Icons (AC: #2)
-  - [ ] Use Material icons: `FlashOff`, `FlashOn`, `FlashAuto`
-  - [ ] Show current state clearly with icon and optional label
-  - [ ] Add subtle animation on mode change
+- [x] Task 4: Implement Flash Mode Icons (AC: #2)
+  - [x] Use Material icons: `FlashOff`, `FlashOn`, `FlashAuto`
+  - [x] Show current state clearly with icon and optional label
+  - [x] Add subtle animation on mode change
 
-- [ ] Task 5: Configure ImageCapture Flash Mode (AC: #1)
-  - [ ] Map `FlashMode` enum to `ImageCapture.FLASH_MODE_*`
-  - [ ] Apply flash mode to ImageCapture use case
-  - [ ] Update flash mode when state changes
+- [x] Task 5: Configure ImageCapture Flash Mode (AC: #1)
+  - [x] Map `FlashMode` enum to `ImageCapture.FLASH_MODE_*`
+  - [x] Apply flash mode to ImageCapture use case
+  - [x] Update flash mode when state changes
 
-- [ ] Task 6: Implement Torch Mode (AC: #3)
-  - [ ] Get `Camera` instance from `cameraProvider.bindToLifecycle()`
-  - [ ] Use `camera.cameraControl.enableTorch(true/false)`
-  - [ ] Enable torch when flash mode is ON
-  - [ ] Disable torch when flash mode is OFF or AUTO
+- [x] Task 6: Implement Torch Mode (AC: #3)
+  - [x] Get `Camera` instance from `cameraProvider.bindToLifecycle()`
+  - [x] Use `camera.cameraControl.enableTorch(true/false)`
+  - [x] Enable torch when flash mode is ON
+  - [x] Disable torch when flash mode is OFF or AUTO
 
-- [ ] Task 7: Handle Flash Mode Persistence (AC: #1)
-  - [ ] Optionally persist last flash mode to DataStore
-  - [ ] Restore flash mode on camera screen open
-  - [ ] Default to OFF if no preference saved
+- [x] Task 7: Handle Flash Mode Persistence (AC: #1) [OPTIONAL - Skipped]
+  - [x] Default to OFF if no preference saved (implemented - default behavior)
+  - [ ] ~~Optionally persist last flash mode to DataStore~~ (deferred - optional feature)
+  - [ ] ~~Restore flash mode on camera screen open~~ (deferred - optional feature)
 
 ## Dev Notes
 
@@ -208,7 +208,23 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
+- Task 1: Created FlashMode enum with OFF/ON/AUTO states and cycling logic. Added flashMode and hasFlashUnit to CameraUiState. Added cycleFlashMode() and onFlashUnitAvailable() methods to CameraViewModel. All unit tests pass.
+- Task 2: Added flash unit detection via CameraInfo.hasFlashUnit() after camera binding. Added onFlashUnitAvailable callback to CameraPreview and wired it through CameraScreen to CameraViewModel.
+- Task 3 & 4: Created FlashToggle composable with Material icons (FlashOff, FlashOn, FlashAuto), animated color transitions, brutalist styling (48dp tap target, semi-transparent background), and accessibility support. Integrated into CameraScreen positioned in top-left corner. Added UI tests for all flash modes.
+- Task 5 & 6: Added ImageCapture use case to CameraPreview with flash mode applied via toImageCaptureFlashMode(). Implemented torch control via camera.cameraControl.enableTorch() - torch activates when flash mode is ON (continuous light), disabled for OFF/AUTO modes. Added LaunchedEffect to update torch and flash mode dynamically when user toggles. Proper cleanup on dispose.
+- Task 7: Flash mode defaults to OFF on each camera screen open. Persistence was marked as optional in the story and is deferred. All 5 acceptance criteria are satisfied without persistence.
+
 ### File List
+
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/FlashMode.kt (new)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/FlashToggle.kt (new)
+- feature/camera/src/test/kotlin/com/rulebook/feature/camera/FlashModeTest.kt (new)
+- feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
+- feature/camera/src/androidTest/kotlin/com/rulebook/feature/camera/components/FlashToggleTest.kt (new)
 
 ## Epic Dependencies
 

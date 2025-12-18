@@ -37,6 +37,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import com.rulebook.feature.camera.components.CameraPreview
 import com.rulebook.feature.camera.components.CaptureButton
+import com.rulebook.feature.camera.components.FlashToggle
 import com.rulebook.feature.camera.util.rememberCaptureHapticFeedback
 import org.koin.androidx.compose.koinViewModel
 
@@ -47,6 +48,7 @@ import org.koin.androidx.compose.koinViewModel
  * - Camera permission handling with rationale
  * - Full-screen camera preview using CameraX
  * - Photo capture with haptic feedback
+ * - Flash/torch control toggle
  * - Immersive mode with hidden system bars (status bar and navigation bar)
  * - Loading state while camera initializes
  * - Error state display for camera failures
@@ -103,8 +105,10 @@ fun CameraScreen(
             cameraPermissionState.status.isGranted -> {
                 CameraPreview(
                     modifier = Modifier.fillMaxSize(),
+                    flashMode = uiState.flashMode,
                     onPreviewReady = { viewModel.onCameraReady() },
                     onError = { viewModel.onCameraError(it) },
+                    onFlashUnitAvailable = { viewModel.onFlashUnitAvailable(it) },
                     onImageCaptureReady = { captureFunction ->
                         capturePhotoState.value = captureFunction
                     },
@@ -133,7 +137,18 @@ fun CameraScreen(
                     )
                 }
 
-                // Show capture button when camera is ready
+                // Flash toggle - only show if device has flash unit (Story 4.3)
+                if (uiState.hasFlashUnit) {
+                    FlashToggle(
+                        flashMode = uiState.flashMode,
+                        onToggle = { viewModel.cycleFlashMode() },
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(16.dp)
+                    )
+                }
+
+                // Show capture button when camera is ready (Story 4.2)
                 if (uiState.isCameraReady) {
                     Box(
                         modifier = Modifier

@@ -106,6 +106,70 @@ class CameraViewModelTest {
     }
 
     // =========================================================================
+    // Flash Mode Tests (Story 4.3)
+    // =========================================================================
+
+    @Test
+    fun `initial state has flash mode OFF`() = runTest {
+        val state = viewModel.uiState.first()
+
+        assertEquals(FlashMode.OFF, state.flashMode)
+    }
+
+    @Test
+    fun `initial state has hasFlashUnit false`() = runTest {
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.hasFlashUnit)
+    }
+
+    @Test
+    fun `cycleFlashMode cycles from OFF to ON`() = runTest {
+        viewModel.cycleFlashMode()
+        val state = viewModel.uiState.first()
+
+        assertEquals(FlashMode.ON, state.flashMode)
+    }
+
+    @Test
+    fun `cycleFlashMode cycles from ON to AUTO`() = runTest {
+        viewModel.cycleFlashMode() // OFF -> ON
+        viewModel.cycleFlashMode() // ON -> AUTO
+        val state = viewModel.uiState.first()
+
+        assertEquals(FlashMode.AUTO, state.flashMode)
+    }
+
+    @Test
+    fun `cycleFlashMode cycles from AUTO to OFF`() = runTest {
+        viewModel.cycleFlashMode() // OFF -> ON
+        viewModel.cycleFlashMode() // ON -> AUTO
+        viewModel.cycleFlashMode() // AUTO -> OFF
+        val state = viewModel.uiState.first()
+
+        assertEquals(FlashMode.OFF, state.flashMode)
+    }
+
+    @Test
+    fun `onFlashUnitAvailable sets hasFlashUnit to true`() = runTest {
+        viewModel.onFlashUnitAvailable(true)
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.hasFlashUnit)
+    }
+
+    @Test
+    fun `onFlashUnitAvailable sets hasFlashUnit to false`() = runTest {
+        // First set to true
+        viewModel.onFlashUnitAvailable(true)
+        // Then set to false
+        viewModel.onFlashUnitAvailable(false)
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.hasFlashUnit)
+    }
+
+    // =========================================================================
     // Photo Capture Tests (Story 4.2)
     // =========================================================================
 

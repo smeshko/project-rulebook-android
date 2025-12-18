@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.update
  * The ViewModel handles:
  * - Camera initialization state tracking
  * - Error state management
+ * - Flash mode control
+ * - Photo capture state management
  *
  * Camera operations (binding, unbinding) are handled by the CameraPreview composable
  * using CameraX's lifecycle integration, but state changes are reported back to this
@@ -51,6 +53,31 @@ class CameraViewModel : ViewModel() {
     fun clearError() {
         _uiState.update { it.copy(error = null) }
     }
+
+    // =========================================================================
+    // Flash Mode Control (Story 4.3)
+    // =========================================================================
+
+    /**
+     * Cycles the flash mode to the next state.
+     * Cycle order: OFF → ON → AUTO → OFF
+     */
+    fun cycleFlashMode() {
+        _uiState.update { it.copy(flashMode = it.flashMode.next()) }
+    }
+
+    /**
+     * Updates whether the device has a flash unit available.
+     *
+     * @param hasFlash True if the device has a flash unit.
+     */
+    fun onFlashUnitAvailable(hasFlash: Boolean) {
+        _uiState.update { it.copy(hasFlashUnit = hasFlash) }
+    }
+
+    // =========================================================================
+    // Photo Capture (Story 4.2)
+    // =========================================================================
 
     /**
      * Called when photo capture starts.
