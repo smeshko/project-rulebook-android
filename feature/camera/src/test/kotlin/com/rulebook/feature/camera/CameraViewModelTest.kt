@@ -342,4 +342,34 @@ class CameraViewModelTest {
         assertEquals(100f, state.focusPoint?.x)
         assertEquals(200f, state.focusPoint?.y)
     }
+
+    // =========================================================================
+    // Gallery Picker Tests (Story 4.6)
+    // =========================================================================
+
+    @Test
+    fun `initial state has no last gallery thumbnail`() = runTest {
+        val state = viewModel.uiState.first()
+
+        assertNull(state.lastGalleryThumbnailUri)
+    }
+
+    @Test
+    fun `setLastGalleryThumbnail updates the thumbnail URI`() = runTest {
+        val thumbnailUri = "content://media/external/images/5678"
+        viewModel.setLastGalleryThumbnail(thumbnailUri)
+        val state = viewModel.uiState.first()
+
+        assertEquals(thumbnailUri, state.lastGalleryThumbnailUri)
+    }
+
+    @Test
+    fun `setLastGalleryThumbnail with null clears the thumbnail`() = runTest {
+        val thumbnailUri = "content://media/external/images/5678"
+        viewModel.setLastGalleryThumbnail(thumbnailUri)
+        viewModel.setLastGalleryThumbnail(null)
+        val state = viewModel.uiState.first()
+
+        assertNull(state.lastGalleryThumbnailUri)
+    }
 }

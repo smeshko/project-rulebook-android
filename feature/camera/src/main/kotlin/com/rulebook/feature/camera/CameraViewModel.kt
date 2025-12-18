@@ -198,4 +198,18 @@ class CameraViewModel : ViewModel() {
             it.copy(showFocusIndicator = false)
         }
     }
+
+    // =========================================================================
+    // Gallery Picker (Story 4.6)
+    // =========================================================================
+
+    /**
+     * Sets the URI of the last photo in the device gallery.
+     * Used to display a thumbnail preview on the gallery button.
+     *
+     * @param uri The URI of the last gallery photo, or null if unavailable.
+     */
+    fun setLastGalleryThumbnail(uri: String?) {
+        _uiState.update { it.copy(lastGalleryThumbnailUri = uri) }
+    }
 }

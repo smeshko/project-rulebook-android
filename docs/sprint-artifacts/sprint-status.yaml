@@ -232,9 +232,14 @@ development_status:
     status: done
     story_file: docs/sprint-artifacts/4-4-pinch-to-zoom-gesture.md
 
+  # Story 4.6: Gallery Picker Alternative
+  4-6-gallery-picker-alternative:
+    status: done
+    story_file: docs/sprint-artifacts/4-6-gallery-picker-alternative.md
+
 summary:
-  total_stories: 31
-  done: 31
+  total_stories: 32
+  done: 32
   ready_for_dev: 0
   in_progress: 0
   in_review: 0

@@ -37,6 +37,8 @@ data class FocusPoint(
  * @param showZoomIndicator Whether to display the zoom level indicator overlay.
  * @param focusPoint The current tap-to-focus point, or null if no manual focus is set.
  * @param showFocusIndicator Whether to display the focus indicator at [focusPoint].
+ * @param lastGalleryThumbnailUri The URI of the most recent photo in the device gallery.
+ *                                 Displayed as a thumbnail preview on the gallery button (Story 4.6).
  */
 data class CameraUiState(
     val isCameraReady: Boolean = false,
@@ -50,5 +52,6 @@ data class CameraUiState(
     val maxZoomRatio: Float = 1f,
     val showZoomIndicator: Boolean = false,
     val focusPoint: FocusPoint? = null,
-    val showFocusIndicator: Boolean = false
+    val showFocusIndicator: Boolean = false,
+    val lastGalleryThumbnailUri: String? = null
 )
