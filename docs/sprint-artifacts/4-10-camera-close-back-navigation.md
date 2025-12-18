@@ -32,11 +32,11 @@ so that I can exit if I change my mind.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create Close Button (AC: #1, #5)
-  - [ ] Create `CloseButton.kt` or use IconButton with close icon
-  - [ ] Position in top-left or top-right corner
-  - [ ] Apply semi-transparent background for visibility
-  - [ ] Wire to navigation callback
+- [x] Task 1: Create Close Button (AC: #1, #5)
+  - [x] Create `CloseButton.kt` or use IconButton with close icon
+  - [x] Position in top-left or top-right corner
+  - [x] Apply semi-transparent background for visibility
+  - [x] Wire to navigation callback
 
 - [ ] Task 2: Implement Camera Cleanup (AC: #1, #3)
   - [ ] Release CameraProvider with `unbindAll()`
@@ -262,7 +262,15 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
+- Task 1: Created CloseButton.kt with 48dp touch target, semi-transparent background, white X icon. Integrated into CameraScreen top controls row (left position). Added onNavigateBack callback to CameraScreen and CameraNavigation. Wired up in RulebookNavHost to popBackStack(). Added CloseButtonTest.kt with display and click tests.
+
 ### File List
+
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CloseButton.kt (new)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/navigation/CameraNavigation.kt (modified)
+- app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (modified)
+- feature/camera/src/androidTest/kotlin/com/rulebook/feature/camera/components/CloseButtonTest.kt (new)
 
 ## Epic Dependencies
 
