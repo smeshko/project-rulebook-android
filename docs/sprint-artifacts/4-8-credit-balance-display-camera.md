@@ -1,6 +1,6 @@
 # Story 4.8: Credit Balance Display on Camera
 
-Status: ready-for-dev
+Status: Ready for Review
 
 ## Story
 
