@@ -32,10 +32,10 @@ so that the app doesn't request unnecessary permissions at install.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add Permission State to CameraUiState (AC: #1, #2, #3, #4)
-  - [ ] Add `permissionState: PermissionState` enum to CameraUiState
-  - [ ] States: GRANTED, DENIED, SHOULD_SHOW_RATIONALE, PERMANENTLY_DENIED
-  - [ ] Create action to check current permission state
+- [x] Task 1: Add Permission State to CameraUiState (AC: #1, #2, #3, #4)
+  - [x] Add `permissionState: PermissionState` enum to CameraUiState
+  - [x] States: GRANTED, DENIED, SHOULD_SHOW_RATIONALE, PERMANENTLY_DENIED
+  - [x] Create action to check current permission state
 
 - [ ] Task 2: Check Permission on Camera Screen Launch (AC: #1, #5)
   - [ ] Check permission state in ViewModel init or LaunchedEffect
@@ -310,7 +310,13 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
+- Task 1: Added CameraPermissionState enum with NOT_DETERMINED, GRANTED, DENIED, PERMANENTLY_DENIED states. Added permissionState field to CameraUiState. Added onPermissionGranted(), onPermissionDenied(), and onPermissionPermanentlyDenied() methods to CameraViewModel. All 5 new unit tests pass.
+
 ### File List
+
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
+- feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 
 ## Epic Dependencies
 

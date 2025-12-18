@@ -1,6 +1,22 @@
 package com.rulebook.feature.camera
 
 /**
+ * Represents the state of camera permission.
+ *
+ * Used to track permission status and determine which UI to display.
+ */
+enum class CameraPermissionState {
+    /** Permission hasn't been checked yet */
+    NOT_DETERMINED,
+    /** Permission has been granted */
+    GRANTED,
+    /** Permission was denied but can ask again */
+    DENIED,
+    /** Permission was permanently denied ("Don't ask again" selected) */
+    PERMANENTLY_DENIED
+}
+
+/**
  * Represents a point in 2D screen coordinates.
  *
  * Used to track tap locations for tap-to-focus functionality.
@@ -40,6 +56,7 @@ data class FocusPoint(
  * @param lastGalleryThumbnailUri The URI of the most recent photo in the device gallery.
  *                                 Displayed as a thumbnail preview on the gallery button (Story 4.6).
  * @param creditBalance The user's current credit balance for scans. Default is 0.
+ * @param permissionState Current state of camera permission. Default is [CameraPermissionState.NOT_DETERMINED].
  */
 data class CameraUiState(
     val isCameraReady: Boolean = false,
@@ -55,5 +72,6 @@ data class CameraUiState(
     val focusPoint: FocusPoint? = null,
     val showFocusIndicator: Boolean = false,
     val lastGalleryThumbnailUri: String? = null,
-    val creditBalance: Int = 0
+    val creditBalance: Int = 0,
+    val permissionState: CameraPermissionState = CameraPermissionState.NOT_DETERMINED
 )

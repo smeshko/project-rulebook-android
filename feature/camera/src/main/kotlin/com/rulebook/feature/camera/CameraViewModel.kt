@@ -233,4 +233,31 @@ class CameraViewModel(
     fun setLastGalleryThumbnail(uri: String?) {
         _uiState.update { it.copy(lastGalleryThumbnailUri = uri) }
     }
+
+    // =========================================================================
+    // Permission Handling (Story 4.9)
+    // =========================================================================
+
+    /**
+     * Called when camera permission has been granted.
+     */
+    fun onPermissionGranted() {
+        _uiState.update { it.copy(permissionState = CameraPermissionState.GRANTED) }
+    }
+
+    /**
+     * Called when camera permission was denied.
+     * This indicates the user denied but can still be asked again.
+     */
+    fun onPermissionDenied() {
+        _uiState.update { it.copy(permissionState = CameraPermissionState.DENIED) }
+    }
+
+    /**
+     * Called when camera permission was permanently denied.
+     * This indicates the user selected "Don't ask again" and must go to settings to grant.
+     */
+    fun onPermissionPermanentlyDenied() {
+        _uiState.update { it.copy(permissionState = CameraPermissionState.PERMANENTLY_DENIED) }
+    }
 }
