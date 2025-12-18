@@ -19,6 +19,9 @@ dependencies {
     // Permissions
     implementation(libs.accompanist.permissions)
 
+    // Image Loading (for gallery thumbnail)
+    implementation(libs.coil.compose)
+
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

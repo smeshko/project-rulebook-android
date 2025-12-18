@@ -94,7 +94,17 @@ fun RulebookNavHost(
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
             popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
-            CameraScreen()
+            CameraScreen(
+                onPhotoCaptured = { imageUri ->
+                    // TODO: Navigate to processing screen with captured image
+                    // Will be implemented in Story 4.7 (image processing)
+                },
+                onGalleryImageSelected = { imageUri ->
+                    // Same processing path as captured photos (Story 4.6 AC #2)
+                    // TODO: Navigate to processing screen with selected image
+                    // Will be implemented in Story 4.7 (image processing)
+                }
+            )
         }
 
         // Onboarding - first-time user experience

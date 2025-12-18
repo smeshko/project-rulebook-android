@@ -3,18 +3,28 @@ package com.rulebook.feature.camera
 import android.Manifest
 import android.app.Activity
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraControl
+import androidx.camera.core.FocusMeteringAction
+import androidx.camera.core.MeteringPointFactory
 import androidx.concurrent.futures.await
+import java.util.concurrent.TimeUnit
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -43,10 +54,14 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import android.net.Uri
 import com.rulebook.feature.camera.components.CameraPreview
 import com.rulebook.feature.camera.components.CaptureButton
 import com.rulebook.feature.camera.components.FlashToggle
+import com.rulebook.feature.camera.components.FocusIndicator
+import com.rulebook.feature.camera.components.GalleryButton
 import com.rulebook.feature.camera.components.ZoomIndicator
+import com.rulebook.feature.camera.util.getLastPhotoThumbnailUri
 import com.rulebook.feature.camera.util.rememberCaptureHapticFeedback
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -69,13 +84,16 @@ import org.koin.androidx.compose.koinViewModel
  * @param modifier Optional modifier for the screen container.
  * @param viewModel The ViewModel managing camera state.
  * @param onPhotoCaptured Callback invoked when a photo is captured successfully with the image URI.
+ * @param onGalleryImageSelected Callback invoked when a gallery image is selected with the image URI.
+ *                                Uses the same processing flow as captured photos.
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CameraScreen(
     modifier: Modifier = Modifier,
     viewModel: CameraViewModel = koinViewModel(),
-    onPhotoCaptured: (String) -> Unit = {}
+    onPhotoCaptured: (String) -> Unit = {},
+    onGalleryImageSelected: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
@@ -84,8 +102,26 @@ fun CameraScreen(
     // Store the capture function when CameraPreview provides it
     val capturePhotoState = remember { mutableStateOf<(() -> Unit)?>(null) }
 
+    // Photo picker for gallery selection (Story 4.6)
+    val pickMedia = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        // uri is null when user cancels - no action needed (AC #3)
+        uri?.let { selectedUri ->
+            // Pass directly to parent via callback - same processing path as captured photos
+            onGalleryImageSelected(selectedUri.toString())
+        }
+    }
+
     // Handle immersive mode - hide system bars
     ImmersiveMode()
+
+    // Load last gallery thumbnail (Story 4.6)
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        val thumbnailUri = getLastPhotoThumbnailUri(context)
+        viewModel.setLastGalleryThumbnail(thumbnailUri?.toString())
+    }
 
     // Request permission on first composition if not granted
     LaunchedEffect(Unit) {
@@ -113,8 +149,9 @@ fun CameraScreen(
         when {
             // Permission granted - show camera preview
             cameraPermissionState.status.isGranted -> {
-                // Track CameraControl for applying zoom
+                // Track CameraControl for applying zoom and focus
                 var cameraControl by remember { mutableStateOf<CameraControl?>(null) }
+                var meteringPointFactory by remember { mutableStateOf<MeteringPointFactory?>(null) }
                 val coroutineScope = rememberCoroutineScope()
 
                 // Capture latest zoom state for use in gesture handler without restarting it
@@ -122,11 +159,45 @@ fun CameraScreen(
                 val currentMinZoom by rememberUpdatedState(uiState.minZoomRatio)
                 val currentMaxZoom by rememberUpdatedState(uiState.maxZoomRatio)
 
-                // Camera preview with zoom gesture detection
-                // Key on Unit to keep gesture handler stable throughout pinch gestures
+                // Camera preview with tap-to-focus and pinch-to-zoom gesture detection
+                // Key on Unit to keep gesture handlers stable throughout gestures
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        // Tap gesture for focus (processed first, before transform)
+                        .pointerInput(Unit) {
+                            detectTapGestures { offset ->
+                                // Execute focus metering on camera
+                                // Only show focus indicator and trigger focus if camera is ready
+                                val factory = meteringPointFactory
+                                val control = cameraControl
+                                if (factory != null && control != null) {
+                                    // Store raw pixel coordinates for UI positioning
+                                    viewModel.onTapToFocus(offset.x, offset.y)
+                                    // Create metering point at tap location
+                                    val meteringPoint = factory.createPoint(offset.x, offset.y)
+                                    val focusAction = FocusMeteringAction.Builder(
+                                        meteringPoint,
+                                        FocusMeteringAction.FLAG_AF
+                                    )
+                                        .setAutoCancelDuration(5, TimeUnit.SECONDS)
+                                        .build()
+
+                                    coroutineScope.launch {
+                                        try {
+                                            control.startFocusAndMetering(focusAction).await()
+                                            Log.d("CameraScreen", "Focus started at (${offset.x}, ${offset.y})")
+                                        } catch (e: Exception) {
+                                            Log.w("CameraScreen", "Failed to focus: ${e.message}")
+                                        }
+                                    }
+                                } else {
+                                    // Camera not ready - ignore tap (no false focus feedback)
+                                    Log.d("CameraScreen", "Tap ignored - camera not ready")
+                                }
+                            }
+                        }
+                        // Transform gesture for zoom (pinch)
                         .pointerInput(Unit) {
                             detectTransformGestures { _, _, zoom, _ ->
                                 // Calculate new zoom based on gesture scale factor
@@ -171,6 +242,9 @@ fun CameraScreen(
                         },
                         onCameraControlAvailable = { control ->
                             cameraControl = control
+                        },
+                        onMeteringPointFactoryAvailable = { factory ->
+                            meteringPointFactory = factory
                         }
                     )
                 }
@@ -187,11 +261,26 @@ fun CameraScreen(
                     }
                 }
 
+                // Auto-hide focus indicator after delay (~1 second)
+                // Key on focusPoint to restart timer on each tap
+                LaunchedEffect(uiState.focusPoint, uiState.showFocusIndicator) {
+                    if (uiState.showFocusIndicator) {
+                        kotlinx.coroutines.delay(1000L)
+                        viewModel.hideFocusIndicator()
+                    }
+                }
+
                 // Zoom indicator overlay - centered on screen
                 ZoomIndicator(
                     zoomRatio = uiState.zoomRatio,
                     visible = uiState.showZoomIndicator,
                     modifier = Modifier.align(Alignment.Center)
+                )
+
+                // Focus indicator overlay - positioned at tap location
+                FocusIndicator(
+                    focusPoint = uiState.focusPoint,
+                    visible = uiState.showFocusIndicator
                 )
 
                 // Show loading indicator while camera initializes
@@ -222,7 +311,7 @@ fun CameraScreen(
                     )
                 }
 
-                // Show capture button when camera is ready (Story 4.2)
+                // Show camera controls when camera is ready (Story 4.2)
                 if (uiState.isCameraReady) {
                     Box(
                         modifier = Modifier
@@ -231,16 +320,38 @@ fun CameraScreen(
                             .padding(bottom = 48.dp),
                         contentAlignment = Alignment.BottomCenter
                     ) {
-                        CaptureButton(
-                            onClick = {
-                                capturePhotoState.value?.let { capturePhoto ->
-                                    viewModel.onCaptureStarted()
-                                    capturePhoto()
-                                }
-                            },
-                            enabled = uiState.isCameraReady && capturePhotoState.value != null,
-                            isCapturing = uiState.isCapturing
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Gallery button (Story 4.6) - positioned to the left of capture button
+                            GalleryButton(
+                                onClick = {
+                                    pickMedia.launch(
+                                        PickVisualMediaRequest(
+                                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                                        )
+                                    )
+                                },
+                                thumbnailUri = uiState.lastGalleryThumbnailUri?.let { Uri.parse(it) }
+                            )
+
+                            // Capture button (Story 4.2)
+                            CaptureButton(
+                                onClick = {
+                                    capturePhotoState.value?.let { capturePhoto ->
+                                        viewModel.onCaptureStarted()
+                                        capturePhoto()
+                                    }
+                                },
+                                enabled = uiState.isCameraReady && capturePhotoState.value != null,
+                                isCapturing = uiState.isCapturing
+                            )
+
+                            // Spacer for symmetry (balances the gallery button on the left)
+                            Spacer(modifier = Modifier.size(56.dp))
+                        }
                     }
                 }
             }
@@ -248,13 +359,30 @@ fun CameraScreen(
             // Permission denied but can show rationale
             cameraPermissionState.status.shouldShowRationale -> {
                 PermissionRationale(
-                    onRequestPermission = { cameraPermissionState.launchPermissionRequest() }
+                    onRequestPermission = { cameraPermissionState.launchPermissionRequest() },
+                    onGalleryClick = {
+                        pickMedia.launch(
+                            PickVisualMediaRequest(
+                                ActivityResultContracts.PickVisualMedia.ImageOnly
+                            )
+                        )
+                    },
+                    galleryThumbnailUri = uiState.lastGalleryThumbnailUri?.let { Uri.parse(it) }
                 )
             }
 
             // Permission denied permanently or waiting for initial request
             else -> {
-                PermissionDenied()
+                PermissionDenied(
+                    onGalleryClick = {
+                        pickMedia.launch(
+                            PickVisualMediaRequest(
+                                ActivityResultContracts.PickVisualMedia.ImageOnly
+                            )
+                        )
+                    },
+                    galleryThumbnailUri = uiState.lastGalleryThumbnailUri?.let { Uri.parse(it) }
+                )
             }
         }
     }
@@ -265,37 +393,59 @@ fun CameraScreen(
  *
  * Displayed when the user has denied the permission once but hasn't selected
  * "Don't ask again". Explains why the permission is needed and offers a button
- * to request again.
+ * to request again. Also provides gallery access as an alternative (Story 4.6).
  *
  * @param onRequestPermission Callback to trigger permission request.
+ * @param onGalleryClick Callback to open the gallery picker.
+ * @param galleryThumbnailUri Optional URI for gallery button thumbnail.
  */
 @Composable
 internal fun PermissionRationale(
-    onRequestPermission: () -> Unit
+    onRequestPermission: () -> Unit,
+    onGalleryClick: () -> Unit,
+    galleryThumbnailUri: Uri?
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Text(
-            text = "Camera Permission Required",
-            color = Color.White,
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "The camera is needed to capture photos of your game boxes for rule extraction.",
-            color = Color.White.copy(alpha = 0.8f),
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(onClick = onRequestPermission) {
-            Text("Grant Permission")
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Camera Permission Required",
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "The camera is needed to capture photos of your game boxes for rule extraction.",
+                color = Color.White.copy(alpha = 0.8f),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(onClick = onRequestPermission) {
+                Text("Grant Permission")
+            }
+        }
+
+        // Gallery button as alternative - available even without camera permission (Story 4.6)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .padding(bottom = 48.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            GalleryButton(
+                onClick = onGalleryClick,
+                thumbnailUri = galleryThumbnailUri
+            )
         }
     }
 }
@@ -304,30 +454,62 @@ internal fun PermissionRationale(
  * Composable shown when camera permission is denied.
  *
  * Displayed when the permission has been permanently denied. Informs the user
- * they need to enable the permission in system settings.
+ * they need to enable the permission in system settings. Also provides gallery
+ * access as an alternative (Story 4.6).
+ *
+ * @param onGalleryClick Callback to open the gallery picker.
+ * @param galleryThumbnailUri Optional URI for gallery button thumbnail.
  */
 @Composable
-internal fun PermissionDenied() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+internal fun PermissionDenied(
+    onGalleryClick: () -> Unit,
+    galleryThumbnailUri: Uri?
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Text(
-            text = "Camera Permission Denied",
-            color = Color.White,
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Please enable camera permission in your device settings to use this feature.",
-            color = Color.White.copy(alpha = 0.8f),
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Camera Permission Denied",
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Please enable camera permission in your device settings to use this feature.",
+                color = Color.White.copy(alpha = 0.8f),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Or select an existing photo from your gallery:",
+                color = Color.White.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        // Gallery button as alternative - available even without camera permission (Story 4.6)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .padding(bottom = 48.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            GalleryButton(
+                onClick = onGalleryClick,
+                thumbnailUri = galleryThumbnailUri
+            )
+        }
     }
 }
 
