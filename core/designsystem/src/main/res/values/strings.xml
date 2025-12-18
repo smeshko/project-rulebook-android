@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Credits display plurals (Story 4.8) -->
+    <plurals name="credits_count">
+        <item quantity="one">%d credit</item>
+        <item quantity="other">%d credits</item>
+    </plurals>
+</resources>

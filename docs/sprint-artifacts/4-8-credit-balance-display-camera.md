@@ -38,28 +38,28 @@ so that I know if I can complete a scan.
   - [x] Add `creditBalance: Int` to CameraUiState
   - [x] Update state when credits change
 
-- [ ] Task 2: Create CreditsDisplay Composable (AC: #1, #2)
-  - [ ] Create `CreditsDisplay.kt` in `core/designsystem/components/`
-  - [ ] Display credit count with appropriate text
-  - [ ] Handle plural form ("1 credit" vs "3 credits")
-  - [ ] Apply semi-transparent background for readability
+- [x] Task 2: Create CreditsDisplay Composable (AC: #1, #2)
+  - [x] Create `CreditsDisplay.kt` in `core/designsystem/components/`
+  - [x] Display credit count with appropriate text
+  - [x] Handle plural form ("1 credit" vs "3 credits")
+  - [x] Apply semi-transparent background for readability
 
-- [ ] Task 3: Style Credit Display for Camera Overlay (AC: #2, #4)
-  - [ ] Position in top-right corner (opposite flash toggle)
-  - [ ] Use semi-transparent background (black/white at 50%)
-  - [ ] Apply rounded corners for pill shape
-  - [ ] Ensure readable over camera preview
+- [x] Task 3: Style Credit Display for Camera Overlay (AC: #2, #4)
+  - [x] Position in top-right corner (opposite flash toggle)
+  - [x] Use semi-transparent background (black/white at 50%)
+  - [x] Apply rounded corners for pill shape
+  - [x] Ensure readable over camera preview
 
-- [ ] Task 4: Implement Low Credit Warning State (AC: #4)
-  - [ ] Define low credit threshold (1 credit)
-  - [ ] Apply warning color (orange/amber) for low state
-  - [ ] Optionally add warning icon
-  - [ ] Maintain readability over preview
+- [x] Task 4: Implement Low Credit Warning State (AC: #4)
+  - [x] Define low credit threshold (1 credit)
+  - [x] Apply warning color (orange/amber) for low state
+  - [x] Optionally add warning icon
+  - [x] Maintain readability over preview
 
-- [ ] Task 5: Handle Zero Credits State (AC: #5)
-  - [ ] Show "0 credits" in error/disabled color
-  - [ ] Note: Full zero-credit handling in Epic 8 (paywall)
-  - [ ] Camera should still open but capture blocked (future)
+- [x] Task 5: Handle Zero Credits State (AC: #5)
+  - [x] Show "0 credits" in error/disabled color
+  - [x] Note: Full zero-credit handling in Epic 8 (paywall)
+  - [x] Camera should still open but capture blocked (future)
 
 - [ ] Task 6: Add CreditsDisplay to Camera Screen (AC: #1, #2)
   - [ ] Add CreditsDisplay to camera overlay
@@ -228,6 +228,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### Completion Notes List
 
 - Task 1: Injected CreditRepository into CameraViewModel, added creditBalance to CameraUiState, observing credits reactively via Flow. Tests added and passing.
+- Tasks 2-5: Created CreditsDisplay composable in core/designsystem with pill shape, semi-transparent backgrounds, plural string support, warning state (orange) for 1 credit, and error state (red) for 0 credits. Tests added and passing.
 
 ### File List
 
@@ -235,6 +236,9 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/di/CameraModule.kt (modified)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
+- core/designsystem/src/main/kotlin/com/rulebook/core/designsystem/component/CreditsDisplay.kt (new)
+- core/designsystem/src/main/res/values/strings.xml (new)
+- core/designsystem/src/test/kotlin/com/rulebook/core/designsystem/component/CreditsDisplayTest.kt (new)
 
 ## Epic Dependencies
 
