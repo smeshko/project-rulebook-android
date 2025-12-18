@@ -3,6 +3,7 @@ package com.rulebook.feature.camera.components
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.view.Surface
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -175,8 +176,11 @@ private fun bindCameraPreviewWithCapture(
         }
 
     // Create ImageCapture use case with minimize latency for quick captures
+    // Set target rotation from the display to ensure correct EXIF orientation
+    val displayRotation = previewView.display?.rotation ?: Surface.ROTATION_0
     val imageCapture = ImageCapture.Builder()
         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+        .setTargetRotation(displayRotation)
         .build()
 
     // Select rear camera

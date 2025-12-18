@@ -8,6 +8,8 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.feature.camera.components.CaptureButton
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -47,7 +49,7 @@ class CaptureButtonTest {
             .assertIsEnabled()
             .performClick()
 
-        assert(clicked) { "Button click callback was not invoked" }
+        assertTrue("Button click callback was not invoked", clicked)
     }
 
     @Test
@@ -68,7 +70,7 @@ class CaptureButtonTest {
             .assertIsNotEnabled()
             .performClick()
 
-        assert(!clicked) { "Button click callback should not be invoked when disabled" }
+        assertFalse("Button click callback should not be invoked when disabled", clicked)
     }
 
     @Test
@@ -107,6 +109,6 @@ class CaptureButtonTest {
             .onNodeWithContentDescription("Capturing photo")
             .performClick()
 
-        assert(!clicked) { "Button click callback should not be invoked when capturing" }
+        assertFalse("Button click callback should not be invoked when capturing", clicked)
     }
 }
