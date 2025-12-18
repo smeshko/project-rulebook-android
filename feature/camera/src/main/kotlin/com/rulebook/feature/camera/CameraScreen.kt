@@ -62,6 +62,7 @@ import com.rulebook.feature.camera.components.CaptureButton
 import com.rulebook.feature.camera.components.FlashToggle
 import com.rulebook.feature.camera.components.FocusIndicator
 import com.rulebook.feature.camera.components.GalleryButton
+import com.rulebook.feature.camera.components.PermissionRationale
 import com.rulebook.feature.camera.components.ZoomIndicator
 import com.rulebook.feature.camera.util.getLastPhotoThumbnailUri
 import com.rulebook.feature.camera.util.rememberCaptureHapticFeedback
@@ -387,6 +388,7 @@ fun CameraScreen(
             cameraPermissionState.status.shouldShowRationale -> {
                 PermissionRationale(
                     onRequestPermission = { cameraPermissionState.launchPermissionRequest() },
+                    onNavigateBack = { /* No-op for now - CameraScreen doesn't have back navigation */ },
                     onGalleryClick = {
                         pickMedia.launch(
                             PickVisualMediaRequest(
@@ -411,68 +413,6 @@ fun CameraScreen(
                     galleryThumbnailUri = uiState.lastGalleryThumbnailUri?.let { Uri.parse(it) }
                 )
             }
-        }
-    }
-}
-
-/**
- * Composable showing rationale for camera permission request.
- *
- * Displayed when the user has denied the permission once but hasn't selected
- * "Don't ask again". Explains why the permission is needed and offers a button
- * to request again. Also provides gallery access as an alternative (Story 4.6).
- *
- * @param onRequestPermission Callback to trigger permission request.
- * @param onGalleryClick Callback to open the gallery picker.
- * @param galleryThumbnailUri Optional URI for gallery button thumbnail.
- */
-@Composable
-internal fun PermissionRationale(
-    onRequestPermission: () -> Unit,
-    onGalleryClick: () -> Unit,
-    galleryThumbnailUri: Uri?
-) {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Camera Permission Required",
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "The camera is needed to capture photos of your game boxes for rule extraction.",
-                color = Color.White.copy(alpha = 0.8f),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(onClick = onRequestPermission) {
-                Text("Grant Permission")
-            }
-        }
-
-        // Gallery button as alternative - available even without camera permission (Story 4.6)
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-                .padding(bottom = 48.dp),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            GalleryButton(
-                onClick = onGalleryClick,
-                thumbnailUri = galleryThumbnailUri
-            )
         }
     }
 }

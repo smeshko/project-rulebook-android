@@ -42,11 +42,11 @@ so that the app doesn't request unnecessary permissions at install.
   - [x] Only request when user navigates to camera (not at app start)
   - [x] Handle different permission states appropriately
 
-- [ ] Task 3: Create PermissionRationale Composable (AC: #1)
-  - [ ] Create `PermissionRationale.kt` in `feature/camera/components/`
-  - [ ] Explain why camera is needed ("Scan game boxes")
-  - [ ] Include "Continue" button to request permission
-  - [ ] Apply brutalist styling
+- [x] Task 3: Create PermissionRationale Composable (AC: #1)
+  - [x] Create `PermissionRationale.kt` in `feature/camera/components/`
+  - [x] Explain why camera is needed ("Scan game boxes")
+  - [x] Include "Continue" button to request permission
+  - [x] Apply brutalist styling
 
 - [ ] Task 4: Implement Permission Request (AC: #2, #3)
   - [ ] Use `rememberPermissionState` from Accompanist OR manual approach
@@ -312,12 +312,14 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 - Task 1: Added CameraPermissionState enum with NOT_DETERMINED, GRANTED, DENIED, PERMANENTLY_DENIED states. Added permissionState field to CameraUiState. Added onPermissionGranted(), onPermissionDenied(), and onPermissionPermanentlyDenied() methods to CameraViewModel. All 5 new unit tests pass.
 - Task 2: Removed auto-request permission on screen launch. Added LaunchedEffect that checks permission state and syncs to ViewModel without requesting. Permission is now only requested when user explicitly clicks button (AC #5 satisfied).
+- Task 3: Created PermissionRationale.kt composable with brutalist styling using RulebookTheme colors, typography, and RulebookButton components. Features camera icon, title, explanation, and "Allow Camera Access" CTA with gallery button fallback. Removed inline version from CameraScreen.
 
 ### File List
 
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/PermissionRationale.kt (new)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 
 ## Epic Dependencies
