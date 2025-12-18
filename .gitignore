@@ -124,3 +124,5 @@ node_modules/
 .codex/history.jsonl
 .codex/version.json*
 .codex/config.tomltmp/
+
+.vscode
