@@ -14,6 +14,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.rulebook.feature.camera.FocusPoint
@@ -65,12 +66,14 @@ fun FocusIndicator(
     // Only render when visible (alpha > 0)
     if (alpha > 0f) {
         val indicatorSizeDp = 64.dp
-        val indicatorSizePx = indicatorSizeDp.value
+        val density = LocalDensity.current
+        val indicatorSizePx = with(density) { indicatorSizeDp.toPx() }
 
         Canvas(
             modifier = modifier
                 .offset {
                     // Center the indicator on the tap point
+                    // focusPoint coordinates are in pixels, so use pixel-converted indicator size
                     IntOffset(
                         x = (focusPoint.x - indicatorSizePx / 2).toInt(),
                         y = (focusPoint.y - indicatorSizePx / 2).toInt()

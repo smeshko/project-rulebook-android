@@ -186,16 +186,16 @@ class CameraViewModel : ViewModel() {
     }
 
     /**
-     * Hides the focus indicator and clears the focus point.
+     * Hides the focus indicator.
      *
-     * Called after the focus indicator animation completes.
+     * Called after the focus indicator display duration completes.
+     * Note: We only clear showFocusIndicator here, keeping focusPoint so the
+     * composable can still render during the fade-out animation. The focusPoint
+     * will be replaced on the next tap, or naturally cleaned up.
      */
     fun hideFocusIndicator() {
         _uiState.update {
-            it.copy(
-                focusPoint = null,
-                showFocusIndicator = false
-            )
+            it.copy(showFocusIndicator = false)
         }
     }
 }

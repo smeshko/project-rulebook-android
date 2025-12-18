@@ -332,13 +332,14 @@ class CameraViewModelTest {
     }
 
     @Test
-    fun `hideFocusIndicator hides indicator but keeps focus point`() = runTest {
+    fun `hideFocusIndicator hides indicator but keeps focus point for animation`() = runTest {
         viewModel.onTapToFocus(100f, 200f)
         viewModel.hideFocusIndicator()
         val state = viewModel.uiState.first()
 
         assertFalse(state.showFocusIndicator)
-        // Focus point is cleared when indicator hides
-        assertNull(state.focusPoint)
+        // Focus point is preserved so the composable can render fade-out animation
+        assertEquals(100f, state.focusPoint?.x)
+        assertEquals(200f, state.focusPoint?.y)
     }
 }
