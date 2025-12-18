@@ -54,11 +54,11 @@ so that I can exit if I change my mind.
   - [x] Let system handle predictive back animation (NavHost handles via Compose Navigation 2.8+)
   - [x] Camera preview should remain visible during gesture (AndroidView/PreviewView visible during swipe)
 
-- [ ] Task 5: Clean Up Resources on Dispose (AC: #3)
-  - [ ] Add `DisposableEffect` with camera cleanup
-  - [ ] Release ImageCapture callbacks
-  - [ ] Clear ViewModel state if needed
-  - [ ] Log cleanup for debugging
+- [x] Task 5: Clean Up Resources on Dispose (AC: #3)
+  - [x] Add `DisposableEffect` with camera cleanup (already in CameraPreview.kt)
+  - [x] Release ImageCapture callbacks (handled by unbindAll() in DisposableEffect)
+  - [x] Clear ViewModel state if needed (viewModelScope auto-cancelled)
+  - [x] Log cleanup for debugging (added onCleared() to CameraViewModel)
 
 - [ ] Task 6: Test Resource Cleanup (AC: #3)
   - [ ] Verify camera released on back navigation
@@ -266,11 +266,13 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Task 2: Verified existing camera cleanup implementation in CameraPreview.kt. DisposableEffect with onDispose already calls unbindAll() to release camera. isActiveState flag prevents binding after disposal. Torch disabled on dispose. No additional code needed.
 - Task 3: Added BackHandler to CameraScreen to ensure system back button uses the same onNavigateBack callback as the close button. This ensures consistent navigation behavior and proper camera cleanup on back navigation.
 - Task 4: Verified predictive back gesture support is already configured. enableOnBackInvokedCallback="true" in AndroidManifest.xml, NavHost with slide transitions handles preview animation, AndroidView/PreviewView remains visible during gesture.
+- Task 5: Added onCleared() to CameraViewModel for cleanup logging. DisposableEffect cleanup already handles camera unbinding (Task 2). viewModelScope is auto-cancelled by ViewModel when cleared.
 
 ### File List
 
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CloseButton.kt (new)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/navigation/CameraNavigation.kt (modified)
 - app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (modified)
 - feature/camera/src/androidTest/kotlin/com/rulebook/feature/camera/components/CloseButtonTest.kt (new)
