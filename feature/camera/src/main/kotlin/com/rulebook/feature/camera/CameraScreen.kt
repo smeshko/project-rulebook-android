@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,7 +36,9 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import com.rulebook.feature.camera.components.CameraPreview
+import com.rulebook.feature.camera.components.CaptureButton
 import com.rulebook.feature.camera.components.FlashToggle
+import com.rulebook.feature.camera.util.rememberCaptureHapticFeedback
 import org.koin.androidx.compose.koinViewModel
 
 /**
@@ -42,6 +47,8 @@ import org.koin.androidx.compose.koinViewModel
  * This screen provides:
  * - Camera permission handling with rationale
  * - Full-screen camera preview using CameraX
+ * - Photo capture with haptic feedback
+ * - Flash/torch control toggle
  * - Immersive mode with hidden system bars (status bar and navigation bar)
  * - Loading state while camera initializes
  * - Error state display for camera failures
@@ -51,15 +58,21 @@ import org.koin.androidx.compose.koinViewModel
  *
  * @param modifier Optional modifier for the screen container.
  * @param viewModel The ViewModel managing camera state.
+ * @param onPhotoCaptured Callback invoked when a photo is captured successfully with the image URI.
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CameraScreen(
     modifier: Modifier = Modifier,
-    viewModel: CameraViewModel = koinViewModel()
+    viewModel: CameraViewModel = koinViewModel(),
+    onPhotoCaptured: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+    val hapticFeedback = rememberCaptureHapticFeedback()
+
+    // Store the capture function when CameraPreview provides it
+    val capturePhotoState = remember { mutableStateOf<(() -> Unit)?>(null) }
 
     // Handle immersive mode - hide system bars
     ImmersiveMode()
@@ -68,6 +81,16 @@ fun CameraScreen(
     LaunchedEffect(Unit) {
         if (!cameraPermissionState.status.isGranted) {
             cameraPermissionState.launchPermissionRequest()
+        }
+    }
+
+    // Handle successful capture - trigger haptic feedback and notify parent
+    LaunchedEffect(uiState.capturedImageUri) {
+        uiState.capturedImageUri?.let { uri ->
+            // Haptic feedback confirms successful capture (AC #2)
+            hapticFeedback()
+            onPhotoCaptured(uri)
+            viewModel.clearCapturedImage()
         }
     }
 
@@ -85,7 +108,16 @@ fun CameraScreen(
                     flashMode = uiState.flashMode,
                     onPreviewReady = { viewModel.onCameraReady() },
                     onError = { viewModel.onCameraError(it) },
-                    onFlashUnitAvailable = { viewModel.onFlashUnitAvailable(it) }
+                    onFlashUnitAvailable = { viewModel.onFlashUnitAvailable(it) },
+                    onImageCaptureReady = { captureFunction ->
+                        capturePhotoState.value = captureFunction
+                    },
+                    onImageCaptured = { uri ->
+                        viewModel.onCaptureSuccess(uri.toString())
+                    },
+                    onCaptureError = { error ->
+                        viewModel.onCaptureError(error)
+                    }
                 )
 
                 // Show loading indicator while camera initializes
@@ -100,11 +132,12 @@ fun CameraScreen(
                     Text(
                         text = error,
                         color = Color.White,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(16.dp)
                     )
                 }
 
-                // Flash toggle - only show if device has flash unit
+                // Flash toggle - only show if device has flash unit (Story 4.3)
                 if (uiState.hasFlashUnit) {
                     FlashToggle(
                         flashMode = uiState.flashMode,
@@ -113,6 +146,28 @@ fun CameraScreen(
                             .align(Alignment.TopStart)
                             .padding(16.dp)
                     )
+                }
+
+                // Show capture button when camera is ready (Story 4.2)
+                if (uiState.isCameraReady) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .safeDrawingPadding()
+                            .padding(bottom = 48.dp),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        CaptureButton(
+                            onClick = {
+                                capturePhotoState.value?.let { capturePhoto ->
+                                    viewModel.onCaptureStarted()
+                                    capturePhoto()
+                                }
+                            },
+                            enabled = uiState.isCameraReady && capturePhotoState.value != null,
+                            isCapturing = uiState.isCapturing
+                        )
+                    }
                 }
             }
 

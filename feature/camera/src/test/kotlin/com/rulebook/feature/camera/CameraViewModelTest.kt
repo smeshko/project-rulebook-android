@@ -105,7 +105,9 @@ class CameraViewModelTest {
         assertNull(state.error)
     }
 
-    // Flash Mode Tests
+    // =========================================================================
+    // Flash Mode Tests (Story 4.3)
+    // =========================================================================
 
     @Test
     fun `initial state has flash mode OFF`() = runTest {
@@ -165,5 +167,68 @@ class CameraViewModelTest {
         val state = viewModel.uiState.first()
 
         assertFalse(state.hasFlashUnit)
+    }
+
+    // =========================================================================
+    // Photo Capture Tests (Story 4.2)
+    // =========================================================================
+
+    @Test
+    fun `initial state has isCapturing false and no captured image`() = runTest {
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.isCapturing)
+        assertNull(state.capturedImageUri)
+    }
+
+    @Test
+    fun `onCaptureStarted sets isCapturing to true`() = runTest {
+        viewModel.onCaptureStarted()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.isCapturing)
+    }
+
+    @Test
+    fun `onCaptureSuccess sets capturedImageUri and clears isCapturing`() = runTest {
+        val testUri = "file:///test/image.jpg"
+        viewModel.onCaptureStarted()
+        viewModel.onCaptureSuccess(testUri)
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.isCapturing)
+        assertEquals(testUri, state.capturedImageUri)
+        assertNull(state.error)
+    }
+
+    @Test
+    fun `onCaptureError sets error and clears isCapturing`() = runTest {
+        val errorMessage = "Failed to capture photo"
+        viewModel.onCaptureStarted()
+        viewModel.onCaptureError(errorMessage)
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.isCapturing)
+        assertEquals(errorMessage, state.error)
+        assertNull(state.capturedImageUri)
+    }
+
+    @Test
+    fun `clearCapturedImage resets captured image uri`() = runTest {
+        val testUri = "file:///test/image.jpg"
+        viewModel.onCaptureSuccess(testUri)
+        viewModel.clearCapturedImage()
+        val state = viewModel.uiState.first()
+
+        assertNull(state.capturedImageUri)
+    }
+
+    @Test
+    fun `capture button is disabled during capture`() = runTest {
+        viewModel.onCaptureStarted()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.isCapturing)
+        // isCapturing being true means button should be disabled
     }
 }

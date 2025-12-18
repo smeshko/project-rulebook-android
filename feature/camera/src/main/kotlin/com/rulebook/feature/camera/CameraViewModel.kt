@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.update
  * - Camera initialization state tracking
  * - Error state management
  * - Flash mode control
+ * - Photo capture state management
  *
  * Camera operations (binding, unbinding) are handled by the CameraPreview composable
  * using CameraX's lifecycle integration, but state changes are reported back to this
@@ -53,6 +54,10 @@ class CameraViewModel : ViewModel() {
         _uiState.update { it.copy(error = null) }
     }
 
+    // =========================================================================
+    // Flash Mode Control (Story 4.3)
+    // =========================================================================
+
     /**
      * Cycles the flash mode to the next state.
      * Cycle order: OFF → ON → AUTO → OFF
@@ -68,5 +73,54 @@ class CameraViewModel : ViewModel() {
      */
     fun onFlashUnitAvailable(hasFlash: Boolean) {
         _uiState.update { it.copy(hasFlashUnit = hasFlash) }
+    }
+
+    // =========================================================================
+    // Photo Capture (Story 4.2)
+    // =========================================================================
+
+    /**
+     * Called when photo capture starts.
+     * Sets isCapturing to true to disable the capture button and prevent double-tap.
+     */
+    fun onCaptureStarted() {
+        _uiState.update { it.copy(isCapturing = true) }
+    }
+
+    /**
+     * Called when photo capture completes successfully.
+     *
+     * @param imageUri The URI of the captured image file.
+     */
+    fun onCaptureSuccess(imageUri: String) {
+        _uiState.update {
+            it.copy(
+                isCapturing = false,
+                capturedImageUri = imageUri,
+                error = null
+            )
+        }
+    }
+
+    /**
+     * Called when photo capture fails.
+     *
+     * @param message The error message describing the failure.
+     */
+    fun onCaptureError(message: String) {
+        _uiState.update {
+            it.copy(
+                isCapturing = false,
+                error = message
+            )
+        }
+    }
+
+    /**
+     * Clears the captured image URI.
+     * Called after the image has been passed to the processing flow.
+     */
+    fun clearCapturedImage() {
+        _uiState.update { it.copy(capturedImageUri = null) }
     }
 }

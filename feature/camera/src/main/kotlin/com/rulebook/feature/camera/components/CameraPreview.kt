@@ -1,9 +1,13 @@
 package com.rulebook.feature.camera.components
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
+import android.view.Surface
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -21,16 +25,18 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.rulebook.feature.camera.FlashMode
+import java.io.File
 
 private const val TAG = "CameraPreview"
 
 /**
- * Composable that displays a CameraX preview.
+ * Composable that displays a CameraX preview with photo capture capability.
  *
  * This composable integrates CameraX's PreviewView into Compose using AndroidView.
  * It automatically handles:
  * - Camera initialization and binding to lifecycle
  * - Using rear camera by default
+ * - ImageCapture use case for photo capture
  * - Proper cleanup when the composable leaves composition
  * - Lifecycle-aware camera management (pause/resume)
  * - Flash unit availability detection
@@ -41,12 +47,18 @@ private const val TAG = "CameraPreview"
  * - Uses COMPATIBLE implementation mode for broad device support
  * - Uses FILL_CENTER scale type to fill the preview area
  * - Camera is bound to the composable's lifecycle owner for automatic pause/resume
+ * - ImageCapture uses MINIMIZE_LATENCY mode for quick captures
  *
  * @param modifier Modifier for the preview container.
  * @param flashMode Current flash mode to apply to ImageCapture and torch.
  * @param onPreviewReady Callback invoked when camera preview starts displaying frames.
  * @param onError Callback invoked if camera initialization fails.
  * @param onFlashUnitAvailable Callback invoked with flash unit availability status.
+ * @param onImageCaptureReady Callback providing the capture function. Call the provided
+ *                            function to capture a photo. The capture result is delivered
+ *                            via onImageCaptured or onCaptureError callbacks.
+ * @param onImageCaptured Callback invoked when a photo is captured successfully with the image URI.
+ * @param onCaptureError Callback invoked if photo capture fails.
  */
 @Composable
 fun CameraPreview(
@@ -54,7 +66,10 @@ fun CameraPreview(
     flashMode: FlashMode = FlashMode.OFF,
     onPreviewReady: () -> Unit = {},
     onError: (String) -> Unit = {},
-    onFlashUnitAvailable: (Boolean) -> Unit = {}
+    onFlashUnitAvailable: (Boolean) -> Unit = {},
+    onImageCaptureReady: ((capturePhoto: () -> Unit) -> Unit)? = null,
+    onImageCaptured: (Uri) -> Unit = {},
+    onCaptureError: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -73,7 +88,7 @@ fun CameraPreview(
     // Store Camera instance for torch control
     val cameraState: MutableState<Camera?> = remember { mutableStateOf(null) }
 
-    // Store ImageCapture instance for flash mode updates
+    // Store ImageCapture instance for flash mode updates and photo capture
     val imageCaptureState: MutableState<ImageCapture?> = remember { mutableStateOf(null) }
 
     // Track whether the device has a flash unit to guard torch operations
@@ -98,7 +113,7 @@ fun CameraPreview(
 
             try {
                 val cameraProvider = cameraProviderFuture.get()
-                val (camera, imageCapture, hasFlash) = bindCameraPreview(
+                val (camera, imageCapture, hasFlash) = bindCameraPreviewWithCapture(
                     cameraProvider = cameraProvider,
                     lifecycleOwner = lifecycleOwner,
                     previewView = previewView,
@@ -109,6 +124,16 @@ fun CameraPreview(
                 cameraState.value = camera
                 imageCaptureState.value = imageCapture
                 hasFlashUnitState.value = hasFlash
+
+                // Provide the capture function to the caller
+                onImageCaptureReady?.invoke {
+                    capturePhoto(
+                        context = context,
+                        imageCapture = imageCapture,
+                        onImageCaptured = onImageCaptured,
+                        onError = onCaptureError
+                    )
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Camera initialization failed", e)
                 onError("Failed to initialize camera: ${e.message}")
@@ -176,7 +201,7 @@ fun CameraPreview(
 }
 
 /**
- * Binds the camera preview to the lifecycle.
+ * Binds the camera preview with ImageCapture to the lifecycle.
  *
  * @param cameraProvider The CameraX provider instance.
  * @param lifecycleOwner The lifecycle owner to bind the camera to.
@@ -184,9 +209,9 @@ fun CameraPreview(
  * @param flashMode Initial flash mode to apply.
  * @param onPreviewReady Callback when preview starts.
  * @param onFlashUnitAvailable Callback with flash unit availability status.
- * @return Triple of Camera instance, ImageCapture instance, and hasFlashUnit flag for external control.
+ * @return Triple of Camera instance, ImageCapture instance, and hasFlashUnit flag.
  */
-private fun bindCameraPreview(
+private fun bindCameraPreviewWithCapture(
     cameraProvider: ProcessCameraProvider,
     lifecycleOwner: LifecycleOwner,
     previewView: PreviewView,
@@ -204,8 +229,13 @@ private fun bindCameraPreview(
             preview.surfaceProvider = previewView.surfaceProvider
         }
 
-    // Create ImageCapture use case with initial flash mode
+    // Create ImageCapture use case with minimize latency for quick captures
+    // Set target rotation from the display to ensure correct EXIF orientation
+    // Apply initial flash mode
+    val displayRotation = previewView.display?.rotation ?: Surface.ROTATION_0
     val imageCapture = ImageCapture.Builder()
+        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+        .setTargetRotation(displayRotation)
         .setFlashMode(flashMode.toImageCaptureFlashMode())
         .build()
 
@@ -232,12 +262,52 @@ private fun bindCameraPreview(
             Log.d(TAG, "Initial torch enabled for flash mode ON")
         }
 
-        Log.d(TAG, "Camera preview bound successfully with ImageCapture")
+        Log.d(TAG, "Camera preview with capture bound successfully")
         onPreviewReady()
 
         return Triple(camera, imageCapture, hasFlash)
     } catch (e: Exception) {
-        Log.e(TAG, "Failed to bind camera preview", e)
+        Log.e(TAG, "Failed to bind camera preview with capture", e)
         throw e
     }
+}
+
+/**
+ * Captures a photo and saves it to the app's cache directory.
+ *
+ * @param context The Android context for file operations.
+ * @param imageCapture The ImageCapture use case to take the photo.
+ * @param onImageCaptured Callback with the captured image URI.
+ * @param onError Callback if capture fails.
+ */
+private fun capturePhoto(
+    context: Context,
+    imageCapture: ImageCapture,
+    onImageCaptured: (Uri) -> Unit,
+    onError: (String) -> Unit
+) {
+    // Create output file in cache directory
+    val photoFile = File(
+        context.cacheDir,
+        "IMG_${System.currentTimeMillis()}.jpg"
+    )
+
+    val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+    imageCapture.takePicture(
+        outputOptions,
+        ContextCompat.getMainExecutor(context),
+        object : ImageCapture.OnImageSavedCallback {
+            override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                val savedUri = Uri.fromFile(photoFile)
+                Log.d(TAG, "Photo captured: $savedUri")
+                onImageCaptured(savedUri)
+            }
+
+            override fun onError(exception: ImageCaptureException) {
+                Log.e(TAG, "Photo capture failed", exception)
+                onError("Failed to capture photo: ${exception.message}")
+            }
+        }
+    )
 }
