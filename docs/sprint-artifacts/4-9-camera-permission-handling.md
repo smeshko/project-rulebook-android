@@ -1,6 +1,6 @@
 # Story 4.9: Camera Permission Handling
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -32,48 +32,48 @@ so that the app doesn't request unnecessary permissions at install.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add Permission State to CameraUiState (AC: #1, #2, #3, #4)
-  - [ ] Add `permissionState: PermissionState` enum to CameraUiState
-  - [ ] States: GRANTED, DENIED, SHOULD_SHOW_RATIONALE, PERMANENTLY_DENIED
-  - [ ] Create action to check current permission state
+- [x] Task 1: Add Permission State to CameraUiState (AC: #1, #2, #3, #4)
+  - [x] Add `permissionState: PermissionState` enum to CameraUiState
+  - [x] States: GRANTED, DENIED, SHOULD_SHOW_RATIONALE, PERMANENTLY_DENIED
+  - [x] Create action to check current permission state
 
-- [ ] Task 2: Check Permission on Camera Screen Launch (AC: #1, #5)
-  - [ ] Check permission state in ViewModel init or LaunchedEffect
-  - [ ] Only request when user navigates to camera (not at app start)
-  - [ ] Handle different permission states appropriately
+- [x] Task 2: Check Permission on Camera Screen Launch (AC: #1, #5)
+  - [x] Check permission state in ViewModel init or LaunchedEffect
+  - [x] Only request when user navigates to camera (not at app start)
+  - [x] Handle different permission states appropriately
 
-- [ ] Task 3: Create PermissionRationale Composable (AC: #1)
-  - [ ] Create `PermissionRationale.kt` in `feature/camera/components/`
-  - [ ] Explain why camera is needed ("Scan game boxes")
-  - [ ] Include "Continue" button to request permission
-  - [ ] Apply brutalist styling
+- [x] Task 3: Create PermissionRationale Composable (AC: #1)
+  - [x] Create `PermissionRationale.kt` in `feature/camera/components/`
+  - [x] Explain why camera is needed ("Scan game boxes")
+  - [x] Include "Continue" button to request permission
+  - [x] Apply brutalist styling
 
-- [ ] Task 4: Implement Permission Request (AC: #2, #3)
-  - [ ] Use `rememberPermissionState` from Accompanist OR manual approach
-  - [ ] Request `Manifest.permission.CAMERA`
-  - [ ] Handle grant result to show camera
+- [x] Task 4: Implement Permission Request (AC: #2, #3)
+  - [x] Use `rememberPermissionState` from Accompanist OR manual approach
+  - [x] Request `Manifest.permission.CAMERA`
+  - [x] Handle grant result to show camera
 
-- [ ] Task 5: Handle Permission Denial (AC: #4)
-  - [ ] Detect when permission is denied
-  - [ ] Show helpful error message
-  - [ ] Include button to open app settings
-  - [ ] Distinguish between "Don't ask again" and regular denial
+- [x] Task 5: Handle Permission Denial (AC: #4)
+  - [x] Detect when permission is denied
+  - [x] Show helpful error message
+  - [x] Include button to open app settings
+  - [x] Distinguish between "Don't ask again" and regular denial
 
-- [ ] Task 6: Create PermissionDenied Composable (AC: #4)
-  - [ ] Create `PermissionDenied.kt` in `feature/camera/components/`
-  - [ ] Explain permission is required
-  - [ ] Provide "Open Settings" button
-  - [ ] Provide "Use Gallery" alternative
+- [x] Task 6: Create PermissionDenied Composable (AC: #4)
+  - [x] Create `PermissionDenied.kt` in `feature/camera/components/`
+  - [x] Explain permission is required
+  - [x] Provide "Open Settings" button
+  - [x] Provide "Use Gallery" alternative
 
-- [ ] Task 7: Implement Settings Deep Link (AC: #4)
-  - [ ] Use `Settings.ACTION_APPLICATION_DETAILS_SETTINGS`
-  - [ ] Create intent with app package URI
-  - [ ] Launch settings on button tap
+- [x] Task 7: Implement Settings Deep Link (AC: #4)
+  - [x] Use `Settings.ACTION_APPLICATION_DETAILS_SETTINGS`
+  - [x] Create intent with app package URI
+  - [x] Launch settings on button tap
 
-- [ ] Task 8: Handle Permission Return from Settings (AC: #3)
-  - [ ] Re-check permission when returning from settings
-  - [ ] Auto-open camera if permission now granted
-  - [ ] Keep showing denied state if still denied
+- [x] Task 8: Handle Permission Return from Settings (AC: #3)
+  - [x] Re-check permission when returning from settings
+  - [x] Auto-open camera if permission now granted
+  - [x] Keep showing denied state if still denied
 
 ## Dev Notes
 
@@ -310,7 +310,23 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
+- Task 1: Added CameraPermissionState enum with NOT_DETERMINED, GRANTED, DENIED, PERMANENTLY_DENIED states. Added permissionState field to CameraUiState. Added onPermissionGranted(), onPermissionDenied(), and onPermissionPermanentlyDenied() methods to CameraViewModel. All 5 new unit tests pass.
+- Task 2: Removed auto-request permission on screen launch. Added LaunchedEffect that checks permission state and syncs to ViewModel without requesting. Permission is now only requested when user explicitly clicks button (AC #5 satisfied).
+- Task 3: Created PermissionRationale.kt composable with brutalist styling using RulebookTheme colors, typography, and RulebookButton components. Features camera icon, title, explanation, and "Allow Camera Access" CTA with gallery button fallback. Removed inline version from CameraScreen.
+- Task 4: Permission request already implemented via Accompanist's rememberPermissionState. launchPermissionRequest() is called on button click, status.isGranted automatically updates and shows camera preview when granted.
+- Task 5: Added hasRequestedPermission flag to distinguish first-time users from permanently denied. LaunchedEffect now detects permanently denied state. CameraScreen shows PermissionRationale for first-time and DENIED states, PermissionDenied only for PERMANENTLY_DENIED. Added 3 new unit tests.
+- Task 6: Created PermissionDenied.kt with brutalist styling. Features blocked icon (NoPhotography), title, explanation, "Open Settings" button, and gallery fallback. Removed inline version from CameraScreen.
+- Task 7: Implemented settings deep link using Settings.ACTION_APPLICATION_DETAILS_SETTINGS intent with app package URI. Launches app settings on button tap.
+- Task 8: Already handled by Accompanist's rememberPermissionState. When user returns from settings, permission status is re-evaluated, LaunchedEffect triggers, and UI updates automatically.
+
 ### File List
+
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/PermissionRationale.kt (new)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/PermissionDenied.kt (new)
+- feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 
 ## Epic Dependencies
 

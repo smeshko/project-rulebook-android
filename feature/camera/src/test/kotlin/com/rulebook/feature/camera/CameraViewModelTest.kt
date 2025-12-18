@@ -382,6 +382,81 @@ class CameraViewModelTest {
     }
 
     // =========================================================================
+    // Permission State Tests (Story 4.9)
+    // =========================================================================
+
+    @Test
+    fun `initial state has permission state NOT_DETERMINED`() = runTest {
+        val state = viewModel.uiState.first()
+
+        assertEquals(CameraPermissionState.NOT_DETERMINED, state.permissionState)
+    }
+
+    @Test
+    fun `onPermissionGranted sets permission state to GRANTED`() = runTest {
+        viewModel.onPermissionGranted()
+        val state = viewModel.uiState.first()
+
+        assertEquals(CameraPermissionState.GRANTED, state.permissionState)
+    }
+
+    @Test
+    fun `onPermissionDenied sets permission state to DENIED`() = runTest {
+        viewModel.onPermissionDenied()
+        val state = viewModel.uiState.first()
+
+        assertEquals(CameraPermissionState.DENIED, state.permissionState)
+    }
+
+    @Test
+    fun `onPermissionPermanentlyDenied sets permission state to PERMANENTLY_DENIED`() = runTest {
+        viewModel.onPermissionPermanentlyDenied()
+        val state = viewModel.uiState.first()
+
+        assertEquals(CameraPermissionState.PERMANENTLY_DENIED, state.permissionState)
+    }
+
+    @Test
+    fun `permission state transitions correctly on result`() = runTest {
+        // Initially NOT_DETERMINED
+        assertEquals(CameraPermissionState.NOT_DETERMINED, viewModel.uiState.first().permissionState)
+
+        // User grants permission
+        viewModel.onPermissionGranted()
+        assertEquals(CameraPermissionState.GRANTED, viewModel.uiState.first().permissionState)
+    }
+
+    @Test
+    fun `initial state has hasRequestedPermission false`() = runTest {
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.hasRequestedPermission)
+    }
+
+    @Test
+    fun `onPermissionRequested sets hasRequestedPermission to true`() = runTest {
+        viewModel.onPermissionRequested()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.hasRequestedPermission)
+    }
+
+    @Test
+    fun `hasRequestedPermission stays true after permission state changes`() = runTest {
+        // User requests permission
+        viewModel.onPermissionRequested()
+        assertTrue(viewModel.uiState.first().hasRequestedPermission)
+
+        // Permission denied
+        viewModel.onPermissionDenied()
+        assertTrue(viewModel.uiState.first().hasRequestedPermission)
+
+        // Permission permanently denied
+        viewModel.onPermissionPermanentlyDenied()
+        assertTrue(viewModel.uiState.first().hasRequestedPermission)
+    }
+
+    // =========================================================================
     // Credit Balance Tests (Story 4.8)
     // =========================================================================
 

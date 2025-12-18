@@ -2,6 +2,8 @@ package com.rulebook.feature.camera
 
 import android.Manifest
 import android.app.Activity
+import android.content.Intent
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -64,6 +66,8 @@ import com.rulebook.feature.camera.components.CloseButton
 import com.rulebook.feature.camera.components.FlashToggle
 import com.rulebook.feature.camera.components.FocusIndicator
 import com.rulebook.feature.camera.components.GalleryButton
+import com.rulebook.feature.camera.components.PermissionDenied
+import com.rulebook.feature.camera.components.PermissionRationale
 import com.rulebook.feature.camera.components.ZoomIndicator
 import com.rulebook.feature.camera.util.getLastPhotoThumbnailUri
 import com.rulebook.feature.camera.util.rememberCaptureHapticFeedback
@@ -135,10 +139,23 @@ fun CameraScreen(
         viewModel.setLastGalleryThumbnail(thumbnailUri?.toString())
     }
 
-    // Request permission on first composition if not granted
-    LaunchedEffect(Unit) {
-        if (!cameraPermissionState.status.isGranted) {
-            cameraPermissionState.launchPermissionRequest()
+    // Check permission state on first composition and sync to ViewModel (Story 4.9)
+    // NOTE: We do NOT auto-request permission here (AC #5 - not requested at app launch)
+    LaunchedEffect(cameraPermissionState.status, uiState.hasRequestedPermission) {
+        when {
+            cameraPermissionState.status.isGranted -> {
+                viewModel.onPermissionGranted()
+            }
+            cameraPermissionState.status.shouldShowRationale -> {
+                // User denied once but can ask again
+                viewModel.onPermissionDenied()
+            }
+            uiState.hasRequestedPermission -> {
+                // We've asked before and now !isGranted and !shouldShowRationale
+                // This means permanently denied ("Don't ask again" was selected)
+                viewModel.onPermissionPermanentlyDenied()
+            }
+            // else: First time (NOT_DETERMINED) - leave as NOT_DETERMINED
         }
     }
 
@@ -386,10 +403,15 @@ fun CameraScreen(
                 }
             }
 
-            // Permission denied but can show rationale
-            cameraPermissionState.status.shouldShowRationale -> {
+            // Permission denied but can show rationale OR first time user
+            cameraPermissionState.status.shouldShowRationale ||
+            uiState.permissionState == CameraPermissionState.NOT_DETERMINED -> {
                 PermissionRationale(
-                    onRequestPermission = { cameraPermissionState.launchPermissionRequest() },
+                    onRequestPermission = {
+                        viewModel.onPermissionRequested()
+                        cameraPermissionState.launchPermissionRequest()
+                    },
+                    onNavigateBack = onNavigateBack,
                     onGalleryClick = {
                         pickMedia.launch(
                             PickVisualMediaRequest(
@@ -401,9 +423,16 @@ fun CameraScreen(
                 )
             }
 
-            // Permission denied permanently or waiting for initial request
+            // Permission denied permanently ("Don't ask again" selected)
             else -> {
                 PermissionDenied(
+                    onOpenSettings = {
+                        // Launch app settings where user can manually enable camera permission
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        }
+                        context.startActivity(intent)
+                    },
                     onGalleryClick = {
                         pickMedia.launch(
                             PickVisualMediaRequest(
@@ -414,131 +443,6 @@ fun CameraScreen(
                     galleryThumbnailUri = uiState.lastGalleryThumbnailUri?.let { Uri.parse(it) }
                 )
             }
-        }
-    }
-}
-
-/**
- * Composable showing rationale for camera permission request.
- *
- * Displayed when the user has denied the permission once but hasn't selected
- * "Don't ask again". Explains why the permission is needed and offers a button
- * to request again. Also provides gallery access as an alternative (Story 4.6).
- *
- * @param onRequestPermission Callback to trigger permission request.
- * @param onGalleryClick Callback to open the gallery picker.
- * @param galleryThumbnailUri Optional URI for gallery button thumbnail.
- */
-@Composable
-internal fun PermissionRationale(
-    onRequestPermission: () -> Unit,
-    onGalleryClick: () -> Unit,
-    galleryThumbnailUri: Uri?
-) {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Camera Permission Required",
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "The camera is needed to capture photos of your game boxes for rule extraction.",
-                color = Color.White.copy(alpha = 0.8f),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(onClick = onRequestPermission) {
-                Text("Grant Permission")
-            }
-        }
-
-        // Gallery button as alternative - available even without camera permission (Story 4.6)
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-                .padding(bottom = 48.dp),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            GalleryButton(
-                onClick = onGalleryClick,
-                thumbnailUri = galleryThumbnailUri
-            )
-        }
-    }
-}
-
-/**
- * Composable shown when camera permission is denied.
- *
- * Displayed when the permission has been permanently denied. Informs the user
- * they need to enable the permission in system settings. Also provides gallery
- * access as an alternative (Story 4.6).
- *
- * @param onGalleryClick Callback to open the gallery picker.
- * @param galleryThumbnailUri Optional URI for gallery button thumbnail.
- */
-@Composable
-internal fun PermissionDenied(
-    onGalleryClick: () -> Unit,
-    galleryThumbnailUri: Uri?
-) {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Camera Permission Denied",
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Please enable camera permission in your device settings to use this feature.",
-                color = Color.White.copy(alpha = 0.8f),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Or select an existing photo from your gallery:",
-                color = Color.White.copy(alpha = 0.7f),
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center
-            )
-        }
-
-        // Gallery button as alternative - available even without camera permission (Story 4.6)
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-                .padding(bottom = 48.dp),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            GalleryButton(
-                onClick = onGalleryClick,
-                thumbnailUri = galleryThumbnailUri
-            )
         }
     }
 }
