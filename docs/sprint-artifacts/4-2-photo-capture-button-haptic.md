@@ -1,6 +1,6 @@
 # Story 4.2: Photo Capture Button with Haptic Feedback
 
-Status: in-review
+Status: done
 
 ## Story
 
