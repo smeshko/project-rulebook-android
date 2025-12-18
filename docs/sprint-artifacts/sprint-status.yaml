@@ -219,15 +219,15 @@ development_status:
 
   # Story 4.3: Flash/Torch Control
   4-3-flash-torch-control:
-    status: review
+    status: done
     story_file: docs/sprint-artifacts/4-3-flash-torch-control.md
 
 summary:
   total_stories: 30
-  done: 29
+  done: 30
   ready_for_dev: 0
   in_progress: 0
-  in_review: 1
+  in_review: 0
   blocked: 0
   epic_1_status: done
   epic_2_status: done

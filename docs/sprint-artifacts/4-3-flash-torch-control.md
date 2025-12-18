@@ -1,6 +1,6 @@
 # Story 4.3: Flash/Torch Control
 
-Status: Ready for Review
+Status: done
 
 ## Story
 
