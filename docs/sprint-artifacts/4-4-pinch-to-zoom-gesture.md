@@ -34,10 +34,10 @@ so that I can focus on the game box from a distance.
   - [x] Add `maxZoomRatio: Float` to CameraUiState
   - [x] Add `showZoomIndicator: Boolean` to CameraUiState
 
-- [ ] Task 2: Get Zoom Bounds from CameraInfo (AC: #3)
-  - [ ] Query `cameraInfo.zoomState` after camera binding
-  - [ ] Extract `minZoomRatio` and `maxZoomRatio`
-  - [ ] Store bounds in ViewModel state
+- [x] Task 2: Get Zoom Bounds from CameraInfo (AC: #3)
+  - [x] Query `cameraInfo.zoomState` after camera binding
+  - [x] Extract `minZoomRatio` and `maxZoomRatio`
+  - [x] Store bounds in ViewModel state
 
 - [ ] Task 3: Implement Pinch-to-Zoom Gesture Detection (AC: #1, #2)
   - [ ] Add `pointerInput` modifier with `detectTransformGestures`
@@ -203,12 +203,15 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### Completion Notes List
 
 - Task 1: Added zoom state properties to CameraUiState (zoomRatio, minZoomRatio, maxZoomRatio, showZoomIndicator). Added zoom management methods to CameraViewModel (setZoomBounds, setZoomRatio, hideZoomIndicator). Added 7 unit tests for zoom state management.
+- Task 2: Updated CameraPreview to query cameraInfo.zoomState after camera binding. Created ZoomBounds data class to pass min/max zoom ratios. Added callbacks for zoom bounds and CameraControl availability. Wired up CameraScreen to store zoom bounds in ViewModel.
 
 ### File List
 
 **Modified Files:**
 - `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt` - Added zoom state properties
 - `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt` - Added zoom management methods
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt` - Wired up zoom bounds callback
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt` - Added zoom bounds extraction, ZoomBounds data class, CameraControl callback
 - `feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt` - Added zoom state tests
 
 ## Epic Dependencies

@@ -117,6 +117,9 @@ fun CameraScreen(
                     },
                     onCaptureError = { error ->
                         viewModel.onCaptureError(error)
+                    },
+                    onZoomBoundsAvailable = { bounds ->
+                        viewModel.setZoomBounds(bounds.minZoomRatio, bounds.maxZoomRatio)
                     }
                 )
 
