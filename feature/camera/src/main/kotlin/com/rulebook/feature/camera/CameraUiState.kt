@@ -1,6 +1,19 @@
 package com.rulebook.feature.camera
 
 /**
+ * Represents a point in 2D screen coordinates.
+ *
+ * Used to track tap locations for tap-to-focus functionality.
+ *
+ * @param x The horizontal coordinate in pixels.
+ * @param y The vertical coordinate in pixels.
+ */
+data class FocusPoint(
+    val x: Float,
+    val y: Float
+)
+
+/**
  * UI state for the Camera screen.
  *
  * Represents the current state of the camera preview and any related UI elements.
@@ -22,6 +35,10 @@ package com.rulebook.feature.camera
  * @param minZoomRatio Minimum zoom ratio supported by the camera. Default is 1.0f.
  * @param maxZoomRatio Maximum zoom ratio supported by the camera. Default is 1.0f.
  * @param showZoomIndicator Whether to display the zoom level indicator overlay.
+ * @param focusPoint The current tap-to-focus point, or null if no manual focus is set.
+ * @param showFocusIndicator Whether to display the focus indicator at [focusPoint].
+ * @param lastGalleryThumbnailUri The URI of the most recent photo in the device gallery.
+ *                                 Displayed as a thumbnail preview on the gallery button (Story 4.6).
  * @param creditBalance The user's current credit balance for scans. Default is 0.
  */
 data class CameraUiState(
@@ -35,5 +52,8 @@ data class CameraUiState(
     val minZoomRatio: Float = 1f,
     val maxZoomRatio: Float = 1f,
     val showZoomIndicator: Boolean = false,
+    val focusPoint: FocusPoint? = null,
+    val showFocusIndicator: Boolean = false,
+    val lastGalleryThumbnailUri: String? = null,
     val creditBalance: Int = 0
 )

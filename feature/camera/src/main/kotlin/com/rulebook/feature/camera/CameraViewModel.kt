@@ -184,4 +184,53 @@ class CameraViewModel(
     fun hideZoomIndicator() {
         _uiState.update { it.copy(showZoomIndicator = false) }
     }
+
+    // =========================================================================
+    // Tap-to-Focus (Story 4.5)
+    // =========================================================================
+
+    /**
+     * Called when the user taps on the camera preview to focus.
+     *
+     * Sets the focus point and shows the focus indicator.
+     *
+     * @param x The x-coordinate of the tap in pixels.
+     * @param y The y-coordinate of the tap in pixels.
+     */
+    fun onTapToFocus(x: Float, y: Float) {
+        _uiState.update {
+            it.copy(
+                focusPoint = FocusPoint(x, y),
+                showFocusIndicator = true
+            )
+        }
+    }
+
+    /**
+     * Hides the focus indicator.
+     *
+     * Called after the focus indicator display duration completes.
+     * Note: We only clear showFocusIndicator here, keeping focusPoint so the
+     * composable can still render during the fade-out animation. The focusPoint
+     * will be replaced on the next tap, or naturally cleaned up.
+     */
+    fun hideFocusIndicator() {
+        _uiState.update {
+            it.copy(showFocusIndicator = false)
+        }
+    }
+
+    // =========================================================================
+    // Gallery Picker (Story 4.6)
+    // =========================================================================
+
+    /**
+     * Sets the URI of the last photo in the device gallery.
+     * Used to display a thumbnail preview on the gallery button.
+     *
+     * @param uri The URI of the last gallery photo, or null if unavailable.
+     */
+    fun setLastGalleryThumbnail(uri: String?) {
+        _uiState.update { it.copy(lastGalleryThumbnailUri = uri) }
+    }
 }

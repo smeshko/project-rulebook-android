@@ -15,10 +15,19 @@ const val CAMERA_ROUTE = "camera"
  *
  * The camera screen displays a full-screen CameraX preview with immersive mode
  * (hidden system bars). It is intended to be navigated to from the camera FAB.
+ *
+ * @param onPhotoCaptured Callback when a photo is captured, receives the image URI.
+ * @param onGalleryImageSelected Callback when a gallery image is selected, receives the image URI.
  */
-fun NavGraphBuilder.cameraScreen() {
+fun NavGraphBuilder.cameraScreen(
+    onPhotoCaptured: (String) -> Unit = {},
+    onGalleryImageSelected: (String) -> Unit = {}
+) {
     composable(route = CAMERA_ROUTE) {
-        CameraScreen()
+        CameraScreen(
+            onPhotoCaptured = onPhotoCaptured,
+            onGalleryImageSelected = onGalleryImageSelected
+        )
     }
 }
 
