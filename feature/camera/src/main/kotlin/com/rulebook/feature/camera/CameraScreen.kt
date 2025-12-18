@@ -7,8 +7,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraControl
+import androidx.camera.core.FocusMeteringAction
+import androidx.camera.core.MeteringPointFactory
 import androidx.concurrent.futures.await
+import java.util.concurrent.TimeUnit
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,6 +58,7 @@ import android.net.Uri
 import com.rulebook.feature.camera.components.CameraPreview
 import com.rulebook.feature.camera.components.CaptureButton
 import com.rulebook.feature.camera.components.FlashToggle
+import com.rulebook.feature.camera.components.FocusIndicator
 import com.rulebook.feature.camera.components.GalleryButton
 import com.rulebook.feature.camera.components.ZoomIndicator
 import com.rulebook.feature.camera.util.getLastPhotoThumbnailUri
@@ -144,8 +149,9 @@ fun CameraScreen(
         when {
             // Permission granted - show camera preview
             cameraPermissionState.status.isGranted -> {
-                // Track CameraControl for applying zoom
+                // Track CameraControl for applying zoom and focus
                 var cameraControl by remember { mutableStateOf<CameraControl?>(null) }
+                var meteringPointFactory by remember { mutableStateOf<MeteringPointFactory?>(null) }
                 val coroutineScope = rememberCoroutineScope()
 
                 // Capture latest zoom state for use in gesture handler without restarting it
@@ -153,11 +159,45 @@ fun CameraScreen(
                 val currentMinZoom by rememberUpdatedState(uiState.minZoomRatio)
                 val currentMaxZoom by rememberUpdatedState(uiState.maxZoomRatio)
 
-                // Camera preview with zoom gesture detection
-                // Key on Unit to keep gesture handler stable throughout pinch gestures
+                // Camera preview with tap-to-focus and pinch-to-zoom gesture detection
+                // Key on Unit to keep gesture handlers stable throughout gestures
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        // Tap gesture for focus (processed first, before transform)
+                        .pointerInput(Unit) {
+                            detectTapGestures { offset ->
+                                // Execute focus metering on camera
+                                // Only show focus indicator and trigger focus if camera is ready
+                                val factory = meteringPointFactory
+                                val control = cameraControl
+                                if (factory != null && control != null) {
+                                    // Store raw pixel coordinates for UI positioning
+                                    viewModel.onTapToFocus(offset.x, offset.y)
+                                    // Create metering point at tap location
+                                    val meteringPoint = factory.createPoint(offset.x, offset.y)
+                                    val focusAction = FocusMeteringAction.Builder(
+                                        meteringPoint,
+                                        FocusMeteringAction.FLAG_AF
+                                    )
+                                        .setAutoCancelDuration(5, TimeUnit.SECONDS)
+                                        .build()
+
+                                    coroutineScope.launch {
+                                        try {
+                                            control.startFocusAndMetering(focusAction).await()
+                                            Log.d("CameraScreen", "Focus started at (${offset.x}, ${offset.y})")
+                                        } catch (e: Exception) {
+                                            Log.w("CameraScreen", "Failed to focus: ${e.message}")
+                                        }
+                                    }
+                                } else {
+                                    // Camera not ready - ignore tap (no false focus feedback)
+                                    Log.d("CameraScreen", "Tap ignored - camera not ready")
+                                }
+                            }
+                        }
+                        // Transform gesture for zoom (pinch)
                         .pointerInput(Unit) {
                             detectTransformGestures { _, _, zoom, _ ->
                                 // Calculate new zoom based on gesture scale factor
@@ -202,6 +242,9 @@ fun CameraScreen(
                         },
                         onCameraControlAvailable = { control ->
                             cameraControl = control
+                        },
+                        onMeteringPointFactoryAvailable = { factory ->
+                            meteringPointFactory = factory
                         }
                     )
                 }
@@ -218,11 +261,26 @@ fun CameraScreen(
                     }
                 }
 
+                // Auto-hide focus indicator after delay (~1 second)
+                // Key on focusPoint to restart timer on each tap
+                LaunchedEffect(uiState.focusPoint, uiState.showFocusIndicator) {
+                    if (uiState.showFocusIndicator) {
+                        kotlinx.coroutines.delay(1000L)
+                        viewModel.hideFocusIndicator()
+                    }
+                }
+
                 // Zoom indicator overlay - centered on screen
                 ZoomIndicator(
                     zoomRatio = uiState.zoomRatio,
                     visible = uiState.showZoomIndicator,
                     modifier = Modifier.align(Alignment.Center)
+                )
+
+                // Focus indicator overlay - positioned at tap location
+                FocusIndicator(
+                    focusPoint = uiState.focusPoint,
+                    visible = uiState.showFocusIndicator
                 )
 
                 // Show loading indicator while camera initializes
