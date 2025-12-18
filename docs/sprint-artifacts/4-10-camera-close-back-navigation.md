@@ -1,6 +1,6 @@
 # Story 4.10: Camera Close/Back Navigation
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
