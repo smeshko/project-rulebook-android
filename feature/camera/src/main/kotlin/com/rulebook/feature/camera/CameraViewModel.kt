@@ -169,23 +169,6 @@ class CameraViewModel : ViewModel() {
     // =========================================================================
 
     /**
-     * Called when a gallery image is selected.
-     *
-     * @param imageUri The URI of the selected gallery image.
-     */
-    fun onGalleryImageSelected(imageUri: String) {
-        _uiState.update { it.copy(selectedGalleryImageUri = imageUri) }
-    }
-
-    /**
-     * Clears the selected gallery image URI.
-     * Called after the image has been passed to the processing flow.
-     */
-    fun clearSelectedGalleryImage() {
-        _uiState.update { it.copy(selectedGalleryImageUri = null) }
-    }
-
-    /**
      * Sets the URI of the last photo in the device gallery.
      * Used to display a thumbnail preview on the gallery button.
      *

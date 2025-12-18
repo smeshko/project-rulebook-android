@@ -304,45 +304,6 @@ class CameraViewModelTest {
     // =========================================================================
 
     @Test
-    fun `initial state has no selected gallery image`() = runTest {
-        val state = viewModel.uiState.first()
-
-        assertNull(state.selectedGalleryImageUri)
-    }
-
-    @Test
-    fun `onGalleryImageSelected sets the selected image URI`() = runTest {
-        val testUri = "content://media/external/images/1234"
-        viewModel.onGalleryImageSelected(testUri)
-        val state = viewModel.uiState.first()
-
-        assertEquals(testUri, state.selectedGalleryImageUri)
-    }
-
-    @Test
-    fun `clearSelectedGalleryImage resets the selected image URI`() = runTest {
-        val testUri = "content://media/external/images/1234"
-        viewModel.onGalleryImageSelected(testUri)
-        viewModel.clearSelectedGalleryImage()
-        val state = viewModel.uiState.first()
-
-        assertNull(state.selectedGalleryImageUri)
-    }
-
-    @Test
-    fun `selecting gallery image does not affect captured image URI`() = runTest {
-        val capturedUri = "file:///test/captured.jpg"
-        val galleryUri = "content://media/external/images/1234"
-
-        viewModel.onCaptureSuccess(capturedUri)
-        viewModel.onGalleryImageSelected(galleryUri)
-        val state = viewModel.uiState.first()
-
-        assertEquals(capturedUri, state.capturedImageUri)
-        assertEquals(galleryUri, state.selectedGalleryImageUri)
-    }
-
-    @Test
     fun `initial state has no last gallery thumbnail`() = runTest {
         val state = viewModel.uiState.first()
 

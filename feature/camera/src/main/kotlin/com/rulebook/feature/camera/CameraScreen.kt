@@ -103,10 +103,8 @@ fun CameraScreen(
     ) { uri ->
         // uri is null when user cancels - no action needed (AC #3)
         uri?.let { selectedUri ->
-            val uriString = selectedUri.toString()
-            viewModel.onGalleryImageSelected(uriString)
-            onGalleryImageSelected(uriString)
-            viewModel.clearSelectedGalleryImage()
+            // Pass directly to parent via callback - same processing path as captured photos
+            onGalleryImageSelected(selectedUri.toString())
         }
     }
 
