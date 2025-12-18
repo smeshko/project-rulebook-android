@@ -3,6 +3,7 @@ package com.rulebook.feature.camera
 import android.Manifest
 import android.app.Activity
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -120,6 +121,12 @@ fun CameraScreen(
 
     // Handle immersive mode - hide system bars
     ImmersiveMode()
+
+    // Handle system back button - delegates to same callback as close button (Story 4.10)
+    // This ensures consistent navigation behavior for both close button and system back
+    BackHandler {
+        onNavigateBack()
+    }
 
     // Load last gallery thumbnail (Story 4.6)
     val context = LocalContext.current
