@@ -7,8 +7,10 @@ import android.view.Surface
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.MeteringPointFactory
 import androidx.camera.core.Preview
 import androidx.camera.core.ZoomState
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -76,6 +78,7 @@ data class ZoomBounds(
  * @param onCaptureError Callback invoked if photo capture fails.
  * @param onZoomBoundsAvailable Callback invoked with zoom bounds after camera binding.
  * @param onCameraControlAvailable Callback invoked with CameraControl for zoom operations.
+ * @param onMeteringPointFactoryAvailable Callback invoked with MeteringPointFactory for tap-to-focus.
  */
 @Composable
 fun CameraPreview(
@@ -88,7 +91,8 @@ fun CameraPreview(
     onImageCaptured: (Uri) -> Unit = {},
     onCaptureError: (String) -> Unit = {},
     onZoomBoundsAvailable: (ZoomBounds) -> Unit = {},
-    onCameraControlAvailable: (CameraControl) -> Unit = {}
+    onCameraControlAvailable: (CameraControl) -> Unit = {},
+    onMeteringPointFactoryAvailable: (MeteringPointFactory) -> Unit = {}
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -146,6 +150,9 @@ fun CameraPreview(
 
                 // Provide CameraControl for zoom operations
                 onCameraControlAvailable(camera.cameraControl)
+
+                // Provide MeteringPointFactory for tap-to-focus
+                onMeteringPointFactoryAvailable(previewView.meteringPointFactory)
 
                 // Observe zoomState LiveData to get bounds when available
                 val zoomStateLiveData = camera.cameraInfo.zoomState
