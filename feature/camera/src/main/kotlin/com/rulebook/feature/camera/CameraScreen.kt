@@ -136,13 +136,13 @@ fun CameraScreen(
                         // Tap gesture for focus (processed first, before transform)
                         .pointerInput(Unit) {
                             detectTapGestures { offset ->
-                                // Store raw pixel coordinates for UI positioning
-                                viewModel.onTapToFocus(offset.x, offset.y)
-
                                 // Execute focus metering on camera
+                                // Only show focus indicator and trigger focus if camera is ready
                                 val factory = meteringPointFactory
                                 val control = cameraControl
                                 if (factory != null && control != null) {
+                                    // Store raw pixel coordinates for UI positioning
+                                    viewModel.onTapToFocus(offset.x, offset.y)
                                     // Create metering point at tap location
                                     val meteringPoint = factory.createPoint(offset.x, offset.y)
                                     val focusAction = FocusMeteringAction.Builder(
@@ -160,6 +160,9 @@ fun CameraScreen(
                                             Log.w("CameraScreen", "Failed to focus: ${e.message}")
                                         }
                                     }
+                                } else {
+                                    // Camera not ready - ignore tap (no false focus feedback)
+                                    Log.d("CameraScreen", "Tap ignored - camera not ready")
                                 }
                             }
                         }
