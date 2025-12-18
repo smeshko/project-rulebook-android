@@ -1,6 +1,6 @@
 # Story 4.2: Photo Capture Button with Haptic Feedback
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -36,40 +36,40 @@ so that I can submit my game box image for analysis.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add ImageCapture Use Case to CameraX (AC: #1)
-  - [ ] Configure ImageCapture use case in CameraViewModel
-  - [ ] Bind ImageCapture to ProcessCameraProvider with Preview
-  - [ ] Create `capturePhoto()` function in ViewModel
-  - [ ] Handle image capture callback
+- [x] Task 1: Add ImageCapture Use Case to CameraX (AC: #1)
+  - [x] Configure ImageCapture use case in CameraViewModel
+  - [x] Bind ImageCapture to ProcessCameraProvider with Preview
+  - [x] Create `capturePhoto()` function in ViewModel
+  - [x] Handle image capture callback
 
-- [ ] Task 2: Create CaptureButton Composable (AC: #4, #5)
-  - [ ] Create `CaptureButton.kt` in `feature/camera/components/`
-  - [ ] Apply brutalist styling: large circle (72dp), thick border (4dp)
-  - [ ] Use design system colors: background, border from theme
-  - [ ] Ensure minimum touch target of 48dp (actual 72dp for prominence)
+- [x] Task 2: Create CaptureButton Composable (AC: #4, #5)
+  - [x] Create `CaptureButton.kt` in `feature/camera/components/`
+  - [x] Apply brutalist styling: large circle (72dp), thick border (4dp)
+  - [x] Use design system colors: background, border from theme
+  - [x] Ensure minimum touch target of 48dp (actual 72dp for prominence)
 
-- [ ] Task 3: Implement Haptic Feedback (AC: #2)
-  - [ ] Get Vibrator service from context
-  - [ ] Create haptic feedback on capture (VibrationEffect.EFFECT_CLICK)
-  - [ ] Respect system haptic setting (check Settings)
-  - [ ] Handle devices without vibration capability
+- [x] Task 3: Implement Haptic Feedback (AC: #2)
+  - [x] Get Vibrator service from context
+  - [x] Create haptic feedback on capture (VibrationEffect.EFFECT_CLICK)
+  - [x] Respect system haptic setting (check Settings)
+  - [x] Handle devices without vibration capability
 
-- [ ] Task 4: Handle Capture State (AC: #6)
-  - [ ] Add `isCapturing` to CameraUiState
-  - [ ] Disable button during capture (visual + interaction)
-  - [ ] Show brief loading indicator during capture
-  - [ ] Re-enable button after capture completes or fails
+- [x] Task 4: Handle Capture State (AC: #6)
+  - [x] Add `isCapturing` to CameraUiState
+  - [x] Disable button during capture (visual + interaction)
+  - [x] Show brief loading indicator during capture
+  - [x] Re-enable button after capture completes or fails
 
-- [ ] Task 5: Save Captured Image (AC: #1, #3)
-  - [ ] Save image to temporary cache file
-  - [ ] Use `OutputFileOptions` for file configuration
-  - [ ] Handle rotation/orientation from EXIF
-  - [ ] Return file URI/path for next step
+- [x] Task 5: Save Captured Image (AC: #1, #3)
+  - [x] Save image to temporary cache file
+  - [x] Use `OutputFileOptions` for file configuration
+  - [x] Handle rotation/orientation from EXIF
+  - [x] Return file URI/path for next step
 
-- [ ] Task 6: Wire Capture to Processing Flow (AC: #3)
-  - [ ] Add captured image path to UiState
-  - [ ] Trigger navigation to processing screen on success
-  - [ ] Handle capture failures gracefully with error state
+- [x] Task 6: Wire Capture to Processing Flow (AC: #3)
+  - [x] Add captured image path to UiState
+  - [x] Trigger navigation to processing screen on success
+  - [x] Handle capture failures gracefully with error state
 
 ## Dev Notes
 
@@ -219,7 +219,24 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
+- Task 1: Added ImageCapture use case to CameraX. Updated CameraUiState with isCapturing and capturedImageUri fields. Added capture state management methods to CameraViewModel (onCaptureStarted, onCaptureSuccess, onCaptureError, clearCapturedImage). Updated CameraPreview to bind ImageCapture with Preview and expose capture functionality via callback.
+- Task 2: Created CaptureButton composable with brutalist styling (72dp circle, 4dp border, inner 56dp circle). Uses white colors for visibility on camera preview. Includes enabled/disabled state with alpha dimming.
+- Task 3: Implemented haptic feedback utility with HapticUtils in core/common. Uses View.performHapticFeedback with CONFIRM constant (API 30+) or KEYBOARD_TAP for older APIs. Automatically respects system haptic settings. Created rememberCaptureHapticFeedback() composable helper in camera module.
+- Task 4: Added isCapturing parameter to CaptureButton. When capturing, shows CircularProgressIndicator instead of inner circle, disables button interaction, and updates content description to "Capturing photo". State was already added in Task 1.
+- Task 5: Save functionality was implemented in Task 1 - capturePhoto saves to context.cacheDir with OutputFileOptions. CameraX automatically handles EXIF orientation. URI returned via onImageCaptured callback.
+- Task 6: Integrated all components in CameraScreen. Added CaptureButton positioned at bottom center with safeDrawingPadding. Wired haptic feedback to trigger on capture. Added onPhotoCaptured callback to notify parent when capture succeeds. Used LaunchedEffect to handle captured URI and notify parent.
+
 ### File List
+
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CaptureButton.kt (new)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/util/CameraHaptics.kt (new)
+- feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
+- feature/camera/src/androidTest/kotlin/com/rulebook/feature/camera/CaptureButtonTest.kt (new)
+- core/common/src/main/kotlin/com/rulebook/core/common/HapticUtils.kt (new)
 
 ## Epic Dependencies
 

@@ -217,9 +217,14 @@ development_status:
     status: done
     story_file: docs/sprint-artifacts/4-1-camera-screen-camerax-preview.md
 
+  # Story 4.2: Photo Capture Button with Haptic Feedback
+  4-2-photo-capture-button-haptic:
+    status: done
+    story_file: docs/sprint-artifacts/4-2-photo-capture-button-haptic.md
+
 summary:
-  total_stories: 29
-  done: 29
+  total_stories: 30
+  done: 30
   ready_for_dev: 0
   in_progress: 0
   in_review: 0
@@ -227,6 +232,7 @@ summary:
   epic_1_status: done
   epic_2_status: done
   epic_3_status: done
+  epic_4_status: in-progress
   retrospective_epic_1: done
   retrospective_epic_2: done
   retrospective_epic_3: done
