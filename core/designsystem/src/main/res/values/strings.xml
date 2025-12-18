@@ -5,4 +5,8 @@
         <item quantity="one">%d credit</item>
         <item quantity="other">%d credits</item>
     </plurals>
+
+    <!-- Credits warning accessibility descriptions (Story 4.8) -->
+    <string name="credits_warning_low">Warning: low credit balance</string>
+    <string name="credits_warning_empty">Warning: no credits remaining</string>
 </resources>

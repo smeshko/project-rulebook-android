@@ -6,6 +6,7 @@ import com.rulebook.core.data.repository.CreditRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -38,7 +39,9 @@ class CameraViewModel(
 
     init {
         // Observe credit balance changes and update UI state (Story 4.8)
+        // catch prevents DataStore IOException from crashing the camera UI
         creditRepository.creditBalance
+            .catch { /* DataStore read failure - keep existing balance */ }
             .onEach { balance ->
                 _uiState.update { it.copy(creditBalance = balance) }
             }

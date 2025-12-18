@@ -6,7 +6,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -22,7 +22,9 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class CameraViewModelTest {
 
-    private val testDispatcher = StandardTestDispatcher()
+    // Use UnconfinedTestDispatcher so coroutines execute eagerly without needing advanceUntilIdle
+    // This ensures creditBalance flow updates are processed immediately during tests
+    private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: CameraViewModel
     private lateinit var fakeCreditRepository: FakeCreditRepository
 

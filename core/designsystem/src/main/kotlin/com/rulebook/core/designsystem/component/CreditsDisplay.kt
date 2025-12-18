@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -82,7 +83,13 @@ fun CreditsDisplay(
             if (creditState == CreditState.Low || creditState == CreditState.Empty) {
                 Icon(
                     imageVector = Icons.Default.Warning,
-                    contentDescription = null,
+                    contentDescription = stringResource(
+                        if (creditState == CreditState.Empty) {
+                            R.string.credits_warning_empty
+                        } else {
+                            R.string.credits_warning_low
+                        }
+                    ),
                     tint = textColor,
                     modifier = Modifier.size(16.dp)
                 )
