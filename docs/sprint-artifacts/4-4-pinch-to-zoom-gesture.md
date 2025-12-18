@@ -1,6 +1,6 @@
 # Story 4.4: Pinch-to-Zoom Gesture
 
-Status: in-progress
+Status: Ready for Review
 
 ## Story
 
