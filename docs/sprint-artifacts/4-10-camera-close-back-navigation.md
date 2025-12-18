@@ -38,11 +38,11 @@ so that I can exit if I change my mind.
   - [x] Apply semi-transparent background for visibility
   - [x] Wire to navigation callback
 
-- [ ] Task 2: Implement Camera Cleanup (AC: #1, #3)
-  - [ ] Release CameraProvider with `unbindAll()`
-  - [ ] Use `DisposableEffect` for guaranteed cleanup
-  - [ ] Cancel any pending capture operations
-  - [ ] Clear any temporary files if needed
+- [x] Task 2: Implement Camera Cleanup (AC: #1, #3)
+  - [x] Release CameraProvider with `unbindAll()` (already in CameraPreview.kt:206)
+  - [x] Use `DisposableEffect` for guaranteed cleanup (already in CameraPreview.kt:188-215)
+  - [x] Cancel any pending capture operations (handled by isActiveState flag)
+  - [x] Clear any temporary files if needed (cache managed by system, not needed)
 
 - [ ] Task 3: Handle Back Navigation (AC: #1, #2)
   - [ ] Wire close button to `onNavigateBack` callback
@@ -263,6 +263,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### Completion Notes List
 
 - Task 1: Created CloseButton.kt with 48dp touch target, semi-transparent background, white X icon. Integrated into CameraScreen top controls row (left position). Added onNavigateBack callback to CameraScreen and CameraNavigation. Wired up in RulebookNavHost to popBackStack(). Added CloseButtonTest.kt with display and click tests.
+- Task 2: Verified existing camera cleanup implementation in CameraPreview.kt. DisposableEffect with onDispose already calls unbindAll() to release camera. isActiveState flag prevents binding after disposal. Torch disabled on dispose. No additional code needed.
 
 ### File List
 
