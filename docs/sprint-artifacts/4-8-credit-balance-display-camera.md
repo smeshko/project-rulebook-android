@@ -32,11 +32,11 @@ so that I know if I can complete a scan.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Observe Credit Balance from DataStore (AC: #1, #3)
-  - [ ] Inject `UserPreferencesRepository` into CameraViewModel
-  - [ ] Collect `creditBalance` Flow in ViewModel
-  - [ ] Add `creditBalance: Int` to CameraUiState
-  - [ ] Update state when credits change
+- [x] Task 1: Observe Credit Balance from DataStore (AC: #1, #3)
+  - [x] Inject `UserPreferencesRepository` into CameraViewModel
+  - [x] Collect `creditBalance` Flow in ViewModel
+  - [x] Add `creditBalance: Int` to CameraUiState
+  - [x] Update state when credits change
 
 - [ ] Task 2: Create CreditsDisplay Composable (AC: #1, #2)
   - [ ] Create `CreditsDisplay.kt` in `core/designsystem/components/`
@@ -227,7 +227,14 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
+- Task 1: Injected CreditRepository into CameraViewModel, added creditBalance to CameraUiState, observing credits reactively via Flow. Tests added and passing.
+
 ### File List
+
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/di/CameraModule.kt (modified)
+- feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 
 ## Epic Dependencies
 

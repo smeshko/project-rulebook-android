@@ -22,6 +22,7 @@ package com.rulebook.feature.camera
  * @param minZoomRatio Minimum zoom ratio supported by the camera. Default is 1.0f.
  * @param maxZoomRatio Maximum zoom ratio supported by the camera. Default is 1.0f.
  * @param showZoomIndicator Whether to display the zoom level indicator overlay.
+ * @param creditBalance The user's current credit balance for scans. Default is 0.
  */
 data class CameraUiState(
     val isCameraReady: Boolean = false,
@@ -33,5 +34,6 @@ data class CameraUiState(
     val zoomRatio: Float = 1f,
     val minZoomRatio: Float = 1f,
     val maxZoomRatio: Float = 1f,
-    val showZoomIndicator: Boolean = false
+    val showZoomIndicator: Boolean = false,
+    val creditBalance: Int = 0
 )

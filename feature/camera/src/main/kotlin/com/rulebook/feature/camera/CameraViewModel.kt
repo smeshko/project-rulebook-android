@@ -1,9 +1,13 @@
 package com.rulebook.feature.camera
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.rulebook.core.data.repository.CreditRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
 /**
@@ -18,14 +22,28 @@ import kotlinx.coroutines.flow.update
  * - Flash mode control
  * - Photo capture state management
  * - Zoom level management (zoom ratio, bounds, indicator visibility)
+ * - Credit balance observation (Story 4.8)
  *
  * Camera operations (binding, unbinding) are handled by the CameraPreview composable
  * using CameraX's lifecycle integration, but state changes are reported back to this
  * ViewModel for UI updates.
+ *
+ * @param creditRepository Repository for observing credit balance.
  */
-class CameraViewModel : ViewModel() {
+class CameraViewModel(
+    creditRepository: CreditRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiState())
+
+    init {
+        // Observe credit balance changes and update UI state (Story 4.8)
+        creditRepository.creditBalance
+            .onEach { balance ->
+                _uiState.update { it.copy(creditBalance = balance) }
+            }
+            .launchIn(viewModelScope)
+    }
 
     /**
      * The current UI state of the camera screen.

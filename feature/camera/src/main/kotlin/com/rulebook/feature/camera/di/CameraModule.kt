@@ -9,7 +9,10 @@ import org.koin.dsl.module
  *
  * Provides:
  * - [CameraViewModel] for camera state management
+ *
+ * Dependencies (from :core:data):
+ * - CreditRepository for credit balance observation
  */
 val cameraModule = module {
-    viewModel { CameraViewModel() }
+    viewModel { CameraViewModel(creditRepository = get()) }
 }
