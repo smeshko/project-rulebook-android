@@ -237,6 +237,11 @@ development_status:
     status: done
     story_file: docs/sprint-artifacts/4-6-gallery-picker-alternative.md
 
+  # Story 4.8: Credit Balance Display on Camera
+  4-8-credit-balance-display-camera:
+    status: done
+    story_file: docs/sprint-artifacts/4-8-credit-balance-display-camera.md
+
 summary:
   total_stories: 32
   done: 32
