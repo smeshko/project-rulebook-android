@@ -254,15 +254,15 @@ development_status:
 
   # Story 4.10: Camera Close/Back Navigation
   4-10-camera-close-back-navigation:
-    status: in-progress
+    status: review
     story_file: docs/sprint-artifacts/4-10-camera-close-back-navigation.md
 
 summary:
   total_stories: 36
   done: 33
   ready_for_dev: 0
-  in_progress: 3
-  in_review: 0
+  in_progress: 2
+  in_review: 1
   blocked: 0
   epic_1_status: done
   epic_2_status: done
