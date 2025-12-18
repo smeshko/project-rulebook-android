@@ -32,10 +32,11 @@ so that I can use an existing image of a game box.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add Gallery State to CameraUiState (AC: #1, #2)
-  - [ ] Add `selectedImageUri: Uri?` to CameraUiState
-  - [ ] Add `lastGalleryThumbnail: Bitmap?` to CameraUiState (optional)
-  - [ ] Create `onGalleryImageSelected(uri: Uri)` action in ViewModel
+- [x] Task 1: Add Gallery State to CameraUiState (AC: #1, #2)
+  - [x] Add `selectedGalleryImageUri: String?` to CameraUiState
+  - [ ] Add `lastGalleryThumbnail: Bitmap?` to CameraUiState (optional - deferred to Task 4)
+  - [x] Create `onGalleryImageSelected(uri: String)` action in ViewModel
+  - [x] Create `clearSelectedGalleryImage()` action in ViewModel
 
 - [ ] Task 2: Implement Photo Picker Contract (AC: #1, #2, #3)
   - [ ] Use `ActivityResultContracts.PickVisualMedia()` for modern picker
@@ -238,7 +239,13 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
+- Task 1: Added `selectedGalleryImageUri` to CameraUiState and corresponding ViewModel methods for gallery image selection. Tests pass.
+
 ### File List
+
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
+- feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 
 ## Epic Dependencies
 

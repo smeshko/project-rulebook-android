@@ -163,4 +163,25 @@ class CameraViewModel : ViewModel() {
     fun hideZoomIndicator() {
         _uiState.update { it.copy(showZoomIndicator = false) }
     }
+
+    // =========================================================================
+    // Gallery Picker (Story 4.6)
+    // =========================================================================
+
+    /**
+     * Called when a gallery image is selected.
+     *
+     * @param imageUri The URI of the selected gallery image.
+     */
+    fun onGalleryImageSelected(imageUri: String) {
+        _uiState.update { it.copy(selectedGalleryImageUri = imageUri) }
+    }
+
+    /**
+     * Clears the selected gallery image URI.
+     * Called after the image has been passed to the processing flow.
+     */
+    fun clearSelectedGalleryImage() {
+        _uiState.update { it.copy(selectedGalleryImageUri = null) }
+    }
 }
