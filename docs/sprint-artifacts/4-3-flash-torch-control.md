@@ -32,11 +32,11 @@ so that I can photograph game boxes in low-light conditions.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add Flash Mode State to CameraUiState (AC: #1, #2)
-  - [ ] Create `FlashMode` enum: OFF, ON, AUTO
-  - [ ] Add `flashMode: FlashMode` to CameraUiState
-  - [ ] Add `hasFlashUnit: Boolean` to CameraUiState
-  - [ ] Create `cycleFlashMode()` action in ViewModel
+- [x] Task 1: Add Flash Mode State to CameraUiState (AC: #1, #2)
+  - [x] Create `FlashMode` enum: OFF, ON, AUTO
+  - [x] Add `flashMode: FlashMode` to CameraUiState
+  - [x] Add `hasFlashUnit: Boolean` to CameraUiState
+  - [x] Create `cycleFlashMode()` action in ViewModel
 
 - [ ] Task 2: Check Flash Unit Availability (AC: #5)
   - [ ] Query `CameraInfo.hasFlashUnit()` after camera binding
@@ -208,7 +208,15 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
+- Task 1: Created FlashMode enum with OFF/ON/AUTO states and cycling logic. Added flashMode and hasFlashUnit to CameraUiState. Added cycleFlashMode() and onFlashUnitAvailable() methods to CameraViewModel. All unit tests pass.
+
 ### File List
+
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/FlashMode.kt (new)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
+- feature/camera/src/test/kotlin/com/rulebook/feature/camera/FlashModeTest.kt (new)
+- feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 
 ## Epic Dependencies
 
