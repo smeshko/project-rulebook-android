@@ -3,6 +3,9 @@ package com.rulebook.feature.camera
 import android.Manifest
 import android.app.Activity
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraControl
 import androidx.concurrent.futures.await
 import androidx.compose.foundation.background
@@ -10,11 +13,14 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +52,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import com.rulebook.feature.camera.components.CameraPreview
 import com.rulebook.feature.camera.components.CaptureButton
 import com.rulebook.feature.camera.components.FlashToggle
+import com.rulebook.feature.camera.components.GalleryButton
 import com.rulebook.feature.camera.components.ZoomIndicator
 import com.rulebook.feature.camera.util.rememberCaptureHapticFeedback
 import kotlinx.coroutines.launch
@@ -69,13 +76,16 @@ import org.koin.androidx.compose.koinViewModel
  * @param modifier Optional modifier for the screen container.
  * @param viewModel The ViewModel managing camera state.
  * @param onPhotoCaptured Callback invoked when a photo is captured successfully with the image URI.
+ * @param onGalleryImageSelected Callback invoked when a gallery image is selected with the image URI.
+ *                                Uses the same processing flow as captured photos.
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun CameraScreen(
     modifier: Modifier = Modifier,
     viewModel: CameraViewModel = koinViewModel(),
-    onPhotoCaptured: (String) -> Unit = {}
+    onPhotoCaptured: (String) -> Unit = {},
+    onGalleryImageSelected: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
@@ -83,6 +93,19 @@ fun CameraScreen(
 
     // Store the capture function when CameraPreview provides it
     val capturePhotoState = remember { mutableStateOf<(() -> Unit)?>(null) }
+
+    // Photo picker for gallery selection (Story 4.6)
+    val pickMedia = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        // uri is null when user cancels - no action needed (AC #3)
+        uri?.let { selectedUri ->
+            val uriString = selectedUri.toString()
+            viewModel.onGalleryImageSelected(uriString)
+            onGalleryImageSelected(uriString)
+            viewModel.clearSelectedGalleryImage()
+        }
+    }
 
     // Handle immersive mode - hide system bars
     ImmersiveMode()
@@ -222,7 +245,7 @@ fun CameraScreen(
                     )
                 }
 
-                // Show capture button when camera is ready (Story 4.2)
+                // Show camera controls when camera is ready (Story 4.2, 4.6)
                 if (uiState.isCameraReady) {
                     Box(
                         modifier = Modifier
@@ -231,16 +254,37 @@ fun CameraScreen(
                             .padding(bottom = 48.dp),
                         contentAlignment = Alignment.BottomCenter
                     ) {
-                        CaptureButton(
-                            onClick = {
-                                capturePhotoState.value?.let { capturePhoto ->
-                                    viewModel.onCaptureStarted()
-                                    capturePhoto()
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Gallery button (Story 4.6) - positioned to the left of capture button
+                            GalleryButton(
+                                onClick = {
+                                    pickMedia.launch(
+                                        PickVisualMediaRequest(
+                                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                                        )
+                                    )
                                 }
-                            },
-                            enabled = uiState.isCameraReady && capturePhotoState.value != null,
-                            isCapturing = uiState.isCapturing
-                        )
+                            )
+
+                            // Capture button (Story 4.2)
+                            CaptureButton(
+                                onClick = {
+                                    capturePhotoState.value?.let { capturePhoto ->
+                                        viewModel.onCaptureStarted()
+                                        capturePhoto()
+                                    }
+                                },
+                                enabled = uiState.isCameraReady && capturePhotoState.value != null,
+                                isCapturing = uiState.isCapturing
+                            )
+
+                            // Spacer for symmetry (balances the gallery button on the left)
+                            Spacer(modifier = Modifier.size(56.dp))
+                        }
                     }
                 }
             }
