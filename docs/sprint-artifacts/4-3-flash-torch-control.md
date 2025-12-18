@@ -43,16 +43,16 @@ so that I can photograph game boxes in low-light conditions.
   - [x] Update `hasFlashUnit` in state
   - [x] Conditionally show/hide flash toggle based on state
 
-- [ ] Task 3: Create FlashToggle Composable (AC: #2, #4)
-  - [ ] Create `FlashToggle.kt` in `feature/camera/components/`
-  - [ ] Design three-state toggle icon (off/on/auto)
-  - [ ] Position in top-left or top-right of camera overlay
-  - [ ] Apply brutalist styling with clear tap target
+- [x] Task 3: Create FlashToggle Composable (AC: #2, #4)
+  - [x] Create `FlashToggle.kt` in `feature/camera/components/`
+  - [x] Design three-state toggle icon (off/on/auto)
+  - [x] Position in top-left or top-right of camera overlay
+  - [x] Apply brutalist styling with clear tap target
 
-- [ ] Task 4: Implement Flash Mode Icons (AC: #2)
-  - [ ] Use Material icons: `FlashOff`, `FlashOn`, `FlashAuto`
-  - [ ] Show current state clearly with icon and optional label
-  - [ ] Add subtle animation on mode change
+- [x] Task 4: Implement Flash Mode Icons (AC: #2)
+  - [x] Use Material icons: `FlashOff`, `FlashOn`, `FlashAuto`
+  - [x] Show current state clearly with icon and optional label
+  - [x] Add subtle animation on mode change
 
 - [ ] Task 5: Configure ImageCapture Flash Mode (AC: #1)
   - [ ] Map `FlashMode` enum to `ImageCapture.FLASH_MODE_*`
@@ -210,6 +210,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 - Task 1: Created FlashMode enum with OFF/ON/AUTO states and cycling logic. Added flashMode and hasFlashUnit to CameraUiState. Added cycleFlashMode() and onFlashUnitAvailable() methods to CameraViewModel. All unit tests pass.
 - Task 2: Added flash unit detection via CameraInfo.hasFlashUnit() after camera binding. Added onFlashUnitAvailable callback to CameraPreview and wired it through CameraScreen to CameraViewModel.
+- Task 3 & 4: Created FlashToggle composable with Material icons (FlashOff, FlashOn, FlashAuto), animated color transitions, brutalist styling (48dp tap target, semi-transparent background), and accessibility support. Integrated into CameraScreen positioned in top-left corner. Added UI tests for all flash modes.
 
 ### File List
 
@@ -218,8 +219,10 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/FlashToggle.kt (new)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/FlashModeTest.kt (new)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
+- feature/camera/src/androidTest/kotlin/com/rulebook/feature/camera/components/FlashToggleTest.kt (new)
 
 ## Epic Dependencies
 

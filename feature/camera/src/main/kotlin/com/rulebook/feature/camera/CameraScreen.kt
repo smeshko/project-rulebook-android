@@ -33,6 +33,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import com.rulebook.feature.camera.components.CameraPreview
+import com.rulebook.feature.camera.components.FlashToggle
 import org.koin.androidx.compose.koinViewModel
 
 /**
@@ -99,6 +100,17 @@ fun CameraScreen(
                         text = error,
                         color = Color.White,
                         style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+
+                // Flash toggle - only show if device has flash unit
+                if (uiState.hasFlashUnit) {
+                    FlashToggle(
+                        flashMode = uiState.flashMode,
+                        onToggle = { viewModel.cycleFlashMode() },
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(16.dp)
                     )
                 }
             }
