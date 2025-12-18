@@ -125,10 +125,23 @@ fun CameraScreen(
         viewModel.setLastGalleryThumbnail(thumbnailUri?.toString())
     }
 
-    // Request permission on first composition if not granted
-    LaunchedEffect(Unit) {
-        if (!cameraPermissionState.status.isGranted) {
-            cameraPermissionState.launchPermissionRequest()
+    // Check permission state on first composition and sync to ViewModel (Story 4.9)
+    // NOTE: We do NOT auto-request permission here (AC #5 - not requested at app launch)
+    LaunchedEffect(cameraPermissionState.status) {
+        when {
+            cameraPermissionState.status.isGranted -> {
+                viewModel.onPermissionGranted()
+            }
+            cameraPermissionState.status.shouldShowRationale -> {
+                // User denied once but can ask again
+                viewModel.onPermissionDenied()
+            }
+            else -> {
+                // Either first time (NOT_DETERMINED) or permanently denied
+                // We can't distinguish these from Accompanist state alone,
+                // but we'll treat as "can show rationale" since we haven't asked yet
+                // If they've permanently denied, the rationale screen will still work
+            }
         }
     }
 

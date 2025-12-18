@@ -37,10 +37,10 @@ so that the app doesn't request unnecessary permissions at install.
   - [x] States: GRANTED, DENIED, SHOULD_SHOW_RATIONALE, PERMANENTLY_DENIED
   - [x] Create action to check current permission state
 
-- [ ] Task 2: Check Permission on Camera Screen Launch (AC: #1, #5)
-  - [ ] Check permission state in ViewModel init or LaunchedEffect
-  - [ ] Only request when user navigates to camera (not at app start)
-  - [ ] Handle different permission states appropriately
+- [x] Task 2: Check Permission on Camera Screen Launch (AC: #1, #5)
+  - [x] Check permission state in ViewModel init or LaunchedEffect
+  - [x] Only request when user navigates to camera (not at app start)
+  - [x] Handle different permission states appropriately
 
 - [ ] Task 3: Create PermissionRationale Composable (AC: #1)
   - [ ] Create `PermissionRationale.kt` in `feature/camera/components/`
@@ -311,11 +311,13 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### Completion Notes List
 
 - Task 1: Added CameraPermissionState enum with NOT_DETERMINED, GRANTED, DENIED, PERMANENTLY_DENIED states. Added permissionState field to CameraUiState. Added onPermissionGranted(), onPermissionDenied(), and onPermissionPermanentlyDenied() methods to CameraViewModel. All 5 new unit tests pass.
+- Task 2: Removed auto-request permission on screen launch. Added LaunchedEffect that checks permission state and syncs to ViewModel without requesting. Permission is now only requested when user explicitly clicks button (AC #5 satisfied).
 
 ### File List
 
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 
 ## Epic Dependencies
