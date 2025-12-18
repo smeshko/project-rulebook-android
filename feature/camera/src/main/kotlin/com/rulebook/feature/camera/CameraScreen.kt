@@ -62,6 +62,7 @@ import com.rulebook.feature.camera.components.CaptureButton
 import com.rulebook.feature.camera.components.FlashToggle
 import com.rulebook.feature.camera.components.FocusIndicator
 import com.rulebook.feature.camera.components.GalleryButton
+import com.rulebook.feature.camera.components.PermissionDenied
 import com.rulebook.feature.camera.components.PermissionRationale
 import com.rulebook.feature.camera.components.ZoomIndicator
 import com.rulebook.feature.camera.util.getLastPhotoThumbnailUri
@@ -407,6 +408,7 @@ fun CameraScreen(
             // Permission denied permanently ("Don't ask again" selected)
             else -> {
                 PermissionDenied(
+                    onOpenSettings = { /* TODO: Task 7 will implement settings deep link */ },
                     onGalleryClick = {
                         pickMedia.launch(
                             PickVisualMediaRequest(
@@ -417,69 +419,6 @@ fun CameraScreen(
                     galleryThumbnailUri = uiState.lastGalleryThumbnailUri?.let { Uri.parse(it) }
                 )
             }
-        }
-    }
-}
-
-/**
- * Composable shown when camera permission is denied.
- *
- * Displayed when the permission has been permanently denied. Informs the user
- * they need to enable the permission in system settings. Also provides gallery
- * access as an alternative (Story 4.6).
- *
- * @param onGalleryClick Callback to open the gallery picker.
- * @param galleryThumbnailUri Optional URI for gallery button thumbnail.
- */
-@Composable
-internal fun PermissionDenied(
-    onGalleryClick: () -> Unit,
-    galleryThumbnailUri: Uri?
-) {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Camera Permission Denied",
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Please enable camera permission in your device settings to use this feature.",
-                color = Color.White.copy(alpha = 0.8f),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Or select an existing photo from your gallery:",
-                color = Color.White.copy(alpha = 0.7f),
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.Center
-            )
-        }
-
-        // Gallery button as alternative - available even without camera permission (Story 4.6)
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-                .padding(bottom = 48.dp),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            GalleryButton(
-                onClick = onGalleryClick,
-                thumbnailUri = galleryThumbnailUri
-            )
         }
     }
 }
