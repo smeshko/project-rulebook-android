@@ -252,9 +252,14 @@ development_status:
     status: ready-for-review
     story_file: docs/sprint-artifacts/4-9-camera-permission-handling.md
 
+  # Story 4.10: Camera Close/Back Navigation
+  4-10-camera-close-back-navigation:
+    status: done
+    story_file: docs/sprint-artifacts/4-10-camera-close-back-navigation.md
+
 summary:
-  total_stories: 35
-  done: 33
+  total_stories: 36
+  done: 34
   ready_for_dev: 0
   in_progress: 1
   in_review: 1

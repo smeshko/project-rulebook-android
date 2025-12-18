@@ -1,5 +1,6 @@
 package com.rulebook.feature.camera
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rulebook.core.data.repository.CreditRepository
@@ -10,6 +11,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+
+private const val TAG = "CameraViewModel"
 
 /**
  * ViewModel for the Camera screen.
@@ -267,5 +270,21 @@ class CameraViewModel(
      */
     fun onPermissionRequested() {
         _uiState.update { it.copy(hasRequestedPermission = true) }
+    }
+
+    // =========================================================================
+    // Resource Cleanup (Story 4.10)
+    // =========================================================================
+
+    /**
+     * Called when the ViewModel is cleared (screen removed from composition).
+     *
+     * Logs cleanup for debugging purposes. The viewModelScope is automatically
+     * cancelled by ViewModel, which stops the credit balance observation.
+     * Camera resources are released by CameraPreview's DisposableEffect.
+     */
+    override fun onCleared() {
+        super.onCleared()
+        Log.d(TAG, "CameraViewModel cleared - viewModelScope cancelled")
     }
 }

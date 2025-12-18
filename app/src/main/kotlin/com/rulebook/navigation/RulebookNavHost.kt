@@ -86,6 +86,7 @@ fun RulebookNavHost(
         // Camera - capture rulebook pages
         // Full-screen camera preview with immersive mode (hidden system bars)
         // Predictive back handled automatically by NavHost - shows preview during gesture
+        // Close button and system back navigate to previous screen (Story 4.10)
         // Uses slide transition for detail screen
         composable(
             route = Route.Camera.route,
@@ -95,6 +96,7 @@ fun RulebookNavHost(
             popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
             CameraScreen(
+                onNavigateBack = { navController.popBackStack() },
                 onPhotoCaptured = { imageUri ->
                     // TODO: Navigate to processing screen with captured image
                     // Will be implemented in Story 4.7 (image processing)
