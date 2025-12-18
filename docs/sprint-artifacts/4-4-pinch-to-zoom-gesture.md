@@ -39,16 +39,16 @@ so that I can focus on the game box from a distance.
   - [x] Extract `minZoomRatio` and `maxZoomRatio`
   - [x] Store bounds in ViewModel state
 
-- [ ] Task 3: Implement Pinch-to-Zoom Gesture Detection (AC: #1, #2)
-  - [ ] Add `pointerInput` modifier with `detectTransformGestures`
-  - [ ] Calculate new zoom ratio from gesture scale
-  - [ ] Clamp zoom ratio within bounds
-  - [ ] Update state with new zoom ratio
+- [x] Task 3: Implement Pinch-to-Zoom Gesture Detection (AC: #1, #2)
+  - [x] Add `pointerInput` modifier with `detectTransformGestures`
+  - [x] Calculate new zoom ratio from gesture scale
+  - [x] Clamp zoom ratio within bounds
+  - [x] Update state with new zoom ratio
 
-- [ ] Task 4: Apply Zoom to Camera (AC: #1, #2)
-  - [ ] Use `camera.cameraControl.setZoomRatio(ratio)`
-  - [ ] Apply zoom immediately on gesture change
-  - [ ] Handle zoom change result (success/failure)
+- [x] Task 4: Apply Zoom to Camera (AC: #1, #2)
+  - [x] Use `camera.cameraControl.setZoomRatio(ratio)`
+  - [x] Apply zoom immediately on gesture change
+  - [x] Handle zoom change result (success/failure)
 
 - [ ] Task 5: Create ZoomIndicator Composable (AC: #4)
   - [ ] Create `ZoomIndicator.kt` in `feature/camera/components/`
@@ -204,6 +204,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 - Task 1: Added zoom state properties to CameraUiState (zoomRatio, minZoomRatio, maxZoomRatio, showZoomIndicator). Added zoom management methods to CameraViewModel (setZoomBounds, setZoomRatio, hideZoomIndicator). Added 7 unit tests for zoom state management.
 - Task 2: Updated CameraPreview to query cameraInfo.zoomState after camera binding. Created ZoomBounds data class to pass min/max zoom ratios. Added callbacks for zoom bounds and CameraControl availability. Wired up CameraScreen to store zoom bounds in ViewModel.
+- Task 3 & 4: Implemented pinch-to-zoom gesture using Compose's detectTransformGestures. Wrapped CameraPreview in a Box with pointerInput modifier. Gesture scale factor multiplies current zoom ratio, clamped to bounds. CameraControl.setZoomRatio() called immediately on gesture change for responsive feedback.
 
 ### File List
 

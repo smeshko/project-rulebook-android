@@ -2,7 +2,9 @@ package com.rulebook.feature.camera
 
 import android.Manifest
 import android.app.Activity
+import androidx.camera.core.CameraControl
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,9 +23,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -103,25 +107,50 @@ fun CameraScreen(
         when {
             // Permission granted - show camera preview
             cameraPermissionState.status.isGranted -> {
-                CameraPreview(
-                    modifier = Modifier.fillMaxSize(),
-                    flashMode = uiState.flashMode,
-                    onPreviewReady = { viewModel.onCameraReady() },
-                    onError = { viewModel.onCameraError(it) },
-                    onFlashUnitAvailable = { viewModel.onFlashUnitAvailable(it) },
-                    onImageCaptureReady = { captureFunction ->
-                        capturePhotoState.value = captureFunction
-                    },
-                    onImageCaptured = { uri ->
-                        viewModel.onCaptureSuccess(uri.toString())
-                    },
-                    onCaptureError = { error ->
-                        viewModel.onCaptureError(error)
-                    },
-                    onZoomBoundsAvailable = { bounds ->
-                        viewModel.setZoomBounds(bounds.minZoomRatio, bounds.maxZoomRatio)
-                    }
-                )
+                // Track CameraControl for applying zoom
+                var cameraControl by remember { mutableStateOf<CameraControl?>(null) }
+
+                // Camera preview with zoom gesture detection
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(uiState.zoomRatio, uiState.minZoomRatio, uiState.maxZoomRatio) {
+                            detectTransformGestures { _, _, zoom, _ ->
+                                // Calculate new zoom based on gesture scale factor
+                                val newZoom = (uiState.zoomRatio * zoom).coerceIn(
+                                    uiState.minZoomRatio,
+                                    uiState.maxZoomRatio
+                                )
+                                viewModel.setZoomRatio(newZoom)
+
+                                // Apply zoom to camera immediately
+                                cameraControl?.setZoomRatio(newZoom)
+                            }
+                        }
+                ) {
+                    CameraPreview(
+                        modifier = Modifier.fillMaxSize(),
+                        flashMode = uiState.flashMode,
+                        onPreviewReady = { viewModel.onCameraReady() },
+                        onError = { viewModel.onCameraError(it) },
+                        onFlashUnitAvailable = { viewModel.onFlashUnitAvailable(it) },
+                        onImageCaptureReady = { captureFunction ->
+                            capturePhotoState.value = captureFunction
+                        },
+                        onImageCaptured = { uri ->
+                            viewModel.onCaptureSuccess(uri.toString())
+                        },
+                        onCaptureError = { error ->
+                            viewModel.onCaptureError(error)
+                        },
+                        onZoomBoundsAvailable = { bounds ->
+                            viewModel.setZoomBounds(bounds.minZoomRatio, bounds.maxZoomRatio)
+                        },
+                        onCameraControlAvailable = { control ->
+                            cameraControl = control
+                        }
+                    )
+                }
 
                 // Show loading indicator while camera initializes
                 if (!uiState.isCameraReady && uiState.error == null) {
