@@ -411,7 +411,7 @@ fun CameraScreen(
                         viewModel.onPermissionRequested()
                         cameraPermissionState.launchPermissionRequest()
                     },
-                    onNavigateBack = { /* No-op for now - CameraScreen doesn't have back navigation */ },
+                    onNavigateBack = onNavigateBack,
                     onGalleryClick = {
                         pickMedia.launch(
                             PickVisualMediaRequest(
