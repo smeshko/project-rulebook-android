@@ -48,10 +48,10 @@ so that the app doesn't request unnecessary permissions at install.
   - [x] Include "Continue" button to request permission
   - [x] Apply brutalist styling
 
-- [ ] Task 4: Implement Permission Request (AC: #2, #3)
-  - [ ] Use `rememberPermissionState` from Accompanist OR manual approach
-  - [ ] Request `Manifest.permission.CAMERA`
-  - [ ] Handle grant result to show camera
+- [x] Task 4: Implement Permission Request (AC: #2, #3)
+  - [x] Use `rememberPermissionState` from Accompanist OR manual approach
+  - [x] Request `Manifest.permission.CAMERA`
+  - [x] Handle grant result to show camera
 
 - [ ] Task 5: Handle Permission Denial (AC: #4)
   - [ ] Detect when permission is denied
@@ -313,6 +313,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Task 1: Added CameraPermissionState enum with NOT_DETERMINED, GRANTED, DENIED, PERMANENTLY_DENIED states. Added permissionState field to CameraUiState. Added onPermissionGranted(), onPermissionDenied(), and onPermissionPermanentlyDenied() methods to CameraViewModel. All 5 new unit tests pass.
 - Task 2: Removed auto-request permission on screen launch. Added LaunchedEffect that checks permission state and syncs to ViewModel without requesting. Permission is now only requested when user explicitly clicks button (AC #5 satisfied).
 - Task 3: Created PermissionRationale.kt composable with brutalist styling using RulebookTheme colors, typography, and RulebookButton components. Features camera icon, title, explanation, and "Allow Camera Access" CTA with gallery button fallback. Removed inline version from CameraScreen.
+- Task 4: Permission request already implemented via Accompanist's rememberPermissionState. launchPermissionRequest() is called on button click, status.isGranted automatically updates and shows camera preview when granted.
 
 ### File List
 
