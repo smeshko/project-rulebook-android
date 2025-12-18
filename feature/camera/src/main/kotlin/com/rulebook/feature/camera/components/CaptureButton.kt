@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
  * - Thick border (4dp) characteristic of brutalist design
  * - High contrast white/black color scheme for camera context
  * - Inner circle providing visual depth
+ * - Loading indicator when capture is in progress
  *
  * The button size exceeds the minimum touch target of 48dp,
  * providing a comfortable tap area for photo capture.
@@ -37,26 +39,31 @@ import androidx.compose.ui.unit.dp
  * @param modifier Modifier for the button container.
  * @param enabled Whether the button is enabled. When false, the button
  *                appears dimmed and doesn't respond to clicks.
+ * @param isCapturing Whether a photo capture is in progress. When true,
+ *                    shows a loading indicator and disables the button.
  */
 @Composable
 fun CaptureButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    isCapturing: Boolean = false
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
+    // Button is disabled when explicitly disabled OR when capturing
+    val isEnabled = enabled && !isCapturing
+
     // Use white/black colors for camera context (always visible on camera preview)
     val borderColor = Color.White
-    val backgroundColor = Color.White
     val innerCircleColor = Color.White
 
     Box(
         modifier = modifier
             .size(72.dp)
-            .alpha(if (enabled) 1f else 0.5f)
+            .alpha(if (isEnabled) 1f else 0.5f)
             .semantics {
-                contentDescription = "Capture photo"
+                contentDescription = if (isCapturing) "Capturing photo" else "Capture photo"
                 role = Role.Button
             }
             .border(
@@ -67,21 +74,30 @@ fun CaptureButton(
             .clip(CircleShape)
             .background(Color.Transparent)
             .clickable(
-                enabled = enabled,
+                enabled = isEnabled,
                 interactionSource = interactionSource,
                 indication = ripple(bounded = true, color = Color.White),
                 onClick = onClick
             ),
         contentAlignment = Alignment.Center
     ) {
-        // Inner circle for visual depth - characteristic of camera capture buttons
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .background(
-                    color = innerCircleColor,
-                    shape = CircleShape
-                )
-        )
+        if (isCapturing) {
+            // Show loading indicator during capture
+            CircularProgressIndicator(
+                modifier = Modifier.size(40.dp),
+                color = Color.White,
+                strokeWidth = 3.dp
+            )
+        } else {
+            // Inner circle for visual depth - characteristic of camera capture buttons
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(
+                        color = innerCircleColor,
+                        shape = CircleShape
+                    )
+            )
+        }
     }
 }

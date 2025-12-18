@@ -70,4 +70,43 @@ class CaptureButtonTest {
 
         assert(!clicked) { "Button click callback should not be invoked when disabled" }
     }
+
+    @Test
+    fun captureButton_showsCapturingState_whenCapturing() {
+        composeTestRule.setContent {
+            RulebookTheme {
+                CaptureButton(
+                    onClick = {},
+                    isCapturing = true
+                )
+            }
+        }
+
+        // Content description changes when capturing
+        composeTestRule
+            .onNodeWithContentDescription("Capturing photo")
+            .assertIsDisplayed()
+            .assertIsNotEnabled()
+    }
+
+    @Test
+    fun captureButton_isNotClickable_whenCapturing() {
+        var clicked = false
+
+        composeTestRule.setContent {
+            RulebookTheme {
+                CaptureButton(
+                    onClick = { clicked = true },
+                    enabled = true,
+                    isCapturing = true
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription("Capturing photo")
+            .performClick()
+
+        assert(!clicked) { "Button click callback should not be invoked when capturing" }
+    }
 }

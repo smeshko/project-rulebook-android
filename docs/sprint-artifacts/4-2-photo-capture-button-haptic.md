@@ -54,11 +54,11 @@ so that I can submit my game box image for analysis.
   - [x] Respect system haptic setting (check Settings)
   - [x] Handle devices without vibration capability
 
-- [ ] Task 4: Handle Capture State (AC: #6)
-  - [ ] Add `isCapturing` to CameraUiState
-  - [ ] Disable button during capture (visual + interaction)
-  - [ ] Show brief loading indicator during capture
-  - [ ] Re-enable button after capture completes or fails
+- [x] Task 4: Handle Capture State (AC: #6)
+  - [x] Add `isCapturing` to CameraUiState
+  - [x] Disable button during capture (visual + interaction)
+  - [x] Show brief loading indicator during capture
+  - [x] Re-enable button after capture completes or fails
 
 - [ ] Task 5: Save Captured Image (AC: #1, #3)
   - [ ] Save image to temporary cache file
@@ -222,6 +222,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Task 1: Added ImageCapture use case to CameraX. Updated CameraUiState with isCapturing and capturedImageUri fields. Added capture state management methods to CameraViewModel (onCaptureStarted, onCaptureSuccess, onCaptureError, clearCapturedImage). Updated CameraPreview to bind ImageCapture with Preview and expose capture functionality via callback.
 - Task 2: Created CaptureButton composable with brutalist styling (72dp circle, 4dp border, inner 56dp circle). Uses white colors for visibility on camera preview. Includes enabled/disabled state with alpha dimming.
 - Task 3: Implemented haptic feedback utility with HapticUtils in core/common. Uses View.performHapticFeedback with CONFIRM constant (API 30+) or KEYBOARD_TAP for older APIs. Automatically respects system haptic settings. Created rememberCaptureHapticFeedback() composable helper in camera module.
+- Task 4: Added isCapturing parameter to CaptureButton. When capturing, shows CircularProgressIndicator instead of inner circle, disables button interaction, and updates content description to "Capturing photo". State was already added in Task 1.
 
 ### File List
 
