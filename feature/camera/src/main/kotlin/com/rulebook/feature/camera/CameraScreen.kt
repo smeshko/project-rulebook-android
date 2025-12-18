@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -55,6 +56,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import android.net.Uri
+import com.rulebook.core.designsystem.component.CreditsDisplay
 import com.rulebook.feature.camera.components.CameraPreview
 import com.rulebook.feature.camera.components.CaptureButton
 import com.rulebook.feature.camera.components.FlashToggle
@@ -301,15 +303,27 @@ fun CameraScreen(
                 }
 
                 // Flash toggle - only show if device has flash unit (Story 4.3)
+                // Uses statusBarsPadding to avoid notch/punch-hole cutouts
                 if (uiState.hasFlashUnit) {
                     FlashToggle(
                         flashMode = uiState.flashMode,
                         onToggle = { viewModel.cycleFlashMode() },
                         modifier = Modifier
                             .align(Alignment.TopStart)
+                            .statusBarsPadding()
                             .padding(16.dp)
                     )
                 }
+
+                // Credits display - shows user's remaining scan credits (Story 4.8)
+                // Uses statusBarsPadding to avoid notch/punch-hole cutouts
+                CreditsDisplay(
+                    creditCount = uiState.creditBalance,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .statusBarsPadding()
+                        .padding(16.dp)
+                )
 
                 // Show camera controls when camera is ready (Story 4.2)
                 if (uiState.isCameraReady) {

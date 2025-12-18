@@ -1,9 +1,13 @@
 package com.rulebook.feature.camera
 
+import com.rulebook.core.data.repository.CreditRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -18,13 +22,17 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class CameraViewModelTest {
 
-    private val testDispatcher = StandardTestDispatcher()
+    // Use UnconfinedTestDispatcher so coroutines execute eagerly without needing advanceUntilIdle
+    // This ensures creditBalance flow updates are processed immediately during tests
+    private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: CameraViewModel
+    private lateinit var fakeCreditRepository: FakeCreditRepository
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = CameraViewModel()
+        fakeCreditRepository = FakeCreditRepository()
+        viewModel = CameraViewModel(creditRepository = fakeCreditRepository)
     }
 
     @After
@@ -372,4 +380,70 @@ class CameraViewModelTest {
 
         assertNull(state.lastGalleryThumbnailUri)
     }
+
+    // =========================================================================
+    // Credit Balance Tests (Story 4.8)
+    // =========================================================================
+
+    @Test
+    fun `initial state has credit balance from repository`() = runTest {
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals(0, state.creditBalance)
+    }
+
+    @Test
+    fun `credit balance updates when repository emits new value`() = runTest {
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals(3, state.creditBalance)
+    }
+
+    @Test
+    fun `credit balance updates reactively on change`() = runTest {
+        // Start with some credits
+        fakeCreditRepository.setCreditBalance(5)
+        advanceUntilIdle()
+
+        assertEquals(5, viewModel.uiState.first().creditBalance)
+
+        // Simulate credit deduction
+        fakeCreditRepository.setCreditBalance(4)
+        advanceUntilIdle()
+
+        assertEquals(4, viewModel.uiState.first().creditBalance)
+    }
+}
+
+/**
+ * Fake implementation of [CreditRepository] for testing.
+ */
+class FakeCreditRepository : CreditRepository {
+    private val _creditBalance = MutableStateFlow(0)
+    override val creditBalance: Flow<Int> = _creditBalance
+
+    fun setCreditBalance(balance: Int) {
+        _creditBalance.value = balance
+    }
+
+    override suspend fun awardInitialCredits(amount: Int): Boolean {
+        if (_creditBalance.value == 0) {
+            _creditBalance.value = amount
+            return true
+        }
+        return false
+    }
+
+    override suspend fun deductCredit(): Boolean {
+        if (_creditBalance.value > 0) {
+            _creditBalance.value -= 1
+            return true
+        }
+        return false
+    }
+
+    override suspend fun hasCredits(): Boolean = _creditBalance.value > 0
 }

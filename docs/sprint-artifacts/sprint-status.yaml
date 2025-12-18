@@ -244,12 +244,17 @@ development_status:
 
   # Story 4.8: Credit Balance Display on Camera
   4-8-credit-balance-display-camera:
-    status: in-progress
+    status: done
     story_file: docs/sprint-artifacts/4-8-credit-balance-display-camera.md
 
+  # Story 4.9: Camera Permission Handling
+  4-9-camera-permission-handling:
+    status: in-progress
+    story_file: docs/sprint-artifacts/4-9-camera-permission-handling.md
+
 summary:
-  total_stories: 34
-  done: 32
+  total_stories: 35
+  done: 33
   ready_for_dev: 0
   in_progress: 2
   in_review: 0

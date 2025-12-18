@@ -39,6 +39,7 @@ data class FocusPoint(
  * @param showFocusIndicator Whether to display the focus indicator at [focusPoint].
  * @param lastGalleryThumbnailUri The URI of the most recent photo in the device gallery.
  *                                 Displayed as a thumbnail preview on the gallery button (Story 4.6).
+ * @param creditBalance The user's current credit balance for scans. Default is 0.
  */
 data class CameraUiState(
     val isCameraReady: Boolean = false,
@@ -53,5 +54,6 @@ data class CameraUiState(
     val showZoomIndicator: Boolean = false,
     val focusPoint: FocusPoint? = null,
     val showFocusIndicator: Boolean = false,
-    val lastGalleryThumbnailUri: String? = null
+    val lastGalleryThumbnailUri: String? = null,
+    val creditBalance: Int = 0
 )
