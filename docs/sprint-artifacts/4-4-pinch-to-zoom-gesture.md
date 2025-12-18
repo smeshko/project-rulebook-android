@@ -56,10 +56,10 @@ so that I can focus on the game box from a distance.
   - [x] Animate appearance and disappearance
   - [x] Position unobtrusively (center or corner)
 
-- [ ] Task 6: Implement Zoom Indicator Auto-Hide (AC: #4)
-  - [ ] Show indicator when zoom changes
-  - [ ] Auto-hide after 1.5-2 seconds of inactivity
-  - [ ] Use `LaunchedEffect` with delay for hiding
+- [x] Task 6: Implement Zoom Indicator Auto-Hide (AC: #4)
+  - [x] Show indicator when zoom changes
+  - [x] Auto-hide after 1.5-2 seconds of inactivity
+  - [x] Use `LaunchedEffect` with delay for hiding
 
 ## Dev Notes
 
@@ -206,6 +206,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Task 2: Updated CameraPreview to query cameraInfo.zoomState after camera binding. Created ZoomBounds data class to pass min/max zoom ratios. Added callbacks for zoom bounds and CameraControl availability. Wired up CameraScreen to store zoom bounds in ViewModel.
 - Task 3 & 4: Implemented pinch-to-zoom gesture using Compose's detectTransformGestures. Wrapped CameraPreview in a Box with pointerInput modifier. Gesture scale factor multiplies current zoom ratio, clamped to bounds. CameraControl.setZoomRatio() called immediately on gesture change for responsive feedback.
 - Task 5: Created ZoomIndicator composable with AnimatedVisibility for fade in/out. Displays zoom ratio formatted as "1.5x" in a semi-transparent pill. Positioned at center of screen.
+- Task 6: Added LaunchedEffect keyed on zoomRatio that waits 1.5 seconds then calls hideZoomIndicator(). Indicator shows on zoom change and auto-hides after delay.
 
 ### File List
 

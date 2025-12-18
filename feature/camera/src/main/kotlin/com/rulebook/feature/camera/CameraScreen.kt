@@ -153,6 +153,14 @@ fun CameraScreen(
                     )
                 }
 
+                // Auto-hide zoom indicator after delay
+                LaunchedEffect(uiState.zoomRatio) {
+                    if (uiState.showZoomIndicator) {
+                        kotlinx.coroutines.delay(1500L)
+                        viewModel.hideZoomIndicator()
+                    }
+                }
+
                 // Zoom indicator overlay - centered on screen
                 ZoomIndicator(
                     zoomRatio = uiState.zoomRatio,
