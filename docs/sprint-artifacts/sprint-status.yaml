@@ -234,15 +234,15 @@ development_status:
 
   # Story 4.8: Credit Balance Display on Camera
   4-8-credit-balance-display-camera:
-    status: review
+    status: done
     story_file: docs/sprint-artifacts/4-8-credit-balance-display-camera.md
 
 summary:
   total_stories: 32
-  done: 31
+  done: 32
   ready_for_dev: 0
   in_progress: 0
-  in_review: 1
+  in_review: 0
   blocked: 0
   epic_1_status: done
   epic_2_status: done
