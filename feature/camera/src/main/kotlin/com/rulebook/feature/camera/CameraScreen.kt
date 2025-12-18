@@ -82,6 +82,7 @@ fun CameraScreen(
             cameraPermissionState.status.isGranted -> {
                 CameraPreview(
                     modifier = Modifier.fillMaxSize(),
+                    flashMode = uiState.flashMode,
                     onPreviewReady = { viewModel.onCameraReady() },
                     onError = { viewModel.onCameraError(it) },
                     onFlashUnitAvailable = { viewModel.onFlashUnitAvailable(it) }

@@ -1,22 +1,26 @@
 package com.rulebook.feature.camera.components
 
-import android.content.Context
 import android.util.Log
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.rulebook.feature.camera.FlashMode
 
 private const val TAG = "CameraPreview"
 
@@ -30,6 +34,8 @@ private const val TAG = "CameraPreview"
  * - Proper cleanup when the composable leaves composition
  * - Lifecycle-aware camera management (pause/resume)
  * - Flash unit availability detection
+ * - Flash mode configuration for ImageCapture
+ * - Torch control based on flash mode
  *
  * ## Performance Notes
  * - Uses COMPATIBLE implementation mode for broad device support
@@ -37,6 +43,7 @@ private const val TAG = "CameraPreview"
  * - Camera is bound to the composable's lifecycle owner for automatic pause/resume
  *
  * @param modifier Modifier for the preview container.
+ * @param flashMode Current flash mode to apply to ImageCapture and torch.
  * @param onPreviewReady Callback invoked when camera preview starts displaying frames.
  * @param onError Callback invoked if camera initialization fails.
  * @param onFlashUnitAvailable Callback invoked with flash unit availability status.
@@ -44,6 +51,7 @@ private const val TAG = "CameraPreview"
 @Composable
 fun CameraPreview(
     modifier: Modifier = Modifier,
+    flashMode: FlashMode = FlashMode.OFF,
     onPreviewReady: () -> Unit = {},
     onError: (String) -> Unit = {},
     onFlashUnitAvailable: (Boolean) -> Unit = {}
@@ -61,6 +69,12 @@ fun CameraPreview(
 
     // Track whether the composable is still active to prevent binding after disposal
     val isActiveState = remember { mutableStateOf(true) }
+
+    // Store Camera instance for torch control
+    val cameraState: MutableState<Camera?> = remember { mutableStateOf(null) }
+
+    // Store ImageCapture instance for flash mode updates
+    val imageCaptureState: MutableState<ImageCapture?> = remember { mutableStateOf(null) }
 
     // Handle camera binding and cleanup
     DisposableEffect(lifecycleOwner) {
@@ -81,13 +95,16 @@ fun CameraPreview(
 
             try {
                 val cameraProvider = cameraProviderFuture.get()
-                bindCameraPreview(
+                val (camera, imageCapture) = bindCameraPreview(
                     cameraProvider = cameraProvider,
                     lifecycleOwner = lifecycleOwner,
                     previewView = previewView,
+                    flashMode = flashMode,
                     onPreviewReady = onPreviewReady,
                     onFlashUnitAvailable = onFlashUnitAvailable
                 )
+                cameraState.value = camera
+                imageCaptureState.value = imageCapture
             } catch (e: Exception) {
                 Log.e(TAG, "Camera initialization failed", e)
                 onError("Failed to initialize camera: ${e.message}")
@@ -97,6 +114,11 @@ fun CameraPreview(
         onDispose {
             // Mark composable as disposed to prevent binding in pending listeners
             isActiveState.value = false
+
+            // Disable torch on dispose
+            cameraState.value?.cameraControl?.enableTorch(false)
+            cameraState.value = null
+            imageCaptureState.value = null
 
             // Unbind all use cases when leaving the screen
             // Only unbind if the future is already complete to avoid blocking the main thread
@@ -116,6 +138,22 @@ fun CameraPreview(
         }
     }
 
+    // Update torch and ImageCapture flash mode when flashMode changes
+    LaunchedEffect(flashMode, cameraState.value, imageCaptureState.value) {
+        val camera = cameraState.value ?: return@LaunchedEffect
+        val imageCapture = imageCaptureState.value ?: return@LaunchedEffect
+
+        // Update ImageCapture flash mode
+        imageCapture.flashMode = flashMode.toImageCaptureFlashMode()
+        Log.d(TAG, "ImageCapture flash mode updated to: $flashMode")
+
+        // Enable torch only when flash mode is ON (continuous light)
+        // For AUTO mode, flash fires only during capture, not as continuous light
+        val enableTorch = flashMode == FlashMode.ON
+        camera.cameraControl.enableTorch(enableTorch)
+        Log.d(TAG, "Torch enabled: $enableTorch")
+    }
+
     // Display the PreviewView
     AndroidView(
         factory = { previewView },
@@ -129,16 +167,19 @@ fun CameraPreview(
  * @param cameraProvider The CameraX provider instance.
  * @param lifecycleOwner The lifecycle owner to bind the camera to.
  * @param previewView The PreviewView to display the preview.
+ * @param flashMode Initial flash mode to apply.
  * @param onPreviewReady Callback when preview starts.
  * @param onFlashUnitAvailable Callback with flash unit availability status.
+ * @return Pair of Camera instance and ImageCapture instance for external control.
  */
 private fun bindCameraPreview(
     cameraProvider: ProcessCameraProvider,
     lifecycleOwner: LifecycleOwner,
     previewView: PreviewView,
+    flashMode: FlashMode,
     onPreviewReady: () -> Unit,
     onFlashUnitAvailable: (Boolean) -> Unit
-) {
+): Pair<Camera, ImageCapture> {
     // Unbind any existing use cases first
     cameraProvider.unbindAll()
 
@@ -149,15 +190,21 @@ private fun bindCameraPreview(
             preview.surfaceProvider = previewView.surfaceProvider
         }
 
+    // Create ImageCapture use case with initial flash mode
+    val imageCapture = ImageCapture.Builder()
+        .setFlashMode(flashMode.toImageCaptureFlashMode())
+        .build()
+
     // Select rear camera
     val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
     try {
-        // Bind camera to lifecycle
+        // Bind camera to lifecycle with both Preview and ImageCapture
         val camera = cameraProvider.bindToLifecycle(
             lifecycleOwner,
             cameraSelector,
-            preview
+            preview,
+            imageCapture
         )
 
         // Check if the device has a flash unit
@@ -165,8 +212,16 @@ private fun bindCameraPreview(
         Log.d(TAG, "Camera has flash unit: $hasFlash")
         onFlashUnitAvailable(hasFlash)
 
-        Log.d(TAG, "Camera preview bound successfully")
+        // Enable torch if flash mode is ON (continuous light during preview)
+        if (hasFlash && flashMode == FlashMode.ON) {
+            camera.cameraControl.enableTorch(true)
+            Log.d(TAG, "Initial torch enabled for flash mode ON")
+        }
+
+        Log.d(TAG, "Camera preview bound successfully with ImageCapture")
         onPreviewReady()
+
+        return Pair(camera, imageCapture)
     } catch (e: Exception) {
         Log.e(TAG, "Failed to bind camera preview", e)
         throw e

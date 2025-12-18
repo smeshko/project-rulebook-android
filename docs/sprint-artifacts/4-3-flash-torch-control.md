@@ -54,16 +54,16 @@ so that I can photograph game boxes in low-light conditions.
   - [x] Show current state clearly with icon and optional label
   - [x] Add subtle animation on mode change
 
-- [ ] Task 5: Configure ImageCapture Flash Mode (AC: #1)
-  - [ ] Map `FlashMode` enum to `ImageCapture.FLASH_MODE_*`
-  - [ ] Apply flash mode to ImageCapture use case
-  - [ ] Update flash mode when state changes
+- [x] Task 5: Configure ImageCapture Flash Mode (AC: #1)
+  - [x] Map `FlashMode` enum to `ImageCapture.FLASH_MODE_*`
+  - [x] Apply flash mode to ImageCapture use case
+  - [x] Update flash mode when state changes
 
-- [ ] Task 6: Implement Torch Mode (AC: #3)
-  - [ ] Get `Camera` instance from `cameraProvider.bindToLifecycle()`
-  - [ ] Use `camera.cameraControl.enableTorch(true/false)`
-  - [ ] Enable torch when flash mode is ON
-  - [ ] Disable torch when flash mode is OFF or AUTO
+- [x] Task 6: Implement Torch Mode (AC: #3)
+  - [x] Get `Camera` instance from `cameraProvider.bindToLifecycle()`
+  - [x] Use `camera.cameraControl.enableTorch(true/false)`
+  - [x] Enable torch when flash mode is ON
+  - [x] Disable torch when flash mode is OFF or AUTO
 
 - [ ] Task 7: Handle Flash Mode Persistence (AC: #1)
   - [ ] Optionally persist last flash mode to DataStore
@@ -211,6 +211,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Task 1: Created FlashMode enum with OFF/ON/AUTO states and cycling logic. Added flashMode and hasFlashUnit to CameraUiState. Added cycleFlashMode() and onFlashUnitAvailable() methods to CameraViewModel. All unit tests pass.
 - Task 2: Added flash unit detection via CameraInfo.hasFlashUnit() after camera binding. Added onFlashUnitAvailable callback to CameraPreview and wired it through CameraScreen to CameraViewModel.
 - Task 3 & 4: Created FlashToggle composable with Material icons (FlashOff, FlashOn, FlashAuto), animated color transitions, brutalist styling (48dp tap target, semi-transparent background), and accessibility support. Integrated into CameraScreen positioned in top-left corner. Added UI tests for all flash modes.
+- Task 5 & 6: Added ImageCapture use case to CameraPreview with flash mode applied via toImageCaptureFlashMode(). Implemented torch control via camera.cameraControl.enableTorch() - torch activates when flash mode is ON (continuous light), disabled for OFF/AUTO modes. Added LaunchedEffect to update torch and flash mode dynamically when user toggles. Proper cleanup on dispose.
 
 ### File List
 
