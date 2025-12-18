@@ -1,6 +1,6 @@
 # Story 4.9: Camera Permission Handling
 
-Status: ready-for-review
+Status: done
 
 ## Story
 
