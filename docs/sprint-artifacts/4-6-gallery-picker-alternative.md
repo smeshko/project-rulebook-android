@@ -32,17 +32,15 @@ so that I can use an existing image of a game box.
 
 ## Tasks / Subtasks
 
-- [x] Task 1: Add Gallery State to CameraUiState (AC: #1, #2)
-  - [x] Add `selectedGalleryImageUri: String?` to CameraUiState
-  - [ ] Add `lastGalleryThumbnail: Bitmap?` to CameraUiState (optional - deferred to Task 4)
-  - [x] Create `onGalleryImageSelected(uri: String)` action in ViewModel
-  - [x] Create `clearSelectedGalleryImage()` action in ViewModel
+- [x] Task 1: Add Gallery Thumbnail State to CameraUiState (AC: #4)
+  - [x] Add `lastGalleryThumbnailUri: String?` to CameraUiState
+  - [x] Create `setLastGalleryThumbnail(uri: String?)` action in ViewModel
 
 - [x] Task 2: Implement Photo Picker Contract (AC: #1, #2, #3)
   - [x] Use `ActivityResultContracts.PickVisualMedia()` for modern picker
   - [x] Configure for image media type only
   - [x] Create `rememberLauncherForActivityResult` in composable
-  - [x] Handle selected URI result
+  - [x] Handle selected URI result via callback
 
 - [x] Task 3: Create GalleryButton Composable (AC: #4, #5)
   - [x] Create `GalleryButton.kt` in `feature/camera/components/`
@@ -58,7 +56,7 @@ so that I can use an existing image of a game box.
 
 - [x] Task 5: Handle Gallery Result (AC: #2)
   - [x] Receive URI from photo picker
-  - [x] Update state with selected image
+  - [x] Pass URI directly to parent via `onGalleryImageSelected` callback
   - [x] Trigger navigation to processing (same as capture via callback)
 
 - [x] Task 6: Handle Cancellation (AC: #3)
@@ -68,8 +66,14 @@ so that I can use an existing image of a game box.
 
 - [x] Task 7: Wire Gallery to Processing Flow (AC: #2)
   - [x] Same processing path as captured photos via `onGalleryImageSelected` callback
+  - [x] Wire callback in RulebookNavHost and CameraNavigation
   - [ ] Ensure compression applied to gallery images too (handled in processing module)
   - [x] Navigate to processing screen with selected image (via callback)
+
+- [x] Task 8: Gallery Available Without Camera (Code Review Fix)
+  - [x] Show gallery button even when camera permission denied
+  - [x] Show gallery button in rationale and denied screens
+  - [x] Allows users to use gallery as true alternative to camera
 
 ## Dev Notes
 
@@ -238,20 +242,24 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
-- Task 1: Added `selectedGalleryImageUri` to CameraUiState and corresponding ViewModel methods for gallery image selection. Tests pass.
+- Task 1: Added `lastGalleryThumbnailUri` to CameraUiState with corresponding `setLastGalleryThumbnail` method.
 - Tasks 2-3, 5-7: Implemented GalleryButton composable with brutalist styling, photo picker using ActivityResultContracts.PickVisualMedia(), integrated into CameraScreen with proper callback handling. Gallery button positioned to the left of capture button.
 - Task 4: Added optional thumbnail feature - loads last photo from MediaStore and displays it on the gallery button using Coil. Falls back to gallery icon when no images available.
+- Code Review Cycle 1: Removed unused `selectedGalleryImageUri` state - the callback mechanism to parent handles gallery selection directly without intermediate state.
+- Code Review Cycle 2: Wired `onGalleryImageSelected` callback in navigation layer. Added gallery button to permission denied/rationale screens so users can access gallery even without camera permission.
 
 ### File List
 
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/navigation/CameraNavigation.kt (modified - added callback params)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/GalleryButton.kt (new)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/util/GalleryThumbnail.kt (new)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 - feature/camera/src/androidTest/kotlin/com/rulebook/feature/camera/components/GalleryButtonTest.kt (new)
 - feature/camera/build.gradle.kts (modified - added coil-compose dependency)
+- app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (modified - wired callbacks)
 
 ## Epic Dependencies
 

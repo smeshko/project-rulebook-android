@@ -253,7 +253,7 @@ fun CameraScreen(
                     )
                 }
 
-                // Show camera controls when camera is ready (Story 4.2, 4.6)
+                // Show camera controls when camera is ready (Story 4.2)
                 if (uiState.isCameraReady) {
                     Box(
                         modifier = Modifier
@@ -301,13 +301,30 @@ fun CameraScreen(
             // Permission denied but can show rationale
             cameraPermissionState.status.shouldShowRationale -> {
                 PermissionRationale(
-                    onRequestPermission = { cameraPermissionState.launchPermissionRequest() }
+                    onRequestPermission = { cameraPermissionState.launchPermissionRequest() },
+                    onGalleryClick = {
+                        pickMedia.launch(
+                            PickVisualMediaRequest(
+                                ActivityResultContracts.PickVisualMedia.ImageOnly
+                            )
+                        )
+                    },
+                    galleryThumbnailUri = uiState.lastGalleryThumbnailUri?.let { Uri.parse(it) }
                 )
             }
 
             // Permission denied permanently or waiting for initial request
             else -> {
-                PermissionDenied()
+                PermissionDenied(
+                    onGalleryClick = {
+                        pickMedia.launch(
+                            PickVisualMediaRequest(
+                                ActivityResultContracts.PickVisualMedia.ImageOnly
+                            )
+                        )
+                    },
+                    galleryThumbnailUri = uiState.lastGalleryThumbnailUri?.let { Uri.parse(it) }
+                )
             }
         }
     }
@@ -318,37 +335,59 @@ fun CameraScreen(
  *
  * Displayed when the user has denied the permission once but hasn't selected
  * "Don't ask again". Explains why the permission is needed and offers a button
- * to request again.
+ * to request again. Also provides gallery access as an alternative (Story 4.6).
  *
  * @param onRequestPermission Callback to trigger permission request.
+ * @param onGalleryClick Callback to open the gallery picker.
+ * @param galleryThumbnailUri Optional URI for gallery button thumbnail.
  */
 @Composable
 internal fun PermissionRationale(
-    onRequestPermission: () -> Unit
+    onRequestPermission: () -> Unit,
+    onGalleryClick: () -> Unit,
+    galleryThumbnailUri: Uri?
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Text(
-            text = "Camera Permission Required",
-            color = Color.White,
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "The camera is needed to capture photos of your game boxes for rule extraction.",
-            color = Color.White.copy(alpha = 0.8f),
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(onClick = onRequestPermission) {
-            Text("Grant Permission")
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Camera Permission Required",
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "The camera is needed to capture photos of your game boxes for rule extraction.",
+                color = Color.White.copy(alpha = 0.8f),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(onClick = onRequestPermission) {
+                Text("Grant Permission")
+            }
+        }
+
+        // Gallery button as alternative - available even without camera permission (Story 4.6)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .padding(bottom = 48.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            GalleryButton(
+                onClick = onGalleryClick,
+                thumbnailUri = galleryThumbnailUri
+            )
         }
     }
 }
@@ -357,30 +396,62 @@ internal fun PermissionRationale(
  * Composable shown when camera permission is denied.
  *
  * Displayed when the permission has been permanently denied. Informs the user
- * they need to enable the permission in system settings.
+ * they need to enable the permission in system settings. Also provides gallery
+ * access as an alternative (Story 4.6).
+ *
+ * @param onGalleryClick Callback to open the gallery picker.
+ * @param galleryThumbnailUri Optional URI for gallery button thumbnail.
  */
 @Composable
-internal fun PermissionDenied() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+internal fun PermissionDenied(
+    onGalleryClick: () -> Unit,
+    galleryThumbnailUri: Uri?
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Text(
-            text = "Camera Permission Denied",
-            color = Color.White,
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Please enable camera permission in your device settings to use this feature.",
-            color = Color.White.copy(alpha = 0.8f),
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Camera Permission Denied",
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Please enable camera permission in your device settings to use this feature.",
+                color = Color.White.copy(alpha = 0.8f),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Or select an existing photo from your gallery:",
+                color = Color.White.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        // Gallery button as alternative - available even without camera permission (Story 4.6)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .safeDrawingPadding()
+                .padding(bottom = 48.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            GalleryButton(
+                onClick = onGalleryClick,
+                thumbnailUri = galleryThumbnailUri
+            )
+        }
     }
 }
 
