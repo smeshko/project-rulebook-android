@@ -50,6 +50,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import com.rulebook.feature.camera.components.CameraPreview
 import com.rulebook.feature.camera.components.CaptureButton
 import com.rulebook.feature.camera.components.FlashToggle
+import com.rulebook.feature.camera.components.FocusIndicator
 import com.rulebook.feature.camera.components.ZoomIndicator
 import com.rulebook.feature.camera.util.rememberCaptureHapticFeedback
 import kotlinx.coroutines.launch
@@ -240,6 +241,12 @@ fun CameraScreen(
                     zoomRatio = uiState.zoomRatio,
                     visible = uiState.showZoomIndicator,
                     modifier = Modifier.align(Alignment.Center)
+                )
+
+                // Focus indicator overlay - positioned at tap location
+                FocusIndicator(
+                    focusPoint = uiState.focusPoint,
+                    visible = uiState.showFocusIndicator
                 )
 
                 // Show loading indicator while camera initializes

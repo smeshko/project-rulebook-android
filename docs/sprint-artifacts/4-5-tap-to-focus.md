@@ -45,17 +45,17 @@ so that I get a sharp image of the game box.
   - [x] Set reasonable timeout (auto-cancel after 5 seconds)
   - [x] Handle focus result callback with error logging
 
-- [ ] Task 5: Create FocusIndicator Composable (AC: #2)
-  - [ ] Create `FocusIndicator.kt` in `feature/camera/components/`
-  - [ ] Design focus ring animation (scale + fade)
-  - [ ] Position at tap location
-  - [ ] Animate in on tap, fade out after focus
+- [x] Task 5: Create FocusIndicator Composable (AC: #2)
+  - [x] Create `FocusIndicator.kt` in `feature/camera/components/`
+  - [x] Design focus ring with corner brackets
+  - [x] Position at tap location (centered on tap point)
+  - [x] Integrated into CameraScreen after ZoomIndicator
 
-- [ ] Task 6: Implement Focus Indicator Animation (AC: #2)
-  - [ ] Scale animation: start larger, animate to target size
-  - [ ] Fade animation: appear, hold, fade out
-  - [ ] Total animation duration ~1 second
-  - [ ] Remove indicator after animation completes
+- [x] Task 6: Implement Focus Indicator Animation (AC: #2)
+  - [x] Scale animation: start at 1.5x, spring down to 1x with bouncy animation
+  - [x] Fade animation: quick fade in (150ms), smooth fade out (300ms)
+  - [x] Total animation duration ~1 second (with 1s auto-hide delay)
+  - [x] Remove indicator after animation completes (via hideFocusIndicator)
 
 ## Dev Notes
 
@@ -210,6 +210,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 - Task 1: Added FocusPoint data class and focus state (focusPoint, showFocusIndicator) to CameraUiState. Added onTapToFocus() and hideFocusIndicator() methods to CameraViewModel. All 4 new unit tests pass.
 - Tasks 2-4: Implemented tap-to-focus gesture detection in CameraScreen. Added MeteringPointFactory callback to CameraPreview. Tap gesture creates MeteringPoint and executes FocusMeteringAction with 5-second auto-cancel. Added auto-hide for focus indicator after 1 second.
+- Tasks 5-6: Created FocusIndicator composable with animated focus ring and corner brackets. Scale animation springs from 1.5x to 1x with bouncy effect. Alpha fades in quickly (150ms) and fades out smoothly (300ms). Integrated into CameraScreen.
 
 ### File List
 
@@ -217,6 +218,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/FocusIndicator.kt (new)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 
 ## Epic Dependencies
