@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.update
  * - Error state management
  * - Flash mode control
  * - Photo capture state management
+ * - Zoom level management (zoom ratio, bounds, indicator visibility)
  *
  * Camera operations (binding, unbinding) are handled by the CameraPreview composable
  * using CameraX's lifecycle integration, but state changes are reported back to this
@@ -122,5 +123,44 @@ class CameraViewModel : ViewModel() {
      */
     fun clearCapturedImage() {
         _uiState.update { it.copy(capturedImageUri = null) }
+    }
+
+    // =========================================================================
+    // Zoom Control (Story 4.4)
+    // =========================================================================
+
+    /**
+     * Sets the zoom bounds supported by the camera.
+     *
+     * Called after camera initialization when zoom state becomes available.
+     *
+     * @param minZoom Minimum zoom ratio (typically 1.0f).
+     * @param maxZoom Maximum zoom ratio supported by the device camera.
+     */
+    fun setZoomBounds(minZoom: Float, maxZoom: Float) {
+        _uiState.update { it.copy(minZoomRatio = minZoom, maxZoomRatio = maxZoom) }
+    }
+
+    /**
+     * Sets the current zoom ratio.
+     *
+     * The value is clamped to the min/max bounds. Also shows the zoom indicator.
+     *
+     * @param ratio The desired zoom ratio.
+     */
+    fun setZoomRatio(ratio: Float) {
+        _uiState.update { state ->
+            val clampedRatio = ratio.coerceIn(state.minZoomRatio, state.maxZoomRatio)
+            state.copy(zoomRatio = clampedRatio, showZoomIndicator = true)
+        }
+    }
+
+    /**
+     * Hides the zoom indicator overlay.
+     *
+     * Called after a delay when zoom gesture ends to auto-hide the indicator.
+     */
+    fun hideZoomIndicator() {
+        _uiState.update { it.copy(showZoomIndicator = false) }
     }
 }

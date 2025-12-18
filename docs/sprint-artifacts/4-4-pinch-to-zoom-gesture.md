@@ -1,6 +1,6 @@
 # Story 4.4: Pinch-to-Zoom Gesture
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -28,11 +28,11 @@ so that I can focus on the game box from a distance.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add Zoom State to CameraUiState (AC: #1, #3)
-  - [ ] Add `zoomRatio: Float` to CameraUiState (default 1.0f)
-  - [ ] Add `minZoomRatio: Float` to CameraUiState
-  - [ ] Add `maxZoomRatio: Float` to CameraUiState
-  - [ ] Add `showZoomIndicator: Boolean` to CameraUiState
+- [x] Task 1: Add Zoom State to CameraUiState (AC: #1, #3)
+  - [x] Add `zoomRatio: Float` to CameraUiState (default 1.0f)
+  - [x] Add `minZoomRatio: Float` to CameraUiState
+  - [x] Add `maxZoomRatio: Float` to CameraUiState
+  - [x] Add `showZoomIndicator: Boolean` to CameraUiState
 
 - [ ] Task 2: Get Zoom Bounds from CameraInfo (AC: #3)
   - [ ] Query `cameraInfo.zoomState` after camera binding
@@ -202,7 +202,14 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
+- Task 1: Added zoom state properties to CameraUiState (zoomRatio, minZoomRatio, maxZoomRatio, showZoomIndicator). Added zoom management methods to CameraViewModel (setZoomBounds, setZoomRatio, hideZoomIndicator). Added 7 unit tests for zoom state management.
+
 ### File List
+
+**Modified Files:**
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt` - Added zoom state properties
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt` - Added zoom management methods
+- `feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt` - Added zoom state tests
 
 ## Epic Dependencies
 
