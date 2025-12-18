@@ -4,8 +4,12 @@ import android.Manifest
 import android.app.Activity
 import android.util.Log
 import androidx.camera.core.CameraControl
+import androidx.camera.core.FocusMeteringAction
+import androidx.camera.core.MeteringPointFactory
 import androidx.concurrent.futures.await
+import java.util.concurrent.TimeUnit
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -113,8 +117,9 @@ fun CameraScreen(
         when {
             // Permission granted - show camera preview
             cameraPermissionState.status.isGranted -> {
-                // Track CameraControl for applying zoom
+                // Track CameraControl for applying zoom and focus
                 var cameraControl by remember { mutableStateOf<CameraControl?>(null) }
+                var meteringPointFactory by remember { mutableStateOf<MeteringPointFactory?>(null) }
                 val coroutineScope = rememberCoroutineScope()
 
                 // Capture latest zoom state for use in gesture handler without restarting it
@@ -122,11 +127,42 @@ fun CameraScreen(
                 val currentMinZoom by rememberUpdatedState(uiState.minZoomRatio)
                 val currentMaxZoom by rememberUpdatedState(uiState.maxZoomRatio)
 
-                // Camera preview with zoom gesture detection
-                // Key on Unit to keep gesture handler stable throughout pinch gestures
+                // Camera preview with tap-to-focus and pinch-to-zoom gesture detection
+                // Key on Unit to keep gesture handlers stable throughout gestures
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        // Tap gesture for focus (processed first, before transform)
+                        .pointerInput(Unit) {
+                            detectTapGestures { offset ->
+                                // Store raw pixel coordinates for UI positioning
+                                viewModel.onTapToFocus(offset.x, offset.y)
+
+                                // Execute focus metering on camera
+                                val factory = meteringPointFactory
+                                val control = cameraControl
+                                if (factory != null && control != null) {
+                                    // Create metering point at tap location
+                                    val meteringPoint = factory.createPoint(offset.x, offset.y)
+                                    val focusAction = FocusMeteringAction.Builder(
+                                        meteringPoint,
+                                        FocusMeteringAction.FLAG_AF
+                                    )
+                                        .setAutoCancelDuration(5, TimeUnit.SECONDS)
+                                        .build()
+
+                                    coroutineScope.launch {
+                                        try {
+                                            control.startFocusAndMetering(focusAction).await()
+                                            Log.d("CameraScreen", "Focus started at (${offset.x}, ${offset.y})")
+                                        } catch (e: Exception) {
+                                            Log.w("CameraScreen", "Failed to focus: ${e.message}")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // Transform gesture for zoom (pinch)
                         .pointerInput(Unit) {
                             detectTransformGestures { _, _, zoom, _ ->
                                 // Calculate new zoom based on gesture scale factor
@@ -171,6 +207,9 @@ fun CameraScreen(
                         },
                         onCameraControlAvailable = { control ->
                             cameraControl = control
+                        },
+                        onMeteringPointFactoryAvailable = { factory ->
+                            meteringPointFactory = factory
                         }
                     )
                 }
@@ -184,6 +223,15 @@ fun CameraScreen(
                     if (uiState.showZoomIndicator) {
                         kotlinx.coroutines.delay(1500L)
                         viewModel.hideZoomIndicator()
+                    }
+                }
+
+                // Auto-hide focus indicator after delay (~1 second)
+                // Key on focusPoint to restart timer on each tap
+                LaunchedEffect(uiState.focusPoint, uiState.showFocusIndicator) {
+                    if (uiState.showFocusIndicator) {
+                        kotlinx.coroutines.delay(1000L)
+                        viewModel.hideFocusIndicator()
                     }
                 }
 
