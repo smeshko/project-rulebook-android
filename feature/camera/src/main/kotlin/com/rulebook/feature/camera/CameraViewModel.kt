@@ -39,9 +39,9 @@ class CameraViewModel(
 
     init {
         // Observe credit balance changes and update UI state (Story 4.8)
-        // catch prevents DataStore IOException from crashing the camera UI
+        // catch emits 0 on DataStore IOException to keep UI functional
         creditRepository.creditBalance
-            .catch { /* DataStore read failure - keep existing balance */ }
+            .catch { emit(0) }
             .onEach { balance ->
                 _uiState.update { it.copy(creditBalance = balance) }
             }
