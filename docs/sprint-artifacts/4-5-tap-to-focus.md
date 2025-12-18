@@ -1,6 +1,6 @@
 # Story 4.5: Tap-to-Focus
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

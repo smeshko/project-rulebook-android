@@ -232,11 +232,26 @@ development_status:
     status: done
     story_file: docs/sprint-artifacts/4-4-pinch-to-zoom-gesture.md
 
+  # Story 4.5: Tap-to-Focus
+  4-5-tap-to-focus:
+    status: done
+    story_file: docs/sprint-artifacts/4-5-tap-to-focus.md
+
+  # Story 4.6: Gallery Picker Alternative
+  4-6-gallery-picker-alternative:
+    status: in-progress
+    story_file: docs/sprint-artifacts/4-6-gallery-picker-alternative.md
+
+  # Story 4.8: Credit Balance Display on Camera
+  4-8-credit-balance-display-camera:
+    status: in-progress
+    story_file: docs/sprint-artifacts/4-8-credit-balance-display-camera.md
+
 summary:
-  total_stories: 31
-  done: 31
+  total_stories: 34
+  done: 32
   ready_for_dev: 0
-  in_progress: 0
+  in_progress: 2
   in_review: 0
   blocked: 0
   epic_1_status: done
