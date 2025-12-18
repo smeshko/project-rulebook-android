@@ -36,11 +36,11 @@ so that I can submit my game box image for analysis.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add ImageCapture Use Case to CameraX (AC: #1)
-  - [ ] Configure ImageCapture use case in CameraViewModel
-  - [ ] Bind ImageCapture to ProcessCameraProvider with Preview
-  - [ ] Create `capturePhoto()` function in ViewModel
-  - [ ] Handle image capture callback
+- [x] Task 1: Add ImageCapture Use Case to CameraX (AC: #1)
+  - [x] Configure ImageCapture use case in CameraViewModel
+  - [x] Bind ImageCapture to ProcessCameraProvider with Preview
+  - [x] Create `capturePhoto()` function in ViewModel
+  - [x] Handle image capture callback
 
 - [ ] Task 2: Create CaptureButton Composable (AC: #4, #5)
   - [ ] Create `CaptureButton.kt` in `feature/camera/components/`
@@ -219,7 +219,14 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
+- Task 1: Added ImageCapture use case to CameraX. Updated CameraUiState with isCapturing and capturedImageUri fields. Added capture state management methods to CameraViewModel (onCaptureStarted, onCaptureSuccess, onCaptureError, clearCapturedImage). Updated CameraPreview to bind ImageCapture with Preview and expose capture functionality via callback.
+
 ### File List
+
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt (modified)
+- feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 
 ## Epic Dependencies
 
