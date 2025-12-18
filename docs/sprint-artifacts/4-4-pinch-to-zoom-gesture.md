@@ -50,11 +50,11 @@ so that I can focus on the game box from a distance.
   - [x] Apply zoom immediately on gesture change
   - [x] Handle zoom change result (success/failure)
 
-- [ ] Task 5: Create ZoomIndicator Composable (AC: #4)
-  - [ ] Create `ZoomIndicator.kt` in `feature/camera/components/`
-  - [ ] Display current zoom level (e.g., "1.5x")
-  - [ ] Animate appearance and disappearance
-  - [ ] Position unobtrusively (center or corner)
+- [x] Task 5: Create ZoomIndicator Composable (AC: #4)
+  - [x] Create `ZoomIndicator.kt` in `feature/camera/components/`
+  - [x] Display current zoom level (e.g., "1.5x")
+  - [x] Animate appearance and disappearance
+  - [x] Position unobtrusively (center or corner)
 
 - [ ] Task 6: Implement Zoom Indicator Auto-Hide (AC: #4)
   - [ ] Show indicator when zoom changes
@@ -205,13 +205,17 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Task 1: Added zoom state properties to CameraUiState (zoomRatio, minZoomRatio, maxZoomRatio, showZoomIndicator). Added zoom management methods to CameraViewModel (setZoomBounds, setZoomRatio, hideZoomIndicator). Added 7 unit tests for zoom state management.
 - Task 2: Updated CameraPreview to query cameraInfo.zoomState after camera binding. Created ZoomBounds data class to pass min/max zoom ratios. Added callbacks for zoom bounds and CameraControl availability. Wired up CameraScreen to store zoom bounds in ViewModel.
 - Task 3 & 4: Implemented pinch-to-zoom gesture using Compose's detectTransformGestures. Wrapped CameraPreview in a Box with pointerInput modifier. Gesture scale factor multiplies current zoom ratio, clamped to bounds. CameraControl.setZoomRatio() called immediately on gesture change for responsive feedback.
+- Task 5: Created ZoomIndicator composable with AnimatedVisibility for fade in/out. Displays zoom ratio formatted as "1.5x" in a semi-transparent pill. Positioned at center of screen.
 
 ### File List
+
+**New Files:**
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/ZoomIndicator.kt` - Zoom level indicator composable
 
 **Modified Files:**
 - `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt` - Added zoom state properties
 - `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt` - Added zoom management methods
-- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt` - Wired up zoom bounds callback
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt` - Added pinch-to-zoom gesture, ZoomIndicator, zoom bounds callback
 - `feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt` - Added zoom bounds extraction, ZoomBounds data class, CameraControl callback
 - `feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt` - Added zoom state tests
 

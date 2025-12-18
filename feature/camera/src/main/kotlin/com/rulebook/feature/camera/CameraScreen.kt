@@ -42,6 +42,7 @@ import com.google.accompanist.permissions.shouldShowRationale
 import com.rulebook.feature.camera.components.CameraPreview
 import com.rulebook.feature.camera.components.CaptureButton
 import com.rulebook.feature.camera.components.FlashToggle
+import com.rulebook.feature.camera.components.ZoomIndicator
 import com.rulebook.feature.camera.util.rememberCaptureHapticFeedback
 import org.koin.androidx.compose.koinViewModel
 
@@ -151,6 +152,13 @@ fun CameraScreen(
                         }
                     )
                 }
+
+                // Zoom indicator overlay - centered on screen
+                ZoomIndicator(
+                    zoomRatio = uiState.zoomRatio,
+                    visible = uiState.showZoomIndicator,
+                    modifier = Modifier.align(Alignment.Center)
+                )
 
                 // Show loading indicator while camera initializes
                 if (!uiState.isCameraReady && uiState.error == null) {
