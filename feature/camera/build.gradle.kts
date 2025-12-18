@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.camerax.camera2)
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
+    implementation(libs.concurrent.futures.ktx)
 
     // Permissions
     implementation(libs.accompanist.permissions)

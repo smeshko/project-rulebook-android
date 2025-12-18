@@ -1,6 +1,6 @@
 # Story 4.4: Pinch-to-Zoom Gesture
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -28,38 +28,38 @@ so that I can focus on the game box from a distance.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add Zoom State to CameraUiState (AC: #1, #3)
-  - [ ] Add `zoomRatio: Float` to CameraUiState (default 1.0f)
-  - [ ] Add `minZoomRatio: Float` to CameraUiState
-  - [ ] Add `maxZoomRatio: Float` to CameraUiState
-  - [ ] Add `showZoomIndicator: Boolean` to CameraUiState
+- [x] Task 1: Add Zoom State to CameraUiState (AC: #1, #3)
+  - [x] Add `zoomRatio: Float` to CameraUiState (default 1.0f)
+  - [x] Add `minZoomRatio: Float` to CameraUiState
+  - [x] Add `maxZoomRatio: Float` to CameraUiState
+  - [x] Add `showZoomIndicator: Boolean` to CameraUiState
 
-- [ ] Task 2: Get Zoom Bounds from CameraInfo (AC: #3)
-  - [ ] Query `cameraInfo.zoomState` after camera binding
-  - [ ] Extract `minZoomRatio` and `maxZoomRatio`
-  - [ ] Store bounds in ViewModel state
+- [x] Task 2: Get Zoom Bounds from CameraInfo (AC: #3)
+  - [x] Query `cameraInfo.zoomState` after camera binding
+  - [x] Extract `minZoomRatio` and `maxZoomRatio`
+  - [x] Store bounds in ViewModel state
 
-- [ ] Task 3: Implement Pinch-to-Zoom Gesture Detection (AC: #1, #2)
-  - [ ] Add `pointerInput` modifier with `detectTransformGestures`
-  - [ ] Calculate new zoom ratio from gesture scale
-  - [ ] Clamp zoom ratio within bounds
-  - [ ] Update state with new zoom ratio
+- [x] Task 3: Implement Pinch-to-Zoom Gesture Detection (AC: #1, #2)
+  - [x] Add `pointerInput` modifier with `detectTransformGestures`
+  - [x] Calculate new zoom ratio from gesture scale
+  - [x] Clamp zoom ratio within bounds
+  - [x] Update state with new zoom ratio
 
-- [ ] Task 4: Apply Zoom to Camera (AC: #1, #2)
-  - [ ] Use `camera.cameraControl.setZoomRatio(ratio)`
-  - [ ] Apply zoom immediately on gesture change
-  - [ ] Handle zoom change result (success/failure)
+- [x] Task 4: Apply Zoom to Camera (AC: #1, #2)
+  - [x] Use `camera.cameraControl.setZoomRatio(ratio)`
+  - [x] Apply zoom immediately on gesture change
+  - [x] Handle zoom change result (success/failure)
 
-- [ ] Task 5: Create ZoomIndicator Composable (AC: #4)
-  - [ ] Create `ZoomIndicator.kt` in `feature/camera/components/`
-  - [ ] Display current zoom level (e.g., "1.5x")
-  - [ ] Animate appearance and disappearance
-  - [ ] Position unobtrusively (center or corner)
+- [x] Task 5: Create ZoomIndicator Composable (AC: #4)
+  - [x] Create `ZoomIndicator.kt` in `feature/camera/components/`
+  - [x] Display current zoom level (e.g., "1.5x")
+  - [x] Animate appearance and disappearance
+  - [x] Position unobtrusively (center or corner)
 
-- [ ] Task 6: Implement Zoom Indicator Auto-Hide (AC: #4)
-  - [ ] Show indicator when zoom changes
-  - [ ] Auto-hide after 1.5-2 seconds of inactivity
-  - [ ] Use `LaunchedEffect` with delay for hiding
+- [x] Task 6: Implement Zoom Indicator Auto-Hide (AC: #4)
+  - [x] Show indicator when zoom changes
+  - [x] Auto-hide after 1.5-2 seconds of inactivity
+  - [x] Use `LaunchedEffect` with delay for hiding
 
 ## Dev Notes
 
@@ -202,7 +202,26 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
+- Task 1: Added zoom state properties to CameraUiState (zoomRatio, minZoomRatio, maxZoomRatio, showZoomIndicator). Added zoom management methods to CameraViewModel (setZoomBounds, setZoomRatio, hideZoomIndicator). Added 7 unit tests for zoom state management.
+- Task 2: Updated CameraPreview to query cameraInfo.zoomState after camera binding. Created ZoomBounds data class to pass min/max zoom ratios. Added callbacks for zoom bounds and CameraControl availability. Wired up CameraScreen to store zoom bounds in ViewModel.
+- Task 3 & 4: Implemented pinch-to-zoom gesture using Compose's detectTransformGestures. Wrapped CameraPreview in a Box with pointerInput modifier. Gesture scale factor multiplies current zoom ratio, clamped to bounds. CameraControl.setZoomRatio() called immediately on gesture change for responsive feedback.
+- Task 5: Created ZoomIndicator composable with AnimatedVisibility for fade in/out. Displays zoom ratio formatted as "1.5x" in a semi-transparent pill. Positioned at center of screen.
+- Task 6: Added LaunchedEffect keyed on zoomRatio that waits 1.5 seconds then calls hideZoomIndicator(). Indicator shows on zoom change and auto-hides after delay.
+
 ### File List
+
+**New Files:**
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/ZoomIndicator.kt` - Zoom level indicator composable
+
+**Modified Files:**
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt` - Added zoom state properties
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt` - Added zoom management methods
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt` - Added pinch-to-zoom gesture, ZoomIndicator, zoom bounds callback
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt` - Added zoom bounds extraction, ZoomBounds data class, CameraControl callback
+- `feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt` - Added zoom state tests
+- `feature/camera/build.gradle.kts` - Added concurrent-futures-ktx dependency for CameraX coroutine integration
+- `gradle/libs.versions.toml` - Added concurrent-futures-ktx library definition (v1.2.0)
+- `docs/sprint-artifacts/sprint-status.yaml` - Updated story status to review
 
 ## Epic Dependencies
 

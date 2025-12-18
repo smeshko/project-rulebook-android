@@ -227,9 +227,14 @@ development_status:
     status: done
     story_file: docs/sprint-artifacts/4-3-flash-torch-control.md
 
+  # Story 4.4: Pinch-to-Zoom Gesture
+  4-4-pinch-to-zoom-gesture:
+    status: done
+    story_file: docs/sprint-artifacts/4-4-pinch-to-zoom-gesture.md
+
 summary:
-  total_stories: 30
-  done: 30
+  total_stories: 31
+  done: 31
   ready_for_dev: 0
   in_progress: 0
   in_review: 0

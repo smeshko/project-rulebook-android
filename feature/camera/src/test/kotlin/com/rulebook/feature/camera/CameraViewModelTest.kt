@@ -231,4 +231,71 @@ class CameraViewModelTest {
         assertTrue(state.isCapturing)
         // isCapturing being true means button should be disabled
     }
+
+    // =========================================================================
+    // Zoom State Tests (Story 4.4)
+    // =========================================================================
+
+    @Test
+    fun `initial state has default zoom values`() = runTest {
+        val state = viewModel.uiState.first()
+
+        assertEquals(1f, state.zoomRatio)
+        assertEquals(1f, state.minZoomRatio)
+        assertEquals(1f, state.maxZoomRatio)
+        assertFalse(state.showZoomIndicator)
+    }
+
+    @Test
+    fun `setZoomBounds updates min and max zoom ratios`() = runTest {
+        viewModel.setZoomBounds(minZoom = 1f, maxZoom = 10f)
+        val state = viewModel.uiState.first()
+
+        assertEquals(1f, state.minZoomRatio)
+        assertEquals(10f, state.maxZoomRatio)
+    }
+
+    @Test
+    fun `setZoomRatio updates zoom ratio within bounds`() = runTest {
+        viewModel.setZoomBounds(minZoom = 1f, maxZoom = 10f)
+        viewModel.setZoomRatio(5f)
+        val state = viewModel.uiState.first()
+
+        assertEquals(5f, state.zoomRatio)
+    }
+
+    @Test
+    fun `setZoomRatio clamps to max zoom ratio`() = runTest {
+        viewModel.setZoomBounds(minZoom = 1f, maxZoom = 5f)
+        viewModel.setZoomRatio(10f)
+        val state = viewModel.uiState.first()
+
+        assertEquals(5f, state.zoomRatio)
+    }
+
+    @Test
+    fun `setZoomRatio clamps to min zoom ratio`() = runTest {
+        viewModel.setZoomBounds(minZoom = 1f, maxZoom = 5f)
+        viewModel.setZoomRatio(0.5f)
+        val state = viewModel.uiState.first()
+
+        assertEquals(1f, state.zoomRatio)
+    }
+
+    @Test
+    fun `setZoomRatio shows zoom indicator`() = runTest {
+        viewModel.setZoomRatio(2f)
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.showZoomIndicator)
+    }
+
+    @Test
+    fun `hideZoomIndicator hides the indicator`() = runTest {
+        viewModel.setZoomRatio(2f)
+        viewModel.hideZoomIndicator()
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.showZoomIndicator)
+    }
 }

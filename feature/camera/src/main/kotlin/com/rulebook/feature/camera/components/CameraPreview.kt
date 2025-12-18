@@ -5,10 +5,12 @@ import android.net.Uri
 import android.util.Log
 import android.view.Surface
 import androidx.camera.core.Camera
+import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
+import androidx.camera.core.ZoomState
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
@@ -23,11 +25,23 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.rulebook.feature.camera.FlashMode
 import java.io.File
 
 private const val TAG = "CameraPreview"
+
+/**
+ * Data class containing camera zoom bounds.
+ *
+ * @param minZoomRatio Minimum zoom ratio supported by the camera.
+ * @param maxZoomRatio Maximum zoom ratio supported by the camera.
+ */
+data class ZoomBounds(
+    val minZoomRatio: Float,
+    val maxZoomRatio: Float
+)
 
 /**
  * Composable that displays a CameraX preview with photo capture capability.
@@ -42,6 +56,7 @@ private const val TAG = "CameraPreview"
  * - Flash unit availability detection
  * - Flash mode configuration for ImageCapture
  * - Torch control based on flash mode
+ * - Zoom bounds extraction and callback
  *
  * ## Performance Notes
  * - Uses COMPATIBLE implementation mode for broad device support
@@ -59,6 +74,8 @@ private const val TAG = "CameraPreview"
  *                            via onImageCaptured or onCaptureError callbacks.
  * @param onImageCaptured Callback invoked when a photo is captured successfully with the image URI.
  * @param onCaptureError Callback invoked if photo capture fails.
+ * @param onZoomBoundsAvailable Callback invoked with zoom bounds after camera binding.
+ * @param onCameraControlAvailable Callback invoked with CameraControl for zoom operations.
  */
 @Composable
 fun CameraPreview(
@@ -69,7 +86,9 @@ fun CameraPreview(
     onFlashUnitAvailable: (Boolean) -> Unit = {},
     onImageCaptureReady: ((capturePhoto: () -> Unit) -> Unit)? = null,
     onImageCaptured: (Uri) -> Unit = {},
-    onCaptureError: (String) -> Unit = {}
+    onCaptureError: (String) -> Unit = {},
+    onZoomBoundsAvailable: (ZoomBounds) -> Unit = {},
+    onCameraControlAvailable: (CameraControl) -> Unit = {}
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -85,7 +104,7 @@ fun CameraPreview(
     // Track whether the composable is still active to prevent binding after disposal
     val isActiveState = remember { mutableStateOf(true) }
 
-    // Store Camera instance for torch control
+    // Store Camera instance for torch control and zoom
     val cameraState: MutableState<Camera?> = remember { mutableStateOf(null) }
 
     // Store ImageCapture instance for flash mode updates and photo capture
@@ -124,6 +143,25 @@ fun CameraPreview(
                 cameraState.value = camera
                 imageCaptureState.value = imageCapture
                 hasFlashUnitState.value = hasFlash
+
+                // Provide CameraControl for zoom operations
+                onCameraControlAvailable(camera.cameraControl)
+
+                // Observe zoomState LiveData to get bounds when available
+                val zoomStateLiveData = camera.cameraInfo.zoomState
+                val zoomObserver = object : Observer<ZoomState> {
+                    override fun onChanged(zoomState: ZoomState) {
+                        val bounds = ZoomBounds(
+                            minZoomRatio = zoomState.minZoomRatio,
+                            maxZoomRatio = zoomState.maxZoomRatio
+                        )
+                        Log.d(TAG, "Zoom bounds: min=${bounds.minZoomRatio}, max=${bounds.maxZoomRatio}")
+                        onZoomBoundsAvailable(bounds)
+                        // Remove observer after first emission - we only need bounds once
+                        zoomStateLiveData.removeObserver(this)
+                    }
+                }
+                zoomStateLiveData.observe(lifecycleOwner, zoomObserver)
 
                 // Provide the capture function to the caller
                 onImageCaptureReady?.invoke {

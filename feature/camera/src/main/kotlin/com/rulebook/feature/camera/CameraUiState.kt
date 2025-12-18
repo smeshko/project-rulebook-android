@@ -17,6 +17,11 @@ package com.rulebook.feature.camera
  *                    capture button to prevent double-tap.
  * @param capturedImageUri The URI of the captured image, set after successful capture.
  *                         Used to pass the image to the processing flow.
+ * @param zoomRatio Current zoom level, ranging from [minZoomRatio] to [maxZoomRatio].
+ *                  Default is 1.0f (no zoom).
+ * @param minZoomRatio Minimum zoom ratio supported by the camera. Default is 1.0f.
+ * @param maxZoomRatio Maximum zoom ratio supported by the camera. Default is 1.0f.
+ * @param showZoomIndicator Whether to display the zoom level indicator overlay.
  */
 data class CameraUiState(
     val isCameraReady: Boolean = false,
@@ -24,5 +29,9 @@ data class CameraUiState(
     val flashMode: FlashMode = FlashMode.OFF,
     val hasFlashUnit: Boolean = false,
     val isCapturing: Boolean = false,
-    val capturedImageUri: String? = null
+    val capturedImageUri: String? = null,
+    val zoomRatio: Float = 1f,
+    val minZoomRatio: Float = 1f,
+    val maxZoomRatio: Float = 1f,
+    val showZoomIndicator: Boolean = false
 )

@@ -2,7 +2,11 @@ package com.rulebook.feature.camera
 
 import android.Manifest
 import android.app.Activity
+import android.util.Log
+import androidx.camera.core.CameraControl
+import androidx.concurrent.futures.await
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,9 +25,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -38,7 +46,9 @@ import com.google.accompanist.permissions.shouldShowRationale
 import com.rulebook.feature.camera.components.CameraPreview
 import com.rulebook.feature.camera.components.CaptureButton
 import com.rulebook.feature.camera.components.FlashToggle
+import com.rulebook.feature.camera.components.ZoomIndicator
 import com.rulebook.feature.camera.util.rememberCaptureHapticFeedback
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 /**
@@ -103,21 +113,85 @@ fun CameraScreen(
         when {
             // Permission granted - show camera preview
             cameraPermissionState.status.isGranted -> {
-                CameraPreview(
-                    modifier = Modifier.fillMaxSize(),
-                    flashMode = uiState.flashMode,
-                    onPreviewReady = { viewModel.onCameraReady() },
-                    onError = { viewModel.onCameraError(it) },
-                    onFlashUnitAvailable = { viewModel.onFlashUnitAvailable(it) },
-                    onImageCaptureReady = { captureFunction ->
-                        capturePhotoState.value = captureFunction
-                    },
-                    onImageCaptured = { uri ->
-                        viewModel.onCaptureSuccess(uri.toString())
-                    },
-                    onCaptureError = { error ->
-                        viewModel.onCaptureError(error)
+                // Track CameraControl for applying zoom
+                var cameraControl by remember { mutableStateOf<CameraControl?>(null) }
+                val coroutineScope = rememberCoroutineScope()
+
+                // Capture latest zoom state for use in gesture handler without restarting it
+                val currentZoomRatio by rememberUpdatedState(uiState.zoomRatio)
+                val currentMinZoom by rememberUpdatedState(uiState.minZoomRatio)
+                val currentMaxZoom by rememberUpdatedState(uiState.maxZoomRatio)
+
+                // Camera preview with zoom gesture detection
+                // Key on Unit to keep gesture handler stable throughout pinch gestures
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
+                            detectTransformGestures { _, _, zoom, _ ->
+                                // Calculate new zoom based on gesture scale factor
+                                val newZoom = (currentZoomRatio * zoom).coerceIn(
+                                    currentMinZoom,
+                                    currentMaxZoom
+                                )
+                                viewModel.setZoomRatio(newZoom)
+
+                                // Apply zoom to camera with error handling
+                                cameraControl?.let { control ->
+                                    coroutineScope.launch {
+                                        try {
+                                            control.setZoomRatio(newZoom).await()
+                                        } catch (e: Exception) {
+                                            Log.w("CameraScreen", "Failed to set zoom ratio: ${e.message}")
+                                            // Note: We don't revert UI state as the gesture is continuous
+                                            // and the next gesture update will retry
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                ) {
+                    CameraPreview(
+                        modifier = Modifier.fillMaxSize(),
+                        flashMode = uiState.flashMode,
+                        onPreviewReady = { viewModel.onCameraReady() },
+                        onError = { viewModel.onCameraError(it) },
+                        onFlashUnitAvailable = { viewModel.onFlashUnitAvailable(it) },
+                        onImageCaptureReady = { captureFunction ->
+                            capturePhotoState.value = captureFunction
+                        },
+                        onImageCaptured = { uri ->
+                            viewModel.onCaptureSuccess(uri.toString())
+                        },
+                        onCaptureError = { error ->
+                            viewModel.onCaptureError(error)
+                        },
+                        onZoomBoundsAvailable = { bounds ->
+                            viewModel.setZoomBounds(bounds.minZoomRatio, bounds.maxZoomRatio)
+                        },
+                        onCameraControlAvailable = { control ->
+                            cameraControl = control
+                        }
+                    )
+                }
+
+                // Auto-hide zoom indicator after delay
+                // Key on both zoomRatio and showZoomIndicator to:
+                // 1. Restart timer on each zoom change during continuous gestures
+                // 2. Start timer when indicator first becomes visible
+                // The indicator will hide 1.5s after the last zoom change
+                LaunchedEffect(uiState.zoomRatio, uiState.showZoomIndicator) {
+                    if (uiState.showZoomIndicator) {
+                        kotlinx.coroutines.delay(1500L)
+                        viewModel.hideZoomIndicator()
                     }
+                }
+
+                // Zoom indicator overlay - centered on screen
+                ZoomIndicator(
+                    zoomRatio = uiState.zoomRatio,
+                    visible = uiState.showZoomIndicator,
+                    modifier = Modifier.align(Alignment.Center)
                 )
 
                 // Show loading indicator while camera initializes
