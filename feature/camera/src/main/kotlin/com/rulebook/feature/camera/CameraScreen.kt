@@ -2,6 +2,8 @@ package com.rulebook.feature.camera
 
 import android.Manifest
 import android.app.Activity
+import android.content.Intent
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -408,7 +410,13 @@ fun CameraScreen(
             // Permission denied permanently ("Don't ask again" selected)
             else -> {
                 PermissionDenied(
-                    onOpenSettings = { /* TODO: Task 7 will implement settings deep link */ },
+                    onOpenSettings = {
+                        // Launch app settings where user can manually enable camera permission
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        }
+                        context.startActivity(intent)
+                    },
                     onGalleryClick = {
                         pickMedia.launch(
                             PickVisualMediaRequest(

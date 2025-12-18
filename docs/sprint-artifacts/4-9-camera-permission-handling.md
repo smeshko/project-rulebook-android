@@ -65,10 +65,10 @@ so that the app doesn't request unnecessary permissions at install.
   - [x] Provide "Open Settings" button
   - [x] Provide "Use Gallery" alternative
 
-- [ ] Task 7: Implement Settings Deep Link (AC: #4)
-  - [ ] Use `Settings.ACTION_APPLICATION_DETAILS_SETTINGS`
-  - [ ] Create intent with app package URI
-  - [ ] Launch settings on button tap
+- [x] Task 7: Implement Settings Deep Link (AC: #4)
+  - [x] Use `Settings.ACTION_APPLICATION_DETAILS_SETTINGS`
+  - [x] Create intent with app package URI
+  - [x] Launch settings on button tap
 
 - [ ] Task 8: Handle Permission Return from Settings (AC: #3)
   - [ ] Re-check permission when returning from settings
@@ -316,6 +316,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Task 4: Permission request already implemented via Accompanist's rememberPermissionState. launchPermissionRequest() is called on button click, status.isGranted automatically updates and shows camera preview when granted.
 - Task 5: Added hasRequestedPermission flag to distinguish first-time users from permanently denied. LaunchedEffect now detects permanently denied state. CameraScreen shows PermissionRationale for first-time and DENIED states, PermissionDenied only for PERMANENTLY_DENIED. Added 3 new unit tests.
 - Task 6: Created PermissionDenied.kt with brutalist styling. Features blocked icon (NoPhotography), title, explanation, "Open Settings" button, and gallery fallback. Removed inline version from CameraScreen.
+- Task 7: Implemented settings deep link using Settings.ACTION_APPLICATION_DETAILS_SETTINGS intent with app package URI. Launches app settings on button tap.
 
 ### File List
 
