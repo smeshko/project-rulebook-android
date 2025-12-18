@@ -1,6 +1,6 @@
 # Story 4.6: Gallery Picker Alternative
 
-Status: ready-for-dev
+Status: Ready for Review
 
 ## Story
 
