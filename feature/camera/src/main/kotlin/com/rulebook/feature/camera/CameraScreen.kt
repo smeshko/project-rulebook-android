@@ -82,9 +82,11 @@ fun CameraScreen(
         }
     }
 
-    // Handle successful capture - notify parent
+    // Handle successful capture - trigger haptic feedback and notify parent
     LaunchedEffect(uiState.capturedImageUri) {
         uiState.capturedImageUri?.let { uri ->
+            // Haptic feedback confirms successful capture (AC #2)
+            hapticFeedback()
             onPhotoCaptured(uri)
             viewModel.clearCapturedImage()
         }
@@ -143,7 +145,6 @@ fun CameraScreen(
                         CaptureButton(
                             onClick = {
                                 capturePhotoState.value?.let { capturePhoto ->
-                                    hapticFeedback()
                                     viewModel.onCaptureStarted()
                                     capturePhoto()
                                 }

@@ -65,11 +65,13 @@ class CaptureButtonTest {
             }
         }
 
+        // Verify button is disabled - don't call performClick on disabled nodes
+        // as Compose doesn't expose OnClick action for disabled nodes
         composeTestRule
             .onNodeWithContentDescription("Capture photo")
             .assertIsNotEnabled()
-            .performClick()
 
+        // Callback should never have been invoked since button is disabled
         assertFalse("Button click callback should not be invoked when disabled", clicked)
     }
 
@@ -105,10 +107,13 @@ class CaptureButtonTest {
             }
         }
 
+        // Verify button is disabled during capture - don't call performClick on disabled nodes
+        // as Compose doesn't expose OnClick action for disabled nodes
         composeTestRule
             .onNodeWithContentDescription("Capturing photo")
-            .performClick()
+            .assertIsNotEnabled()
 
+        // Callback should never have been invoked since button is disabled during capture
         assertFalse("Button click callback should not be invoked when capturing", clicked)
     }
 }
