@@ -24,6 +24,8 @@ package com.rulebook.feature.camera
  * @param showZoomIndicator Whether to display the zoom level indicator overlay.
  * @param selectedGalleryImageUri The URI of an image selected from the gallery, if any.
  *                                Used to pass the image to the processing flow (Story 4.6).
+ * @param lastGalleryThumbnailUri The URI of the most recent photo in the device gallery.
+ *                                 Displayed as a thumbnail preview on the gallery button (Story 4.6).
  */
 data class CameraUiState(
     val isCameraReady: Boolean = false,
@@ -36,5 +38,6 @@ data class CameraUiState(
     val minZoomRatio: Float = 1f,
     val maxZoomRatio: Float = 1f,
     val showZoomIndicator: Boolean = false,
-    val selectedGalleryImageUri: String? = null
+    val selectedGalleryImageUri: String? = null,
+    val lastGalleryThumbnailUri: String? = null
 )

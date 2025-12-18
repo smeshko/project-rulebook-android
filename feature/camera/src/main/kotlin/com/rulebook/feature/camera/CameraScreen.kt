@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -49,11 +50,13 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import android.net.Uri
 import com.rulebook.feature.camera.components.CameraPreview
 import com.rulebook.feature.camera.components.CaptureButton
 import com.rulebook.feature.camera.components.FlashToggle
 import com.rulebook.feature.camera.components.GalleryButton
 import com.rulebook.feature.camera.components.ZoomIndicator
+import com.rulebook.feature.camera.util.getLastPhotoThumbnailUri
 import com.rulebook.feature.camera.util.rememberCaptureHapticFeedback
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -109,6 +112,13 @@ fun CameraScreen(
 
     // Handle immersive mode - hide system bars
     ImmersiveMode()
+
+    // Load last gallery thumbnail (Story 4.6)
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        val thumbnailUri = getLastPhotoThumbnailUri(context)
+        viewModel.setLastGalleryThumbnail(thumbnailUri?.toString())
+    }
 
     // Request permission on first composition if not granted
     LaunchedEffect(Unit) {
@@ -267,7 +277,8 @@ fun CameraScreen(
                                             ActivityResultContracts.PickVisualMedia.ImageOnly
                                         )
                                     )
-                                }
+                                },
+                                thumbnailUri = uiState.lastGalleryThumbnailUri?.let { Uri.parse(it) }
                             )
 
                             // Capture button (Story 4.2)

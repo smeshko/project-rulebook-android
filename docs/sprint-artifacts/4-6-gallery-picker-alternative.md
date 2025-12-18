@@ -50,11 +50,11 @@ so that I can use an existing image of a game box.
   - [x] Position to the left of capture button
   - [x] Ensure adequate touch target (56dp)
 
-- [ ] Task 4: Implement Gallery Thumbnail (AC: #4 - Optional)
-  - [ ] Load last image from MediaStore
-  - [ ] Display as button background/icon
-  - [ ] Fall back to gallery icon if no images
-  - [ ] Use Coil for efficient thumbnail loading
+- [x] Task 4: Implement Gallery Thumbnail (AC: #4 - Optional)
+  - [x] Load last image from MediaStore via getLastPhotoThumbnailUri()
+  - [x] Display as button background using Coil AsyncImage
+  - [x] Fall back to gallery icon if no images
+  - [x] Use Coil for efficient thumbnail loading
 
 - [x] Task 5: Handle Gallery Result (AC: #2)
   - [x] Receive URI from photo picker
@@ -240,6 +240,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 - Task 1: Added `selectedGalleryImageUri` to CameraUiState and corresponding ViewModel methods for gallery image selection. Tests pass.
 - Tasks 2-3, 5-7: Implemented GalleryButton composable with brutalist styling, photo picker using ActivityResultContracts.PickVisualMedia(), integrated into CameraScreen with proper callback handling. Gallery button positioned to the left of capture button.
+- Task 4: Added optional thumbnail feature - loads last photo from MediaStore and displays it on the gallery button using Coil. Falls back to gallery icon when no images available.
 
 ### File List
 
@@ -247,8 +248,10 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/GalleryButton.kt (new)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/util/GalleryThumbnail.kt (new)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 - feature/camera/src/androidTest/kotlin/com/rulebook/feature/camera/components/GalleryButtonTest.kt (new)
+- feature/camera/build.gradle.kts (modified - added coil-compose dependency)
 
 ## Epic Dependencies
 
