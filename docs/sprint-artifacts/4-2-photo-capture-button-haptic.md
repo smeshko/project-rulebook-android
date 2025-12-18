@@ -48,11 +48,11 @@ so that I can submit my game box image for analysis.
   - [x] Use design system colors: background, border from theme
   - [x] Ensure minimum touch target of 48dp (actual 72dp for prominence)
 
-- [ ] Task 3: Implement Haptic Feedback (AC: #2)
-  - [ ] Get Vibrator service from context
-  - [ ] Create haptic feedback on capture (VibrationEffect.EFFECT_CLICK)
-  - [ ] Respect system haptic setting (check Settings)
-  - [ ] Handle devices without vibration capability
+- [x] Task 3: Implement Haptic Feedback (AC: #2)
+  - [x] Get Vibrator service from context
+  - [x] Create haptic feedback on capture (VibrationEffect.EFFECT_CLICK)
+  - [x] Respect system haptic setting (check Settings)
+  - [x] Handle devices without vibration capability
 
 - [ ] Task 4: Handle Capture State (AC: #6)
   - [ ] Add `isCapturing` to CameraUiState
@@ -221,6 +221,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 - Task 1: Added ImageCapture use case to CameraX. Updated CameraUiState with isCapturing and capturedImageUri fields. Added capture state management methods to CameraViewModel (onCaptureStarted, onCaptureSuccess, onCaptureError, clearCapturedImage). Updated CameraPreview to bind ImageCapture with Preview and expose capture functionality via callback.
 - Task 2: Created CaptureButton composable with brutalist styling (72dp circle, 4dp border, inner 56dp circle). Uses white colors for visibility on camera preview. Includes enabled/disabled state with alpha dimming.
+- Task 3: Implemented haptic feedback utility with HapticUtils in core/common. Uses View.performHapticFeedback with CONFIRM constant (API 30+) or KEYBOARD_TAP for older APIs. Automatically respects system haptic settings. Created rememberCaptureHapticFeedback() composable helper in camera module.
 
 ### File List
 
@@ -228,8 +229,10 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CaptureButton.kt (new)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/util/CameraHaptics.kt (new)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 - feature/camera/src/androidTest/kotlin/com/rulebook/feature/camera/CaptureButtonTest.kt (new)
+- core/common/src/main/kotlin/com/rulebook/core/common/HapticUtils.kt (new)
 
 ## Epic Dependencies
 
