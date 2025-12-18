@@ -1,6 +1,6 @@
 # Story 4.3: Flash/Torch Control
 
-Status: ready-for-dev
+Status: Ready for Review
 
 ## Story
 
@@ -65,10 +65,10 @@ so that I can photograph game boxes in low-light conditions.
   - [x] Enable torch when flash mode is ON
   - [x] Disable torch when flash mode is OFF or AUTO
 
-- [ ] Task 7: Handle Flash Mode Persistence (AC: #1)
-  - [ ] Optionally persist last flash mode to DataStore
-  - [ ] Restore flash mode on camera screen open
-  - [ ] Default to OFF if no preference saved
+- [x] Task 7: Handle Flash Mode Persistence (AC: #1) [OPTIONAL - Skipped]
+  - [x] Default to OFF if no preference saved (implemented - default behavior)
+  - [ ] ~~Optionally persist last flash mode to DataStore~~ (deferred - optional feature)
+  - [ ] ~~Restore flash mode on camera screen open~~ (deferred - optional feature)
 
 ## Dev Notes
 
@@ -212,6 +212,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Task 2: Added flash unit detection via CameraInfo.hasFlashUnit() after camera binding. Added onFlashUnitAvailable callback to CameraPreview and wired it through CameraScreen to CameraViewModel.
 - Task 3 & 4: Created FlashToggle composable with Material icons (FlashOff, FlashOn, FlashAuto), animated color transitions, brutalist styling (48dp tap target, semi-transparent background), and accessibility support. Integrated into CameraScreen positioned in top-left corner. Added UI tests for all flash modes.
 - Task 5 & 6: Added ImageCapture use case to CameraPreview with flash mode applied via toImageCaptureFlashMode(). Implemented torch control via camera.cameraControl.enableTorch() - torch activates when flash mode is ON (continuous light), disabled for OFF/AUTO modes. Added LaunchedEffect to update torch and flash mode dynamically when user toggles. Proper cleanup on dispose.
+- Task 7: Flash mode defaults to OFF on each camera screen open. Persistence was marked as optional in the story and is deferred. All 5 acceptance criteria are satisfied without persistence.
 
 ### File List
 

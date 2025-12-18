@@ -217,12 +217,17 @@ development_status:
     status: done
     story_file: docs/sprint-artifacts/4-1-camera-screen-camerax-preview.md
 
+  # Story 4.3: Flash/Torch Control
+  4-3-flash-torch-control:
+    status: review
+    story_file: docs/sprint-artifacts/4-3-flash-torch-control.md
+
 summary:
-  total_stories: 29
+  total_stories: 30
   done: 29
   ready_for_dev: 0
   in_progress: 0
-  in_review: 0
+  in_review: 1
   blocked: 0
   epic_1_status: done
   epic_2_status: done
