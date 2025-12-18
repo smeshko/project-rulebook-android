@@ -1,6 +1,6 @@
 # Story 4.5: Tap-to-Focus
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
@@ -24,10 +24,10 @@ so that I get a sharp image of the game box.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add Focus State to CameraUiState (AC: #1, #2)
-  - [ ] Add `focusPoint: Offset?` to CameraUiState (null when no manual focus)
-  - [ ] Add `showFocusIndicator: Boolean` to CameraUiState
-  - [ ] Create `onTapToFocus(offset: Offset)` action in ViewModel
+- [x] Task 1: Add Focus State to CameraUiState (AC: #1, #2)
+  - [x] Add `focusPoint: FocusPoint?` to CameraUiState (null when no manual focus)
+  - [x] Add `showFocusIndicator: Boolean` to CameraUiState
+  - [x] Create `onTapToFocus(x: Float, y: Float)` action in ViewModel
 
 - [ ] Task 2: Implement Tap Detection on Preview (AC: #1)
   - [ ] Add `pointerInput` modifier with `detectTapGestures`
@@ -208,7 +208,13 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 ### Completion Notes List
 
+- Task 1: Added FocusPoint data class and focus state (focusPoint, showFocusIndicator) to CameraUiState. Added onTapToFocus() and hideFocusIndicator() methods to CameraViewModel. All 4 new unit tests pass.
+
 ### File List
+
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
+- feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 
 ## Epic Dependencies
 
