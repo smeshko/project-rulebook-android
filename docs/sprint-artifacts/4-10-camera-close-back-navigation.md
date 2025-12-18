@@ -49,10 +49,10 @@ so that I can exit if I change my mind.
   - [x] Ensure system back button also navigates back (via BackHandler)
   - [x] Use `BackHandler` if custom back logic needed (added for consistency)
 
-- [ ] Task 4: Support Predictive Back Gesture (AC: #4)
-  - [ ] Ensure activity uses `android:enableOnBackInvokedCallback="true"`
-  - [ ] Let system handle predictive back animation
-  - [ ] Camera preview should remain visible during gesture
+- [x] Task 4: Support Predictive Back Gesture (AC: #4)
+  - [x] Ensure activity uses `android:enableOnBackInvokedCallback="true"` (already in AndroidManifest.xml:22)
+  - [x] Let system handle predictive back animation (NavHost handles via Compose Navigation 2.8+)
+  - [x] Camera preview should remain visible during gesture (AndroidView/PreviewView visible during swipe)
 
 - [ ] Task 5: Clean Up Resources on Dispose (AC: #3)
   - [ ] Add `DisposableEffect` with camera cleanup
@@ -265,6 +265,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Task 1: Created CloseButton.kt with 48dp touch target, semi-transparent background, white X icon. Integrated into CameraScreen top controls row (left position). Added onNavigateBack callback to CameraScreen and CameraNavigation. Wired up in RulebookNavHost to popBackStack(). Added CloseButtonTest.kt with display and click tests.
 - Task 2: Verified existing camera cleanup implementation in CameraPreview.kt. DisposableEffect with onDispose already calls unbindAll() to release camera. isActiveState flag prevents binding after disposal. Torch disabled on dispose. No additional code needed.
 - Task 3: Added BackHandler to CameraScreen to ensure system back button uses the same onNavigateBack callback as the close button. This ensures consistent navigation behavior and proper camera cleanup on back navigation.
+- Task 4: Verified predictive back gesture support is already configured. enableOnBackInvokedCallback="true" in AndroidManifest.xml, NavHost with slide transitions handles preview animation, AndroidView/PreviewView remains visible during gesture.
 
 ### File List
 
