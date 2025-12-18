@@ -128,7 +128,7 @@ fun CameraScreen(
 
     // Check permission state on first composition and sync to ViewModel (Story 4.9)
     // NOTE: We do NOT auto-request permission here (AC #5 - not requested at app launch)
-    LaunchedEffect(cameraPermissionState.status) {
+    LaunchedEffect(cameraPermissionState.status, uiState.hasRequestedPermission) {
         when {
             cameraPermissionState.status.isGranted -> {
                 viewModel.onPermissionGranted()
@@ -137,12 +137,12 @@ fun CameraScreen(
                 // User denied once but can ask again
                 viewModel.onPermissionDenied()
             }
-            else -> {
-                // Either first time (NOT_DETERMINED) or permanently denied
-                // We can't distinguish these from Accompanist state alone,
-                // but we'll treat as "can show rationale" since we haven't asked yet
-                // If they've permanently denied, the rationale screen will still work
+            uiState.hasRequestedPermission -> {
+                // We've asked before and now !isGranted and !shouldShowRationale
+                // This means permanently denied ("Don't ask again" was selected)
+                viewModel.onPermissionPermanentlyDenied()
             }
+            // else: First time (NOT_DETERMINED) - leave as NOT_DETERMINED
         }
     }
 
@@ -384,10 +384,14 @@ fun CameraScreen(
                 }
             }
 
-            // Permission denied but can show rationale
-            cameraPermissionState.status.shouldShowRationale -> {
+            // Permission denied but can show rationale OR first time user
+            cameraPermissionState.status.shouldShowRationale ||
+            uiState.permissionState == CameraPermissionState.NOT_DETERMINED -> {
                 PermissionRationale(
-                    onRequestPermission = { cameraPermissionState.launchPermissionRequest() },
+                    onRequestPermission = {
+                        viewModel.onPermissionRequested()
+                        cameraPermissionState.launchPermissionRequest()
+                    },
                     onNavigateBack = { /* No-op for now - CameraScreen doesn't have back navigation */ },
                     onGalleryClick = {
                         pickMedia.launch(
@@ -400,7 +404,7 @@ fun CameraScreen(
                 )
             }
 
-            // Permission denied permanently or waiting for initial request
+            // Permission denied permanently ("Don't ask again" selected)
             else -> {
                 PermissionDenied(
                     onGalleryClick = {

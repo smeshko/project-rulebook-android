@@ -53,11 +53,11 @@ so that the app doesn't request unnecessary permissions at install.
   - [x] Request `Manifest.permission.CAMERA`
   - [x] Handle grant result to show camera
 
-- [ ] Task 5: Handle Permission Denial (AC: #4)
-  - [ ] Detect when permission is denied
-  - [ ] Show helpful error message
-  - [ ] Include button to open app settings
-  - [ ] Distinguish between "Don't ask again" and regular denial
+- [x] Task 5: Handle Permission Denial (AC: #4)
+  - [x] Detect when permission is denied
+  - [x] Show helpful error message
+  - [x] Include button to open app settings
+  - [x] Distinguish between "Don't ask again" and regular denial
 
 - [ ] Task 6: Create PermissionDenied Composable (AC: #4)
   - [ ] Create `PermissionDenied.kt` in `feature/camera/components/`
@@ -314,6 +314,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - Task 2: Removed auto-request permission on screen launch. Added LaunchedEffect that checks permission state and syncs to ViewModel without requesting. Permission is now only requested when user explicitly clicks button (AC #5 satisfied).
 - Task 3: Created PermissionRationale.kt composable with brutalist styling using RulebookTheme colors, typography, and RulebookButton components. Features camera icon, title, explanation, and "Allow Camera Access" CTA with gallery button fallback. Removed inline version from CameraScreen.
 - Task 4: Permission request already implemented via Accompanist's rememberPermissionState. launchPermissionRequest() is called on button click, status.isGranted automatically updates and shows camera preview when granted.
+- Task 5: Added hasRequestedPermission flag to distinguish first-time users from permanently denied. LaunchedEffect now detects permanently denied state. CameraScreen shows PermissionRationale for first-time and DENIED states, PermissionDenied only for PERMANENTLY_DENIED. Added 3 new unit tests.
 
 ### File List
 

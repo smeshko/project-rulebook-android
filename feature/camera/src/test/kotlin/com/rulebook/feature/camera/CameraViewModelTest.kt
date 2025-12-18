@@ -426,6 +426,36 @@ class CameraViewModelTest {
         assertEquals(CameraPermissionState.GRANTED, viewModel.uiState.first().permissionState)
     }
 
+    @Test
+    fun `initial state has hasRequestedPermission false`() = runTest {
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.hasRequestedPermission)
+    }
+
+    @Test
+    fun `onPermissionRequested sets hasRequestedPermission to true`() = runTest {
+        viewModel.onPermissionRequested()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.hasRequestedPermission)
+    }
+
+    @Test
+    fun `hasRequestedPermission stays true after permission state changes`() = runTest {
+        // User requests permission
+        viewModel.onPermissionRequested()
+        assertTrue(viewModel.uiState.first().hasRequestedPermission)
+
+        // Permission denied
+        viewModel.onPermissionDenied()
+        assertTrue(viewModel.uiState.first().hasRequestedPermission)
+
+        // Permission permanently denied
+        viewModel.onPermissionPermanentlyDenied()
+        assertTrue(viewModel.uiState.first().hasRequestedPermission)
+    }
+
     // =========================================================================
     // Credit Balance Tests (Story 4.8)
     // =========================================================================

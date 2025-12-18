@@ -260,4 +260,12 @@ class CameraViewModel(
     fun onPermissionPermanentlyDenied() {
         _uiState.update { it.copy(permissionState = CameraPermissionState.PERMANENTLY_DENIED) }
     }
+
+    /**
+     * Called when the permission request dialog is launched.
+     * This helps distinguish first-time users from permanently denied users.
+     */
+    fun onPermissionRequested() {
+        _uiState.update { it.copy(hasRequestedPermission = true) }
+    }
 }
