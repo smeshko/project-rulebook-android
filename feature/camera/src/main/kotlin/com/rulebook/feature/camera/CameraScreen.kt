@@ -176,9 +176,11 @@ fun CameraScreen(
                 }
 
                 // Auto-hide zoom indicator after delay
-                // Key on showZoomIndicator to restart timer whenever indicator is shown,
-                // even if zoom ratio hasn't changed (e.g., at zoom limits)
-                LaunchedEffect(uiState.showZoomIndicator) {
+                // Key on both zoomRatio and showZoomIndicator to:
+                // 1. Restart timer on each zoom change during continuous gestures
+                // 2. Start timer when indicator first becomes visible
+                // The indicator will hide 1.5s after the last zoom change
+                LaunchedEffect(uiState.zoomRatio, uiState.showZoomIndicator) {
                     if (uiState.showZoomIndicator) {
                         kotlinx.coroutines.delay(1500L)
                         viewModel.hideZoomIndicator()

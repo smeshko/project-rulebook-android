@@ -219,6 +219,9 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt` - Added pinch-to-zoom gesture, ZoomIndicator, zoom bounds callback
 - `feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt` - Added zoom bounds extraction, ZoomBounds data class, CameraControl callback
 - `feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt` - Added zoom state tests
+- `feature/camera/build.gradle.kts` - Added concurrent-futures-ktx dependency for CameraX coroutine integration
+- `gradle/libs.versions.toml` - Added concurrent-futures-ktx library definition (v1.2.0)
+- `docs/sprint-artifacts/sprint-status.yaml` - Updated story status to review
 
 ## Epic Dependencies
 
