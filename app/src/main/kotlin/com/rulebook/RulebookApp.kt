@@ -2,15 +2,19 @@ package com.rulebook
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.rulebook.navigation.Route
 import com.rulebook.navigation.RulebookNavHost
@@ -54,13 +58,21 @@ fun RulebookApp(
             navController = navController,
             modifier = Modifier.fillMaxSize()
         ) { innerPadding ->
-            // Navigation host with proper insets applied
+            // Track current route to conditionally apply padding
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
+
+            // Routes that should be truly full-screen (no scaffold padding)
+            val isFullScreenRoute = currentRoute == Route.Camera.route
+
+            // Navigation host with conditional insets
+            // Full-screen routes (like Camera) get zero padding for immersive experience
             RulebookNavHost(
                 navController = navController,
                 startDestination = startRoute,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
+                    .padding(if (isFullScreenRoute) PaddingValues(0.dp) else innerPadding)
             )
         }
     }

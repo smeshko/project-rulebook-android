@@ -209,9 +209,17 @@ development_status:
     status: done
     story_file: docs/sprint-artifacts/3-7-onboarding-analytics-events.md
 
+  # Epic 4: Photo Capture Flow
+  epic-4: in-progress
+
+  # Story 4.1: Camera Screen with CameraX Preview
+  4-1-camera-screen-camerax-preview:
+    status: done
+    story_file: docs/sprint-artifacts/4-1-camera-screen-camerax-preview.md
+
 summary:
-  total_stories: 28
-  done: 28
+  total_stories: 29
+  done: 29
   ready_for_dev: 0
   in_progress: 0
   in_review: 0

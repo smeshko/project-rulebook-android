@@ -34,7 +34,10 @@ datastore = "1.1.1"
 splashscreen = "1.0.1"
 
 # Camera
-cameraX = "1.4.0"
+cameraX = "1.4.1"
+
+# Permissions
+accompanistPermissions = "0.36.0"
 
 # Billing
 playBilling = "7.1.1"
@@ -108,6 +111,9 @@ camerax-core = { module = "androidx.camera:camera-core", version.ref = "cameraX"
 camerax-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraX" }
 camerax-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraX" }
 camerax-view = { module = "androidx.camera:camera-view", version.ref = "cameraX" }
+
+# Permissions
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 
 # Billing
 play-billing = { module = "com.android.billingclient:billing-ktx", version.ref = "playBilling" }
