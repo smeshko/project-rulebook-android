@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Flash toggle accessibility descriptions -->
+    <string name="flash_off_description">Flash off. Tap to turn flash on.</string>
+    <string name="flash_on_description">Flash on. Tap to set flash to auto.</string>
+    <string name="flash_auto_description">Flash auto. Tap to turn flash off.</string>
+</resources>

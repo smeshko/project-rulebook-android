@@ -22,8 +22,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.rulebook.feature.camera.FlashMode
+import com.rulebook.feature.camera.R
 
 /**
  * A toggle button for cycling through flash modes.
@@ -75,9 +77,9 @@ fun FlashToggle(
     }
 
     val contentDescriptionText = when (flashMode) {
-        FlashMode.OFF -> "Flash off. Tap to turn flash on."
-        FlashMode.ON -> "Flash on. Tap to set flash to auto."
-        FlashMode.AUTO -> "Flash auto. Tap to turn flash off."
+        FlashMode.OFF -> stringResource(R.string.flash_off_description)
+        FlashMode.ON -> stringResource(R.string.flash_on_description)
+        FlashMode.AUTO -> stringResource(R.string.flash_auto_description)
     }
 
     Box(

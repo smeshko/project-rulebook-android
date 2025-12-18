@@ -76,6 +76,9 @@ fun CameraPreview(
     // Store ImageCapture instance for flash mode updates
     val imageCaptureState: MutableState<ImageCapture?> = remember { mutableStateOf(null) }
 
+    // Track whether the device has a flash unit to guard torch operations
+    val hasFlashUnitState = remember { mutableStateOf(false) }
+
     // Handle camera binding and cleanup
     DisposableEffect(lifecycleOwner) {
         isActiveState.value = true
@@ -95,7 +98,7 @@ fun CameraPreview(
 
             try {
                 val cameraProvider = cameraProviderFuture.get()
-                val (camera, imageCapture) = bindCameraPreview(
+                val (camera, imageCapture, hasFlash) = bindCameraPreview(
                     cameraProvider = cameraProvider,
                     lifecycleOwner = lifecycleOwner,
                     previewView = previewView,
@@ -105,6 +108,7 @@ fun CameraPreview(
                 )
                 cameraState.value = camera
                 imageCaptureState.value = imageCapture
+                hasFlashUnitState.value = hasFlash
             } catch (e: Exception) {
                 Log.e(TAG, "Camera initialization failed", e)
                 onError("Failed to initialize camera: ${e.message}")
@@ -115,10 +119,13 @@ fun CameraPreview(
             // Mark composable as disposed to prevent binding in pending listeners
             isActiveState.value = false
 
-            // Disable torch on dispose
-            cameraState.value?.cameraControl?.enableTorch(false)
+            // Disable torch on dispose (only if device has flash unit)
+            if (hasFlashUnitState.value) {
+                cameraState.value?.cameraControl?.enableTorch(false)
+            }
             cameraState.value = null
             imageCaptureState.value = null
+            hasFlashUnitState.value = false
 
             // Unbind all use cases when leaving the screen
             // Only unbind if the future is already complete to avoid blocking the main thread
@@ -139,9 +146,16 @@ fun CameraPreview(
     }
 
     // Update torch and ImageCapture flash mode when flashMode changes
-    LaunchedEffect(flashMode, cameraState.value, imageCaptureState.value) {
+    LaunchedEffect(flashMode, cameraState.value, imageCaptureState.value, hasFlashUnitState.value) {
         val camera = cameraState.value ?: return@LaunchedEffect
         val imageCapture = imageCaptureState.value ?: return@LaunchedEffect
+        val hasFlash = hasFlashUnitState.value
+
+        // Only update flash-related settings if device has a flash unit
+        if (!hasFlash) {
+            Log.d(TAG, "Device has no flash unit, skipping flash mode update")
+            return@LaunchedEffect
+        }
 
         // Update ImageCapture flash mode
         imageCapture.flashMode = flashMode.toImageCaptureFlashMode()
@@ -170,7 +184,7 @@ fun CameraPreview(
  * @param flashMode Initial flash mode to apply.
  * @param onPreviewReady Callback when preview starts.
  * @param onFlashUnitAvailable Callback with flash unit availability status.
- * @return Pair of Camera instance and ImageCapture instance for external control.
+ * @return Triple of Camera instance, ImageCapture instance, and hasFlashUnit flag for external control.
  */
 private fun bindCameraPreview(
     cameraProvider: ProcessCameraProvider,
@@ -179,7 +193,7 @@ private fun bindCameraPreview(
     flashMode: FlashMode,
     onPreviewReady: () -> Unit,
     onFlashUnitAvailable: (Boolean) -> Unit
-): Pair<Camera, ImageCapture> {
+): Triple<Camera, ImageCapture, Boolean> {
     // Unbind any existing use cases first
     cameraProvider.unbindAll()
 
@@ -221,7 +235,7 @@ private fun bindCameraPreview(
         Log.d(TAG, "Camera preview bound successfully with ImageCapture")
         onPreviewReady()
 
-        return Pair(camera, imageCapture)
+        return Triple(camera, imageCapture, hasFlash)
     } catch (e: Exception) {
         Log.e(TAG, "Failed to bind camera preview", e)
         throw e
