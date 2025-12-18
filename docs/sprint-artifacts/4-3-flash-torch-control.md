@@ -38,10 +38,10 @@ so that I can photograph game boxes in low-light conditions.
   - [x] Add `hasFlashUnit: Boolean` to CameraUiState
   - [x] Create `cycleFlashMode()` action in ViewModel
 
-- [ ] Task 2: Check Flash Unit Availability (AC: #5)
-  - [ ] Query `CameraInfo.hasFlashUnit()` after camera binding
-  - [ ] Update `hasFlashUnit` in state
-  - [ ] Conditionally show/hide flash toggle based on state
+- [x] Task 2: Check Flash Unit Availability (AC: #5)
+  - [x] Query `CameraInfo.hasFlashUnit()` after camera binding
+  - [x] Update `hasFlashUnit` in state
+  - [x] Conditionally show/hide flash toggle based on state
 
 - [ ] Task 3: Create FlashToggle Composable (AC: #2, #4)
   - [ ] Create `FlashToggle.kt` in `feature/camera/components/`
@@ -209,12 +209,15 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 ### Completion Notes List
 
 - Task 1: Created FlashMode enum with OFF/ON/AUTO states and cycling logic. Added flashMode and hasFlashUnit to CameraUiState. Added cycleFlashMode() and onFlashUnitAvailable() methods to CameraViewModel. All unit tests pass.
+- Task 2: Added flash unit detection via CameraInfo.hasFlashUnit() after camera binding. Added onFlashUnitAvailable callback to CameraPreview and wired it through CameraScreen to CameraViewModel.
 
 ### File List
 
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/FlashMode.kt (new)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/components/CameraPreview.kt (modified)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/FlashModeTest.kt (new)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
 

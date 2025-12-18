@@ -29,6 +29,7 @@ private const val TAG = "CameraPreview"
  * - Using rear camera by default
  * - Proper cleanup when the composable leaves composition
  * - Lifecycle-aware camera management (pause/resume)
+ * - Flash unit availability detection
  *
  * ## Performance Notes
  * - Uses COMPATIBLE implementation mode for broad device support
@@ -38,12 +39,14 @@ private const val TAG = "CameraPreview"
  * @param modifier Modifier for the preview container.
  * @param onPreviewReady Callback invoked when camera preview starts displaying frames.
  * @param onError Callback invoked if camera initialization fails.
+ * @param onFlashUnitAvailable Callback invoked with flash unit availability status.
  */
 @Composable
 fun CameraPreview(
     modifier: Modifier = Modifier,
     onPreviewReady: () -> Unit = {},
-    onError: (String) -> Unit = {}
+    onError: (String) -> Unit = {},
+    onFlashUnitAvailable: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -82,7 +85,8 @@ fun CameraPreview(
                     cameraProvider = cameraProvider,
                     lifecycleOwner = lifecycleOwner,
                     previewView = previewView,
-                    onPreviewReady = onPreviewReady
+                    onPreviewReady = onPreviewReady,
+                    onFlashUnitAvailable = onFlashUnitAvailable
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "Camera initialization failed", e)
@@ -126,12 +130,14 @@ fun CameraPreview(
  * @param lifecycleOwner The lifecycle owner to bind the camera to.
  * @param previewView The PreviewView to display the preview.
  * @param onPreviewReady Callback when preview starts.
+ * @param onFlashUnitAvailable Callback with flash unit availability status.
  */
 private fun bindCameraPreview(
     cameraProvider: ProcessCameraProvider,
     lifecycleOwner: LifecycleOwner,
     previewView: PreviewView,
-    onPreviewReady: () -> Unit
+    onPreviewReady: () -> Unit,
+    onFlashUnitAvailable: (Boolean) -> Unit
 ) {
     // Unbind any existing use cases first
     cameraProvider.unbindAll()
@@ -148,11 +154,16 @@ private fun bindCameraPreview(
 
     try {
         // Bind camera to lifecycle
-        cameraProvider.bindToLifecycle(
+        val camera = cameraProvider.bindToLifecycle(
             lifecycleOwner,
             cameraSelector,
             preview
         )
+
+        // Check if the device has a flash unit
+        val hasFlash = camera.cameraInfo.hasFlashUnit()
+        Log.d(TAG, "Camera has flash unit: $hasFlash")
+        onFlashUnitAvailable(hasFlash)
 
         Log.d(TAG, "Camera preview bound successfully")
         onPreviewReady()

@@ -82,7 +82,8 @@ fun CameraScreen(
                 CameraPreview(
                     modifier = Modifier.fillMaxSize(),
                     onPreviewReady = { viewModel.onCameraReady() },
-                    onError = { viewModel.onCameraError(it) }
+                    onError = { viewModel.onCameraError(it) },
+                    onFlashUnitAvailable = { viewModel.onFlashUnitAvailable(it) }
                 )
 
                 // Show loading indicator while camera initializes
