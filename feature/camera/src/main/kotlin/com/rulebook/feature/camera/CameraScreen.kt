@@ -3,6 +3,7 @@ package com.rulebook.feature.camera
 import android.Manifest
 import android.app.Activity
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -59,6 +60,7 @@ import android.net.Uri
 import com.rulebook.core.designsystem.component.CreditsDisplay
 import com.rulebook.feature.camera.components.CameraPreview
 import com.rulebook.feature.camera.components.CaptureButton
+import com.rulebook.feature.camera.components.CloseButton
 import com.rulebook.feature.camera.components.FlashToggle
 import com.rulebook.feature.camera.components.FocusIndicator
 import com.rulebook.feature.camera.components.GalleryButton
@@ -85,6 +87,7 @@ import org.koin.androidx.compose.koinViewModel
  *
  * @param modifier Optional modifier for the screen container.
  * @param viewModel The ViewModel managing camera state.
+ * @param onNavigateBack Callback invoked when user requests to close camera and return to previous screen.
  * @param onPhotoCaptured Callback invoked when a photo is captured successfully with the image URI.
  * @param onGalleryImageSelected Callback invoked when a gallery image is selected with the image URI.
  *                                Uses the same processing flow as captured photos.
@@ -94,6 +97,7 @@ import org.koin.androidx.compose.koinViewModel
 fun CameraScreen(
     modifier: Modifier = Modifier,
     viewModel: CameraViewModel = koinViewModel(),
+    onNavigateBack: () -> Unit = {},
     onPhotoCaptured: (String) -> Unit = {},
     onGalleryImageSelected: (String) -> Unit = {}
 ) {
@@ -117,6 +121,12 @@ fun CameraScreen(
 
     // Handle immersive mode - hide system bars
     ImmersiveMode()
+
+    // Handle system back button - delegates to same callback as close button (Story 4.10)
+    // This ensures consistent navigation behavior for both close button and system back
+    BackHandler {
+        onNavigateBack()
+    }
 
     // Load last gallery thumbnail (Story 4.6)
     val context = LocalContext.current
@@ -302,28 +312,34 @@ fun CameraScreen(
                     )
                 }
 
-                // Flash toggle - only show if device has flash unit (Story 4.3)
+                // Top controls row: Close button, Flash toggle (optional), Credits display
                 // Uses statusBarsPadding to avoid notch/punch-hole cutouts
-                if (uiState.hasFlashUnit) {
-                    FlashToggle(
-                        flashMode = uiState.flashMode,
-                        onToggle = { viewModel.cycleFlashMode() },
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .statusBarsPadding()
-                            .padding(16.dp)
-                    )
-                }
-
-                // Credits display - shows user's remaining scan credits (Story 4.8)
-                // Uses statusBarsPadding to avoid notch/punch-hole cutouts
-                CreditsDisplay(
-                    creditCount = uiState.creditBalance,
+                Row(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter)
                         .statusBarsPadding()
-                        .padding(16.dp)
-                )
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Close button - navigates back to previous screen (Story 4.10)
+                    CloseButton(onClick = onNavigateBack)
+
+                    // Flash toggle - only show if device has flash unit (Story 4.3)
+                    if (uiState.hasFlashUnit) {
+                        FlashToggle(
+                            flashMode = uiState.flashMode,
+                            onToggle = { viewModel.cycleFlashMode() }
+                        )
+                    } else {
+                        // Spacer to maintain layout when no flash
+                        Spacer(modifier = Modifier.size(48.dp))
+                    }
+
+                    // Credits display - shows user's remaining scan credits (Story 4.8)
+                    CreditsDisplay(creditCount = uiState.creditBalance)
+                }
 
                 // Show camera controls when camera is ready (Story 4.2)
                 if (uiState.isCameraReady) {
