@@ -43,6 +43,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import com.rulebook.core.designsystem.component.CreditsDisplay
 import com.rulebook.feature.camera.components.CameraPreview
 import com.rulebook.feature.camera.components.CaptureButton
 import com.rulebook.feature.camera.components.FlashToggle
@@ -221,6 +222,14 @@ fun CameraScreen(
                             .padding(16.dp)
                     )
                 }
+
+                // Credits display - shows user's remaining scan credits (Story 4.8)
+                CreditsDisplay(
+                    creditCount = uiState.creditBalance,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                )
 
                 // Show capture button when camera is ready (Story 4.2)
                 if (uiState.isCameraReady) {

@@ -61,10 +61,10 @@ so that I know if I can complete a scan.
   - [x] Note: Full zero-credit handling in Epic 8 (paywall)
   - [x] Camera should still open but capture blocked (future)
 
-- [ ] Task 6: Add CreditsDisplay to Camera Screen (AC: #1, #2)
-  - [ ] Add CreditsDisplay to camera overlay
-  - [ ] Position in top-right area
-  - [ ] Ensure doesn't overlap with other controls
+- [x] Task 6: Add CreditsDisplay to Camera Screen (AC: #1, #2)
+  - [x] Add CreditsDisplay to camera overlay
+  - [x] Position in top-right area
+  - [x] Ensure doesn't overlap with other controls
 
 ## Dev Notes
 
@@ -229,6 +229,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 
 - Task 1: Injected CreditRepository into CameraViewModel, added creditBalance to CameraUiState, observing credits reactively via Flow. Tests added and passing.
 - Tasks 2-5: Created CreditsDisplay composable in core/designsystem with pill shape, semi-transparent backgrounds, plural string support, warning state (orange) for 1 credit, and error state (red) for 0 credits. Tests added and passing.
+- Task 6: Integrated CreditsDisplay into CameraScreen at top-right position (opposite flash toggle). Credits display is always visible when camera is active.
 
 ### File List
 
@@ -236,6 +237,7 @@ Claude Opus 4.5 (claude-opus-4-5-20251101)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt (modified)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/di/CameraModule.kt (modified)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt (modified)
 - core/designsystem/src/main/kotlin/com/rulebook/core/designsystem/component/CreditsDisplay.kt (new)
 - core/designsystem/src/main/res/values/strings.xml (new)
 - core/designsystem/src/test/kotlin/com/rulebook/core/designsystem/component/CreditsDisplayTest.kt (new)
