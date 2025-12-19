@@ -1,0 +1,96 @@
+# Workflow Status - BMad Method Tracking
+# This tracks progress through BMM methodology Analysis, Planning, and Solutioning phases.
+# Implementation phase is tracked separately in sprint-status.yaml
+
+# STATUS DEFINITIONS:
+# ==================
+# Initial Status (before completion):
+#   - required: Must be completed to progress
+#   - optional: Can be completed but not required
+#   - recommended: Strongly suggested but not required
+#   - conditional: Required only if certain conditions met (e.g., if_has_ui)
+#
+# Completion Status:
+#   - {file-path}: File created/found (e.g., "docs/product-brief.md")
+#   - skipped: Optional/conditional workflow that was skipped
+
+generated: "2025-12-02"
+project: "project-rulebook-android"
+project_type: "Board game helper app - photo recognition for instant rule summaries"
+selected_track: "method"
+field_type: "greenfield"
+workflow_path: "method-greenfield.yaml"
+
+workflow_status:
+  phase_0_discovery:
+    name: "Discovery (Optional)"
+    workflows:
+      brainstorm:
+        status: "skipped"
+        agent: "analyst"
+        command: "/bmad:bmm:workflows:brainstorm-project"
+      research:
+        status: "skipped"
+        agent: "analyst"
+        command: "/bmad:bmm:workflows:research"
+      product_brief:
+        status: "docs/analysis/product-brief-project-rulebook-android-2025-12-02.md"
+        agent: "analyst"
+        command: "/bmad:bmm:workflows:product-brief"
+        completed: "2025-12-02"
+
+  phase_1_planning:
+    name: "Planning"
+    workflows:
+      prd:
+        status: "docs/prd.md"
+        agent: "pm"
+        command: "/bmad:bmm:workflows:prd"
+        output: "Product Requirements Document with FRs and NFRs"
+        completed: "2025-12-03"
+      validate_prd:
+        status: "optional"
+        agent: "pm"
+        command: "/bmad:bmm:workflows:validate-prd"
+      ux_design:
+        status: "conditional:if_has_ui"
+        agent: "ux-designer"
+        command: "/bmad:bmm:workflows:create-ux-design"
+        note: "Determined after PRD - user/agent decides if needed"
+
+  phase_2_solutioning:
+    name: "Solutioning"
+    workflows:
+      architecture:
+        status: "required"
+        agent: "architect"
+        command: "/bmad:bmm:workflows:create-architecture"
+        output: "System architecture document"
+      epics_and_stories:
+        status: "required"
+        agent: "pm"
+        command: "/bmad:bmm:workflows:create-epics-and-stories"
+        note: "Break down PRD into implementable epics and stories"
+      test_design:
+        status: "recommended"
+        agent: "tea"
+        command: "/bmad:bmm:workflows:test-design"
+        output: "System-level testability review"
+      validate_architecture:
+        status: "optional"
+        agent: "architect"
+        command: "/bmad:bmm:workflows:validate-architecture"
+      implementation_readiness:
+        status: "required"
+        agent: "architect"
+        command: "/bmad:bmm:workflows:implementation-readiness"
+        note: "Gate check - validates all artifacts before implementation"
+
+  phase_3_implementation:
+    name: "Implementation"
+    workflows:
+      sprint_planning:
+        status: "required"
+        agent: "sm"
+        command: "/bmad:bmm:workflows:sprint-planning"
+        note: "Creates sprint plan - subsequent work tracked in sprint-status.yaml"
