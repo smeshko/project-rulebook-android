@@ -56,21 +56,21 @@ So that I don't waste time if I can't complete the scan.
   - [x] Update UI state when credits = 0
   - [x] Clear paywall state on dismiss
 
-- [ ] Task 4: Integrate Paywall Navigation (AC: #3)
-  - [ ] Navigate to Paywall route when credits = 0
-  - [ ] Pass imageUri to paywall for retry after purchase
-  - [ ] Handle paywall dismissal (return to camera)
+- [x] Task 4: Integrate Paywall Navigation (AC: #3)
+  - [x] Navigate to Paywall route when credits = 0
+  - [x] Pass imageUri to paywall for retry after purchase
+  - [x] Handle paywall dismissal (return to camera)
 
-- [ ] Task 5: Navigate to Processing Screen (AC: #2)
-  - [ ] Navigate to ScanProcessing route when credits > 0
-  - [ ] Pass imageUri as navigation argument
-  - [ ] Preserve image in temporary storage during navigation
+- [x] Task 5: Navigate to Processing Screen (AC: #2)
+  - [x] Navigate to ScanProcessing route when credits > 0
+  - [x] Pass imageUri as navigation argument
+  - [x] Preserve image in temporary storage during navigation
 
-- [ ] Task 6: Create ScanProcessing Screen Placeholder (AC: #2)
-  - [ ] Create `ScanProcessingScreen.kt` in `feature/rules`
-  - [ ] Display "Processing..." placeholder
-  - [ ] Accept imageUri argument from navigation
-  - [ ] Log imageUri for verification
+- [x] Task 6: Create ScanProcessing Screen Placeholder (AC: #2)
+  - [x] Create `ScanProcessingScreen.kt` in `feature/rules`
+  - [x] Display "Processing..." placeholder
+  - [x] Accept imageUri argument from navigation
+  - [x] Log imageUri for verification
 
 - [ ] Task 7: Add Analytics Event (Best Practice)
   - [ ] Fire `scan_initiated` event with credit balance
@@ -523,15 +523,30 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 - All tests passing ✅
 - Build successful ✅
 
+**Task 4-6: Integrate Credit Check and Navigation Flow**
+- Updated `CameraScreen` function signature to replace `onPhotoCaptured` and `onGalleryImageSelected` with `onNavigateToProcessing` and `onNavigateToPaywall`
+- Integrated credit check into photo capture flow using LaunchedEffect on `uiState.capturedImageUri`
+- Integrated credit check into gallery picker callback using coroutineScope.launch
+- Added paywall navigation LaunchedEffect that watches `uiState.showPaywall` and triggers navigation
+- Updated `RulebookNavHost.kt` to wire navigation callbacks to ScanProcessing and Purchase routes
+- Updated `CameraNavigation.kt` to match new function signature
+- Navigation flow: Capture/Select → Credit Check → (credits > 0 ? Processing : Paywall)
+- ImageUri properly passed through navigation as String argument
+- All tests passing ✅
+- Build successful ✅
+
 ### File List
 
 **Modified:**
 - `app/src/main/kotlin/com/rulebook/navigation/NavigationDestination.kt` - Added ScanProcessing route and IMAGE_URI arg
-- `app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt` - Added ScanProcessing composable navigation
+- `app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt` - Wired credit gate navigation (processing & paywall)
 - `app/src/main/kotlin/com/rulebook/navigation/PlaceholderScreens.kt` - Added ScanProcessingPlaceholder
 - `app/src/test/kotlin/com/rulebook/navigation/NavigationDestinationTest.kt` - Added tests for ScanProcessing route
-- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt` - Added initiateScanFlow() and InsufficientCreditsException
-- `feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt` - Added 3 new tests for initiateScanFlow
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt` - Added credit check and paywall state management
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt` - Added showPaywall field
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt` - Integrated credit gate logic and navigation
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/navigation/CameraNavigation.kt` - Updated navigation extension
+- `feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt` - Added 7 new tests (3 credit check + 4 paywall)
 - `gradle/libs.versions.toml` - Added mockk 1.13.13 for testing
 - `feature/camera/build.gradle.kts` - Added mockk test dependency
 

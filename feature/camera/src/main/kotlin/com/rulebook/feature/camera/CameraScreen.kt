@@ -85,6 +85,7 @@ import org.koin.androidx.compose.koinViewModel
  * - Immersive mode with hidden system bars (status bar and navigation bar)
  * - Loading state while camera initializes
  * - Error state display for camera failures
+ * - Credit gate with paywall navigation (Story 5.1)
  *
  * The screen automatically hides system bars when entering and restores them on exit.
  * This provides an immersive camera experience without any UI chrome.
@@ -92,9 +93,8 @@ import org.koin.androidx.compose.koinViewModel
  * @param modifier Optional modifier for the screen container.
  * @param viewModel The ViewModel managing camera state.
  * @param onNavigateBack Callback invoked when user requests to close camera and return to previous screen.
- * @param onPhotoCaptured Callback invoked when a photo is captured successfully with the image URI.
- * @param onGalleryImageSelected Callback invoked when a gallery image is selected with the image URI.
- *                                Uses the same processing flow as captured photos.
+ * @param onNavigateToProcessing Callback invoked when user has credits and scan should proceed with the image URI.
+ * @param onNavigateToPaywall Callback invoked when user has no credits and needs to purchase.
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -102,12 +102,13 @@ fun CameraScreen(
     modifier: Modifier = Modifier,
     viewModel: CameraViewModel = koinViewModel(),
     onNavigateBack: () -> Unit = {},
-    onPhotoCaptured: (String) -> Unit = {},
-    onGalleryImageSelected: (String) -> Unit = {}
+    onNavigateToProcessing: (String) -> Unit = {},
+    onNavigateToPaywall: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
     val hapticFeedback = rememberCaptureHapticFeedback()
+    val coroutineScope = rememberCoroutineScope()
 
     // Store the capture function when CameraPreview provides it
     val capturePhotoState = remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -118,8 +119,17 @@ fun CameraScreen(
     ) { uri ->
         // uri is null when user cancels - no action needed (AC #3)
         uri?.let { selectedUri ->
-            // Pass directly to parent via callback - same processing path as captured photos
-            onGalleryImageSelected(selectedUri.toString())
+            // Story 5.1: Check credits before proceeding with scan
+            coroutineScope.launch {
+                val result = viewModel.initiateScanFlow(selectedUri)
+                if (result.isSuccess) {
+                    // User has credits - proceed to processing
+                    onNavigateToProcessing(selectedUri.toString())
+                } else {
+                    // User has no credits - show paywall
+                    viewModel.showPaywall()
+                }
+            }
         }
     }
 
@@ -159,13 +169,32 @@ fun CameraScreen(
         }
     }
 
-    // Handle successful capture - trigger haptic feedback and notify parent
+    // Handle successful capture - trigger haptic feedback and check credits (Story 5.1)
     LaunchedEffect(uiState.capturedImageUri) {
-        uiState.capturedImageUri?.let { uri ->
+        uiState.capturedImageUri?.let { uriString ->
             // Haptic feedback confirms successful capture (AC #2)
             hapticFeedback()
-            onPhotoCaptured(uri)
+
+            // Story 5.1: Check credits before proceeding with scan
+            val uri = Uri.parse(uriString)
+            val result = viewModel.initiateScanFlow(uri)
+            if (result.isSuccess) {
+                // User has credits - proceed to processing
+                onNavigateToProcessing(uriString)
+            } else {
+                // User has no credits - show paywall
+                viewModel.showPaywall()
+            }
+
             viewModel.clearCapturedImage()
+        }
+    }
+
+    // Handle paywall state - navigate when showPaywall becomes true (Story 5.1)
+    LaunchedEffect(uiState.showPaywall) {
+        if (uiState.showPaywall) {
+            onNavigateToPaywall()
+            viewModel.dismissPaywall()
         }
     }
 

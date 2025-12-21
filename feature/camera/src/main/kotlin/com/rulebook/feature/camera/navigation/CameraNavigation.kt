@@ -16,20 +16,25 @@ const val CAMERA_ROUTE = "camera"
  * The camera screen displays a full-screen CameraX preview with immersive mode
  * (hidden system bars). It is intended to be navigated to from the camera FAB.
  *
+ * Includes credit gate logic (Story 5.1):
+ * - When image is captured/selected, checks credit balance
+ * - If credits > 0, navigates to processing screen
+ * - If credits = 0, navigates to paywall
+ *
  * @param onNavigateBack Callback when user closes camera, returns to previous screen.
- * @param onPhotoCaptured Callback when a photo is captured, receives the image URI.
- * @param onGalleryImageSelected Callback when a gallery image is selected, receives the image URI.
+ * @param onNavigateToProcessing Callback when user has credits and scan should proceed.
+ * @param onNavigateToPaywall Callback when user has no credits and needs to purchase.
  */
 fun NavGraphBuilder.cameraScreen(
     onNavigateBack: () -> Unit = {},
-    onPhotoCaptured: (String) -> Unit = {},
-    onGalleryImageSelected: (String) -> Unit = {}
+    onNavigateToProcessing: (String) -> Unit = {},
+    onNavigateToPaywall: () -> Unit = {}
 ) {
     composable(route = CAMERA_ROUTE) {
         CameraScreen(
             onNavigateBack = onNavigateBack,
-            onPhotoCaptured = onPhotoCaptured,
-            onGalleryImageSelected = onGalleryImageSelected
+            onNavigateToProcessing = onNavigateToProcessing,
+            onNavigateToPaywall = onNavigateToPaywall
         )
     }
 }

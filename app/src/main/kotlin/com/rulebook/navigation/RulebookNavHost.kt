@@ -97,14 +97,13 @@ fun RulebookNavHost(
         ) {
             CameraScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onPhotoCaptured = { imageUri ->
-                    // TODO: Navigate to processing screen with captured image
-                    // Will be implemented in Story 4.7 (image processing)
+                onNavigateToProcessing = { imageUri ->
+                    // Story 5.1: Navigate to processing screen with image URI
+                    navController.navigate(Route.ScanProcessing.createRoute(imageUri))
                 },
-                onGalleryImageSelected = { imageUri ->
-                    // Same processing path as captured photos (Story 4.6 AC #2)
-                    // TODO: Navigate to processing screen with selected image
-                    // Will be implemented in Story 4.7 (image processing)
+                onNavigateToPaywall = {
+                    // Story 5.1: Navigate to paywall when user has no credits
+                    navController.navigate(Route.Purchase.route)
                 }
             )
         }
