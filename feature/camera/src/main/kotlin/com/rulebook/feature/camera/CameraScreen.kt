@@ -172,6 +172,9 @@ fun CameraScreen(
     // Handle successful capture - trigger haptic feedback and check credits (Story 5.1)
     LaunchedEffect(uiState.capturedImageUri) {
         uiState.capturedImageUri?.let { uriString ->
+            // Clear URI immediately to prevent duplicate processing
+            viewModel.clearCapturedImage()
+
             // Haptic feedback confirms successful capture (AC #2)
             hapticFeedback()
 
@@ -185,8 +188,6 @@ fun CameraScreen(
                 // User has no credits - show paywall
                 viewModel.showPaywall()
             }
-
-            viewModel.clearCapturedImage()
         }
     }
 
@@ -210,7 +211,6 @@ fun CameraScreen(
                 // Track CameraControl for applying zoom and focus
                 var cameraControl by remember { mutableStateOf<CameraControl?>(null) }
                 var meteringPointFactory by remember { mutableStateOf<MeteringPointFactory?>(null) }
-                val coroutineScope = rememberCoroutineScope()
 
                 // Capture latest zoom state for use in gesture handler without restarting it
                 val currentZoomRatio by rememberUpdatedState(uiState.zoomRatio)
