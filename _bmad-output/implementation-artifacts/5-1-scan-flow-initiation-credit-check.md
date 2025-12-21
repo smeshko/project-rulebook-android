@@ -45,11 +45,11 @@ So that I don't waste time if I can't complete the scan.
   - [x] Configure route to accept imageUri parameter
   - [x] Add navigation composable in RulebookNavHost
 
-- [ ] Task 2: Implement Credit Check in CameraViewModel (AC: #1, #2, #3)
-  - [ ] Create `initinateScanFlow(imageUri: Uri)` function in CameraViewModel
-  - [ ] Inject CreditRepository into CameraViewModel (already done)
-  - [ ] Check credit balance using `creditRepository.creditBalance.first()`
-  - [ ] Return Result<Unit> to indicate success or need for paywall
+- [x] Task 2: Implement Credit Check in CameraViewModel (AC: #1, #2, #3)
+  - [x] Create `initiateScanFlow(imageUri: Uri)` function in CameraViewModel
+  - [x] Inject CreditRepository into CameraViewModel (already done)
+  - [x] Check credit balance using `creditRepository.creditBalance.first()`
+  - [x] Return Result<Unit> to indicate success or need for paywall
 
 - [ ] Task 3: Add Credit Gate UI State (AC: #3)
   - [ ] Add `showPaywall: Boolean` to CameraUiState
@@ -504,6 +504,16 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 - Added comprehensive unit tests in `NavigationDestinationTest.kt` (4 new tests)
 - All tests passing ✅
 
+**Task 2: Implement Credit Check in CameraViewModel**
+- Created `initiateScanFlow(imageUri: Uri)` suspend function in `CameraViewModel.kt`
+- Made `creditRepository` a private property for access in the new function
+- Implemented credit check using `creditBalance.first()` for single value snapshot
+- Returns `Result.success(Unit)` when credits > 0, `Result.failure(InsufficientCreditsException())` when credits = 0
+- Created `InsufficientCreditsException` class for typed error handling
+- Added mockk library to version catalog and camera module dependencies
+- Added 3 comprehensive unit tests covering success, failure, and non-deduction cases
+- All tests passing ✅
+
 ### File List
 
 **Modified:**
@@ -511,6 +521,10 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 - `app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt` - Added ScanProcessing composable navigation
 - `app/src/main/kotlin/com/rulebook/navigation/PlaceholderScreens.kt` - Added ScanProcessingPlaceholder
 - `app/src/test/kotlin/com/rulebook/navigation/NavigationDestinationTest.kt` - Added tests for ScanProcessing route
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt` - Added initiateScanFlow() and InsufficientCreditsException
+- `feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt` - Added 3 new tests for initiateScanFlow
+- `gradle/libs.versions.toml` - Added mockk 1.13.13 for testing
+- `feature/camera/build.gradle.kts` - Added mockk test dependency
 
 **Created:**
 - `local.properties` - Android SDK configuration

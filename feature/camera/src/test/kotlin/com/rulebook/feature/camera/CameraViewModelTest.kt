@@ -1,6 +1,8 @@
 package com.rulebook.feature.camera
 
+import android.net.Uri
 import com.rulebook.core.data.repository.CreditRepository
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -490,6 +492,58 @@ class CameraViewModelTest {
         advanceUntilIdle()
 
         assertEquals(4, viewModel.uiState.first().creditBalance)
+    }
+
+    // =========================================================================
+    // Scan Flow Initiation Tests (Story 5.1)
+    // =========================================================================
+
+    @Test
+    fun `initiateScanFlow succeeds when user has credits`() = runTest {
+        // Given: User has credits
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+
+        val testUri = mockk<Uri>()
+
+        // When: Initiating scan flow
+        val result = viewModel.initiateScanFlow(testUri)
+
+        // Then: Result should be success
+        assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `initiateScanFlow fails when user has zero credits`() = runTest {
+        // Given: User has no credits
+        fakeCreditRepository.setCreditBalance(0)
+        advanceUntilIdle()
+
+        val testUri = mockk<Uri>()
+
+        // When: Initiating scan flow
+        val result = viewModel.initiateScanFlow(testUri)
+
+        // Then: Result should be failure with InsufficientCreditsException
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is InsufficientCreditsException)
+    }
+
+    @Test
+    fun `initiateScanFlow does not deduct credits`() = runTest {
+        // Given: User has credits
+        fakeCreditRepository.setCreditBalance(5)
+        advanceUntilIdle()
+
+        val initialBalance = viewModel.uiState.first().creditBalance
+        val testUri = mockk<Uri>()
+
+        // When: Initiating scan flow
+        viewModel.initiateScanFlow(testUri)
+        advanceUntilIdle()
+
+        // Then: Credit balance should remain unchanged
+        assertEquals(initialBalance, viewModel.uiState.first().creditBalance)
     }
 }
 

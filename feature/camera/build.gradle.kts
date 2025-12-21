@@ -26,6 +26,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.mockk)
 
     // UI Testing
     androidTestImplementation(libs.compose.ui.test.junit4)

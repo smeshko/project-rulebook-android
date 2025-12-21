@@ -1,5 +1,6 @@
 package com.rulebook.feature.camera
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,11 +9,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
 private const val TAG = "CameraViewModel"
+
+/**
+ * Exception thrown when user attempts to scan but has insufficient credits.
+ */
+class InsufficientCreditsException : Exception("Insufficient credits to perform scan")
 
 /**
  * ViewModel for the Camera screen.
@@ -27,15 +34,16 @@ private const val TAG = "CameraViewModel"
  * - Photo capture state management
  * - Zoom level management (zoom ratio, bounds, indicator visibility)
  * - Credit balance observation (Story 4.8)
+ * - Credit check before scan flow initiation (Story 5.1)
  *
  * Camera operations (binding, unbinding) are handled by the CameraPreview composable
  * using CameraX's lifecycle integration, but state changes are reported back to this
  * ViewModel for UI updates.
  *
- * @param creditRepository Repository for observing credit balance.
+ * @param creditRepository Repository for observing credit balance and checking before scans.
  */
 class CameraViewModel(
-    creditRepository: CreditRepository
+    private val creditRepository: CreditRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiState())
@@ -235,6 +243,38 @@ class CameraViewModel(
      */
     fun setLastGalleryThumbnail(uri: String?) {
         _uiState.update { it.copy(lastGalleryThumbnailUri = uri) }
+    }
+
+    // =========================================================================
+    // Scan Flow Initiation & Credit Check (Story 5.1)
+    // =========================================================================
+
+    /**
+     * Initiates the scan flow by checking credit balance.
+     *
+     * This function performs a credit gate check before allowing the user to proceed
+     * to the scan processing screen. Credits are checked but NOT deducted here -
+     * deduction happens after successful rules generation (Story 5.7).
+     *
+     * @param imageUri The URI of the captured or selected image to process.
+     * @return Result.success(Unit) if credits > 0, Result.failure with exception if credits = 0.
+     */
+    suspend fun initiateScanFlow(imageUri: Uri): Result<Unit> {
+        return try {
+            // Get current credit balance (single value snapshot)
+            val credits = creditRepository.creditBalance.first()
+
+            if (credits > 0) {
+                // User has credits - allow scan to proceed
+                Result.success(Unit)
+            } else {
+                // User has no credits - need to show paywall
+                Result.failure(InsufficientCreditsException())
+            }
+        } catch (e: Exception) {
+            // Handle unexpected errors gracefully
+            Result.failure(e)
+        }
     }
 
     // =========================================================================

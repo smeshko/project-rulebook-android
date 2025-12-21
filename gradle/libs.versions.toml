@@ -49,6 +49,7 @@ telemetryDeck = "6.3.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
+mockk = "1.13.13"
 
 [libraries]
 # Core Android
@@ -131,6 +132,7 @@ androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", vers
 androidx-test-core = { module = "androidx.test:core", version = "1.6.1" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version = "1.9.0" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
 # Build-logic dependencies (for convention plugins)
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
