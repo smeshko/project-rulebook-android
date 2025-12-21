@@ -210,7 +210,7 @@ development_status:
     story_file: docs/sprint-artifacts/3-7-onboarding-analytics-events.md
 
   # Epic 4: Photo Capture Flow
-  epic-4: in-progress
+  epic-4: done
 
   # Story 4.1: Camera Screen with CameraX Preview
   4-1-camera-screen-camerax-preview:
@@ -239,7 +239,7 @@ development_status:
 
   # Story 4.6: Gallery Picker Alternative
   4-6-gallery-picker-alternative:
-    status: in-progress
+    status: done
     story_file: docs/sprint-artifacts/4-6-gallery-picker-alternative.md
 
   # Story 4.8: Credit Balance Display on Camera
@@ -259,15 +259,15 @@ development_status:
 
 summary:
   total_stories: 36
-  done: 35
+  done: 36
   ready_for_dev: 0
-  in_progress: 1
+  in_progress: 0
   in_review: 0
   blocked: 0
   epic_1_status: done
   epic_2_status: done
   epic_3_status: done
-  epic_4_status: in-progress
+  epic_4_status: done
   retrospective_epic_1: done
   retrospective_epic_2: done
   retrospective_epic_3: done
