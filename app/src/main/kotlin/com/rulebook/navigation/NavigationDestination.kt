@@ -38,6 +38,21 @@ sealed class Route(val route: String) {
          */
         fun createRoute(gameId: String): String = "rules/$gameId"
     }
+
+    /**
+     * Scan Processing screen - displays progress for AI game recognition.
+     *
+     * This route requires an imageUri argument to identify the captured/selected image.
+     */
+    data object ScanProcessing : Route("scan_processing/{${RulebookNavArgs.IMAGE_URI}}") {
+        /**
+         * Creates the full route string with the provided image URI.
+         *
+         * @param imageUri The URI of the image to process (must be URL-encoded)
+         * @return The complete route string for navigation
+         */
+        fun createRoute(imageUri: String): String = "scan_processing/$imageUri"
+    }
 }
 
 /**
@@ -49,4 +64,7 @@ sealed class Route(val route: String) {
 object RulebookNavArgs {
     /** Argument key for game identifier in Rules route */
     const val GAME_ID = "gameId"
+
+    /** Argument key for image URI in ScanProcessing route */
+    const val IMAGE_URI = "imageUri"
 }

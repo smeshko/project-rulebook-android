@@ -166,5 +166,25 @@ fun RulebookNavHost(
             val gameId = backStackEntry.arguments?.getString(RulebookNavArgs.GAME_ID) ?: ""
             RulesPlaceholder(gameId = gameId)
         }
+
+        // Scan Processing - displays AI recognition progress with type-safe imageUri argument
+        // Full-screen processing display
+        // Predictive back handled automatically by NavHost - shows preview during gesture
+        // Uses slide transition for detail screen
+        composable(
+            route = Route.ScanProcessing.route,
+            arguments = listOf(
+                navArgument(RulebookNavArgs.IMAGE_URI) {
+                    type = NavType.StringType
+                }
+            ),
+            enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
+        ) { backStackEntry ->
+            val imageUri = backStackEntry.arguments?.getString(RulebookNavArgs.IMAGE_URI) ?: ""
+            ScanProcessingPlaceholder(imageUri = imageUri)
+        }
     }
 }

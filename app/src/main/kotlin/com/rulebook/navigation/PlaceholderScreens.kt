@@ -131,6 +131,29 @@ fun RulesPlaceholder(
 }
 
 /**
+ * Placeholder for Scan Processing screen - displays AI recognition progress.
+ *
+ * Supports predictive back gesture - swipe from left edge shows preview
+ * of previous screen before navigating back. Compose Navigation 2.8+
+ * handles the preview animation automatically via NavHost.
+ *
+ * @param imageUri The URI of the image being processed (displayed for debugging)
+ */
+@Composable
+fun ScanProcessingPlaceholder(
+    imageUri: String,
+    modifier: Modifier = Modifier
+) {
+    // No BackHandler needed - Compose Navigation handles predictive back
+    // with preview animations automatically when using NavHost
+    PlaceholderContent(
+        title = "Scan Processing",
+        subtitle = "Image: ${imageUri.take(40)}...\nComing in Story 5.2",
+        modifier = modifier
+    )
+}
+
+/**
  * Base placeholder content composable.
  *
  * @param title The screen title to display

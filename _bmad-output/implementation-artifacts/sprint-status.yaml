@@ -106,8 +106,8 @@ development_status:
   # ═══════════════════════════════════════════════════════════════════════════
   # Epic 5: Game Recognition & Rules Generation
   # ═══════════════════════════════════════════════════════════════════════════
-  epic-5: backlog
-  5-1-scan-flow-initiation-credit-check: backlog
+  epic-5: in-progress
+  5-1-scan-flow-initiation-credit-check: in-progress
   5-2-progress-screen-phase-indicator: backlog
   5-3-image-analysis-api-integration: backlog
   5-4-confidence-display-auto-proceed-logic: backlog

@@ -52,4 +52,27 @@ class NavigationDestinationTest {
     fun `RulebookNavArgs GAME_ID has correct value`() {
         assertEquals("gameId", RulebookNavArgs.GAME_ID)
     }
+
+    @Test
+    fun `ScanProcessing route has correct route pattern with argument placeholder`() {
+        assertEquals("scan_processing/{imageUri}", Route.ScanProcessing.route)
+    }
+
+    @Test
+    fun `ScanProcessing createRoute replaces imageUri placeholder correctly`() {
+        val imageUri = "content://media/image/123"
+        val expectedRoute = "scan_processing/content://media/image/123"
+        assertEquals(expectedRoute, Route.ScanProcessing.createRoute(imageUri))
+    }
+
+    @Test
+    fun `ScanProcessing createRoute handles URL-encoded URIs`() {
+        val imageUri = "content%3A%2F%2Fmedia%2Fimage%2F123"
+        assertEquals("scan_processing/content%3A%2F%2Fmedia%2Fimage%2F123", Route.ScanProcessing.createRoute(imageUri))
+    }
+
+    @Test
+    fun `RulebookNavArgs IMAGE_URI has correct value`() {
+        assertEquals("imageUri", RulebookNavArgs.IMAGE_URI)
+    }
 }
