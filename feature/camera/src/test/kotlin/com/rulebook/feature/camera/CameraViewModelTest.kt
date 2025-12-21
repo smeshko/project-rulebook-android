@@ -545,6 +545,49 @@ class CameraViewModelTest {
         // Then: Credit balance should remain unchanged
         assertEquals(initialBalance, viewModel.uiState.first().creditBalance)
     }
+
+    @Test
+    fun `initial state has showPaywall false`() = runTest {
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.showPaywall)
+    }
+
+    @Test
+    fun `showPaywall sets showPaywall to true`() = runTest {
+        viewModel.showPaywall()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.showPaywall)
+    }
+
+    @Test
+    fun `dismissPaywall sets showPaywall to false`() = runTest {
+        // First show the paywall
+        viewModel.showPaywall()
+        assertTrue(viewModel.uiState.first().showPaywall)
+
+        // Then dismiss it
+        viewModel.dismissPaywall()
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.showPaywall)
+    }
+
+    @Test
+    fun `showPaywall can be toggled multiple times`() = runTest {
+        // Show paywall
+        viewModel.showPaywall()
+        assertTrue(viewModel.uiState.first().showPaywall)
+
+        // Dismiss paywall
+        viewModel.dismissPaywall()
+        assertFalse(viewModel.uiState.first().showPaywall)
+
+        // Show again
+        viewModel.showPaywall()
+        assertTrue(viewModel.uiState.first().showPaywall)
+    }
 }
 
 /**

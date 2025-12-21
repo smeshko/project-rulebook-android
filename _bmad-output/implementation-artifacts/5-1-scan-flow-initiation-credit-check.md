@@ -51,10 +51,10 @@ So that I don't waste time if I can't complete the scan.
   - [x] Check credit balance using `creditRepository.creditBalance.first()`
   - [x] Return Result<Unit> to indicate success or need for paywall
 
-- [ ] Task 3: Add Credit Gate UI State (AC: #3)
-  - [ ] Add `showPaywall: Boolean` to CameraUiState
-  - [ ] Update UI state when credits = 0
-  - [ ] Clear paywall state on dismiss
+- [x] Task 3: Add Credit Gate UI State (AC: #3)
+  - [x] Add `showPaywall: Boolean` to CameraUiState
+  - [x] Update UI state when credits = 0
+  - [x] Clear paywall state on dismiss
 
 - [ ] Task 4: Integrate Paywall Navigation (AC: #3)
   - [ ] Navigate to Paywall route when credits = 0
@@ -513,6 +513,15 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 - Added mockk library to version catalog and camera module dependencies
 - Added 3 comprehensive unit tests covering success, failure, and non-deduction cases
 - All tests passing ✅
+
+**Task 3: Add Credit Gate UI State**
+- Added `showPaywall: Boolean` field to `CameraUiState` data class with default value `false`
+- Added KDoc documentation explaining when the paywall should be shown (Story 5.1)
+- Created `showPaywall()` function in `CameraViewModel` to set state to true
+- Created `dismissPaywall()` function in `CameraViewModel` to reset state to false
+- Added 4 comprehensive unit tests covering initial state, show, dismiss, and toggle scenarios
+- All tests passing ✅
+- Build successful ✅
 
 ### File List
 

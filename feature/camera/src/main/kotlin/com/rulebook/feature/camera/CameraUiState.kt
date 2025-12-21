@@ -56,6 +56,8 @@ data class FocusPoint(
  * @param lastGalleryThumbnailUri The URI of the most recent photo in the device gallery.
  *                                 Displayed as a thumbnail preview on the gallery button (Story 4.6).
  * @param creditBalance The user's current credit balance for scans. Default is 0.
+ * @param showPaywall Whether to display the paywall modal. Set to true when user has 0 credits
+ *                    and attempts to initiate a scan (Story 5.1).
  * @param permissionState Current state of camera permission. Default is [CameraPermissionState.NOT_DETERMINED].
  * @param hasRequestedPermission True if permission request has been launched this session.
  *                               Used to distinguish first-time users from permanently denied.
@@ -75,6 +77,7 @@ data class CameraUiState(
     val showFocusIndicator: Boolean = false,
     val lastGalleryThumbnailUri: String? = null,
     val creditBalance: Int = 0,
+    val showPaywall: Boolean = false,
     val permissionState: CameraPermissionState = CameraPermissionState.NOT_DETERMINED,
     val hasRequestedPermission: Boolean = false
 )

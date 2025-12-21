@@ -277,6 +277,22 @@ class CameraViewModel(
         }
     }
 
+    /**
+     * Shows the paywall modal when user has insufficient credits.
+     * Called when credit check fails during scan initiation.
+     */
+    fun showPaywall() {
+        _uiState.update { it.copy(showPaywall = true) }
+    }
+
+    /**
+     * Dismisses the paywall modal.
+     * Called when user closes the paywall or completes a purchase.
+     */
+    fun dismissPaywall() {
+        _uiState.update { it.copy(showPaywall = false) }
+    }
+
     // =========================================================================
     // Permission Handling (Story 4.9)
     // =========================================================================
