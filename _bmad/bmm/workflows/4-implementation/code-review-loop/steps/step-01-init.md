@@ -66,16 +66,36 @@ To load all necessary context for the code review loop: story file, acceptance c
 
 This section handles optional story parameter input and worktree detection.
 
-#### 1a. Check for Story Parameter
+#### 1a. Check for ADW State File (ADW SDK Integration)
+
+If environment variable `ADW_STATE_FILE` is set and the file exists:
+
+```bash
+# Check if ADW_STATE_FILE is set and file exists
+if [ -n "$ADW_STATE_FILE" ] && [ -f "$ADW_STATE_FILE" ]; then
+  # Extract story_id from state JSON
+  jq -r '.story_id // empty' "$ADW_STATE_FILE"
+fi
+```
+
+**If story_id exists in state file:**
+- Store it as `{{target_story_id}}`
+- Display: "🤖 ADW Mode: Using story_id from state file: {{target_story_id}}"
+- Proceed to step 1c to verify environment (check worktree/branch)
+
+**If ADW_STATE_FILE not set, doesn't exist, or has no story_id:**
+- Proceed to step 1b (check for story parameter)
+
+#### 1b. Check for Story Parameter
 
 If `story_id` parameter was provided (e.g., workflow invoked with a story ID):
 - Store it as `{{target_story_id}}`
-- Proceed to step 1b to verify environment
+- Proceed to step 1c to verify environment
 
 If no `story_id` was provided:
-- Proceed to step 1c (auto-detect from current branch)
+- Proceed to step 1d (auto-detect from current branch)
 
-#### 1b. Verify Environment for Provided Story
+#### 1c. Verify Environment for Provided Story
 
 When a story ID is explicitly provided, verify we're in the correct environment:
 
@@ -124,7 +144,7 @@ Parse output to find worktree where branch matches `story/{{target_story_id}}*`.
   ```
 - HALT workflow
 
-#### 1c. Auto-Detect Story from Current Environment
+#### 1d. Auto-Detect Story from Current Environment
 
 If no story parameter was provided, detect from current context:
 

@@ -22,7 +22,36 @@
   <step n="1" goal="Load story file and validate inputs">
     <critical>This workflow expects story_path to be provided by dev-begin orchestrator</critical>
 
-    <!-- Check if story_path was provided -->
+    <!-- ADW SDK Integration: Check for story_id in ADW state file first -->
+    <check if="environment variable ADW_STATE_FILE is set and file exists">
+      <action>Read $ADW_STATE_FILE JSON content</action>
+      <action>Check if "story_id" field exists and is non-empty</action>
+
+      <check if="story_id exists in state file">
+        <critical>Running in ADW environment - using story_id from state file</critical>
+        <action>Extract story_id from state JSON (expected format: "1.2" or "1-2")</action>
+        <action>Parse epic_num (first number) and story_num (second number) from story_id</action>
+        <action>Find matching story file in {story_dir} using pattern: {{epic_num}}-{{story_num}}-*.md</action>
+
+        <check if="story file found">
+          <action>Set {{story_path}} to the found file path</action>
+          <action>Read COMPLETE story file</action>
+          <action>Extract story_key from filename</action>
+          <output>🤖 **ADW Mode: Story Loaded from State**
+            Story ID: {{story_id}}
+            Path: {{story_path}}
+            Story Key: {{story_key}}
+          </output>
+        </check>
+
+        <check if="story file NOT found for story_id">
+          <output>⚠️ ADW Mode: Could not find story file for ID: {{story_id}}</output>
+          <action>Fall through to normal discovery flow</action>
+        </check>
+      </check>
+    </check>
+
+    <!-- Normal flow: Check if story_path was provided -->
     <check if="{{story_path}} is provided and not empty">
       <action>Use {{story_path}} directly</action>
       <action>Read COMPLETE story file</action>

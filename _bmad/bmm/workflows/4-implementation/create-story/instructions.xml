@@ -18,6 +18,26 @@
   <critical>🎯 ZERO USER INTERVENTION: Process should be fully automated except for initial epic/story selection or missing documents</critical>
 
   <step n="1" goal="Determine target story">
+    <!-- ADW SDK Integration: Check for ADW environment first -->
+    <check if="environment variable ADW_ISSUE_BODY is set and non-empty">
+      <critical>Running in ADW environment - parse story ID from ADW_ISSUE_BODY</critical>
+      <action>Parse story ID from ADW_ISSUE_BODY (expected format: "1.2" or "1-2")</action>
+      <action>Extract epic_num (first number) and story_num (second number)</action>
+      <action>Set {{epic_num}} and {{story_num}} from parsed values</action>
+      <action>Derive {{story_key}} by looking up the story in epics file or sprint-status matching epic_num-story_num pattern</action>
+      <action>Set {{story_id}} = "{{epic_num}}.{{story_num}}"</action>
+
+      <!-- Update ADW state file with story_id for subsequent commands -->
+      <action>Read current state from $ADW_STATE_FILE</action>
+      <action>Add "story_id": "{{story_id}}" to the state JSON</action>
+      <action>Write updated state back to $ADW_STATE_FILE using:
+        jq '. + {"story_id": "{{story_id}}"}' $ADW_STATE_FILE > tmp.json && mv tmp.json $ADW_STATE_FILE
+      </action>
+      <output>🤖 ADW Mode: Story {{story_id}} loaded from ADW_ISSUE_BODY</output>
+      <action>GOTO step 2a</action>
+    </check>
+
+    <!-- Normal flow: user-provided or auto-discover -->
     <check if="{{story_path}} is provided by user or user provided the epic and story number such as 2-4 or 1.6 or epic 1 story 5">
       <action>Parse user-provided story path: extract epic_num, story_num, story_title from format like "1-2-user-auth"</action>
       <action>Set {{epic_num}}, {{story_num}}, {{story_key}} from user input</action>
