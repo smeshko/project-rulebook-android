@@ -1,8 +1,13 @@
 package com.rulebook.feature.camera
 
 import android.net.Uri
+import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.data.repository.CreditRepository
+import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -29,12 +34,17 @@ class CameraViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: CameraViewModel
     private lateinit var fakeCreditRepository: FakeCreditRepository
+    private lateinit var mockAnalyticsManager: AnalyticsManager
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         fakeCreditRepository = FakeCreditRepository()
-        viewModel = CameraViewModel(creditRepository = fakeCreditRepository)
+        mockAnalyticsManager = mockk(relaxed = true)
+        viewModel = CameraViewModel(
+            creditRepository = fakeCreditRepository,
+            analyticsManager = mockAnalyticsManager
+        )
     }
 
     @After
@@ -587,6 +597,85 @@ class CameraViewModelTest {
         // Show again
         viewModel.showPaywall()
         assertTrue(viewModel.uiState.first().showPaywall)
+    }
+
+    // =========================================================================
+    // Analytics Tracking Tests (Story 5.1 - Task 7)
+    // =========================================================================
+
+    @Test
+    fun `initiateScanFlow tracks scan_initiated event with credit balance and source`() = runTest {
+        // Given: User has 3 credits
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+
+        val testUri = mockk<Uri>()
+
+        // When: Initiating scan flow from camera
+        viewModel.initiateScanFlow(testUri, source = "camera")
+
+        // Then: Analytics event should be tracked with correct properties
+        verify(exactly = 1) {
+            mockAnalyticsManager.trackEvent(
+                "scan_initiated",
+                mapOf(
+                    "credit_balance" to "3",
+                    "source" to "camera"
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `initiateScanFlow tracks scan_paywall_shown when credits are zero`() = runTest {
+        // Given: User has no credits
+        fakeCreditRepository.setCreditBalance(0)
+        advanceUntilIdle()
+
+        val testUri = mockk<Uri>()
+
+        // When: Initiating scan flow from gallery
+        viewModel.initiateScanFlow(testUri, source = "gallery")
+
+        // Then: Both scan_initiated and scan_paywall_shown events should be tracked
+        verify(exactly = 1) {
+            mockAnalyticsManager.trackEvent(
+                "scan_initiated",
+                mapOf(
+                    "credit_balance" to "0",
+                    "source" to "gallery"
+                )
+            )
+        }
+        verify(exactly = 1) {
+            mockAnalyticsManager.trackEvent(
+                "scan_paywall_shown",
+                mapOf("source" to "gallery")
+            )
+        }
+    }
+
+    @Test
+    fun `initiateScanFlow uses default source camera when not specified`() = runTest {
+        // Given: User has credits
+        fakeCreditRepository.setCreditBalance(1)
+        advanceUntilIdle()
+
+        val testUri = mockk<Uri>()
+
+        // When: Initiating scan flow without specifying source
+        viewModel.initiateScanFlow(testUri)
+
+        // Then: Analytics event should use "camera" as default source
+        verify(exactly = 1) {
+            mockAnalyticsManager.trackEvent(
+                "scan_initiated",
+                mapOf(
+                    "credit_balance" to "1",
+                    "source" to "camera"
+                )
+            )
+        }
     }
 }
 

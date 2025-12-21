@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.data.repository.CreditRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,9 +42,11 @@ class InsufficientCreditsException : Exception("Insufficient credits to perform 
  * ViewModel for UI updates.
  *
  * @param creditRepository Repository for observing credit balance and checking before scans.
+ * @param analyticsManager Manager for tracking analytics events (Story 5.1).
  */
 class CameraViewModel(
-    private val creditRepository: CreditRepository
+    private val creditRepository: CreditRepository,
+    private val analyticsManager: AnalyticsManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiState())
@@ -256,19 +259,38 @@ class CameraViewModel(
      * to the scan processing screen. Credits are checked but NOT deducted here -
      * deduction happens after successful rules generation (Story 5.7).
      *
+     * Tracks analytics events (Story 5.1):
+     * - scan_initiated: When user starts scan with credit balance and source
+     * - scan_paywall_shown: When user has no credits
+     *
      * @param imageUri The URI of the captured or selected image to process.
+     * @param source The source of the image: "camera" or "gallery".
      * @return Result.success(Unit) if credits > 0, Result.failure with exception if credits = 0.
      */
-    suspend fun initiateScanFlow(imageUri: Uri): Result<Unit> {
+    suspend fun initiateScanFlow(imageUri: Uri, source: String = "camera"): Result<Unit> {
         return try {
             // Get current credit balance (single value snapshot)
             val credits = creditRepository.creditBalance.first()
+
+            // Track scan initiation with credit balance and source
+            analyticsManager.trackEvent(
+                "scan_initiated",
+                mapOf(
+                    "credit_balance" to credits.toString(),
+                    "source" to source
+                )
+            )
 
             if (credits > 0) {
                 // User has credits - allow scan to proceed
                 Result.success(Unit)
             } else {
                 // User has no credits - need to show paywall
+                // Track paywall shown event
+                analyticsManager.trackEvent(
+                    "scan_paywall_shown",
+                    mapOf("source" to source)
+                )
                 Result.failure(InsufficientCreditsException())
             }
         } catch (e: Exception) {

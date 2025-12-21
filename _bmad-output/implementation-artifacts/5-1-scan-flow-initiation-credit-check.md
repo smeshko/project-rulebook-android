@@ -72,10 +72,10 @@ So that I don't waste time if I can't complete the scan.
   - [x] Accept imageUri argument from navigation
   - [x] Log imageUri for verification
 
-- [ ] Task 7: Add Analytics Event (Best Practice)
-  - [ ] Fire `scan_initiated` event with credit balance
-  - [ ] Include source (camera vs gallery) in event properties
-  - [ ] Track paywall shown events
+- [x] Task 7: Add Analytics Event (Best Practice)
+  - [x] Fire `scan_initiated` event with credit balance
+  - [x] Include source (camera vs gallery) in event properties
+  - [x] Track paywall shown events
 
 ## Technical Requirements
 
@@ -535,6 +535,18 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 - All tests passing ✅
 - Build successful ✅
 
+**Task 7: Add Analytics Event Tracking**
+- Added `AnalyticsManager` parameter to `CameraViewModel` constructor
+- Added `source` parameter to `initiateScanFlow()` function with default value "camera"
+- Integrated `scan_initiated` event tracking with credit_balance and source properties
+- Integrated `scan_paywall_shown` event tracking when credits = 0
+- Updated `CameraScreen` to pass "camera" or "gallery" source when calling initiateScanFlow
+- Added analytics dependency to camera module build.gradle.kts
+- Updated Koin module to inject AnalyticsManager
+- Added 3 comprehensive unit tests for analytics event tracking
+- All tests passing (10 new tests total for credit gate) ✅
+- Build successful ✅
+
 ### File List
 
 **Modified:**
@@ -542,13 +554,14 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 - `app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt` - Wired credit gate navigation (processing & paywall)
 - `app/src/main/kotlin/com/rulebook/navigation/PlaceholderScreens.kt` - Added ScanProcessingPlaceholder
 - `app/src/test/kotlin/com/rulebook/navigation/NavigationDestinationTest.kt` - Added tests for ScanProcessing route
-- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt` - Added credit check and paywall state management
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt` - Added credit check, paywall state, analytics tracking
 - `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraUiState.kt` - Added showPaywall field
-- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt` - Integrated credit gate logic and navigation
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt` - Integrated credit gate logic and navigation with source tracking
 - `feature/camera/src/main/kotlin/com/rulebook/feature/camera/navigation/CameraNavigation.kt` - Updated navigation extension
-- `feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt` - Added 7 new tests (3 credit check + 4 paywall)
+- `feature/camera/src/main/kotlin/com/rulebook/feature/camera/di/CameraModule.kt` - Added AnalyticsManager injection
+- `feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt` - Added 10 new tests (3 credit + 4 paywall + 3 analytics)
 - `gradle/libs.versions.toml` - Added mockk 1.13.13 for testing
-- `feature/camera/build.gradle.kts` - Added mockk test dependency
+- `feature/camera/build.gradle.kts` - Added mockk test dependency and analytics module
 
 **Created:**
 - `local.properties` - Android SDK configuration

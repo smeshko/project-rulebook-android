@@ -121,7 +121,7 @@ fun CameraScreen(
         uri?.let { selectedUri ->
             // Story 5.1: Check credits before proceeding with scan
             coroutineScope.launch {
-                val result = viewModel.initiateScanFlow(selectedUri)
+                val result = viewModel.initiateScanFlow(selectedUri, source = "gallery")
                 if (result.isSuccess) {
                     // User has credits - proceed to processing
                     onNavigateToProcessing(selectedUri.toString())
@@ -177,7 +177,7 @@ fun CameraScreen(
 
             // Story 5.1: Check credits before proceeding with scan
             val uri = Uri.parse(uriString)
-            val result = viewModel.initiateScanFlow(uri)
+            val result = viewModel.initiateScanFlow(uri, source = "camera")
             if (result.isSuccess) {
                 // User has credits - proceed to processing
                 onNavigateToProcessing(uriString)
