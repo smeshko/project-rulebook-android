@@ -36,10 +36,10 @@ So that I don't waste time if I can't complete the scan.
   - [x] Credit deduction happens in Story 5.7 (save rules)
   - [x] Document this in code comments
 
-- [ ] Task 4: Navigate to Paywall on Zero Credits (AC: #1)
-  - [ ] Define paywall route placeholder
-  - [ ] Navigate to paywall when credits = 0
-  - [ ] Note: Full paywall implementation in Epic 8
+- [x] Task 4: Navigate to Paywall on Zero Credits (AC: #1)
+  - [x] Define paywall route placeholder
+  - [x] Navigate to paywall when credits = 0
+  - [x] Note: Full paywall implementation in Epic 8
 
 - [ ] Task 5: Test Credit Check Flow (AC: #1, #2)
   - [ ] Test with credits > 0 proceeds to processing
@@ -505,6 +505,8 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 **Task 2: Navigate to Progress Screen** - Added Route.Processing with imageUri parameter to NavigationDestination.kt. Implemented URI encoding/decoding for safe route parameter passing. Created ProcessingPlaceholder composable for Story 5.2 implementation. Wired up navigation in RulebookNavHost with proper navArgument configuration and slide transitions. Navigation triggered from both onPhotoCaptured and onGalleryImageSelected callbacks after credit check passes.
 
 **Task 3: Credit Deduction on Success Only** - Added code documentation in CameraViewModel.checkCreditsAndNavigate() KDoc stating credit is NOT deducted at scan initiation. Added inline comments in RulebookNavHost navigation callbacks explaining deduction happens in Story 5.7 on successful rules save. This prevents credit loss on API failures and ensures users get the advertised 60-second experience.
+
+**Task 4: Navigate to Paywall on Zero Credits** - Utilized existing Route.Purchase from Epic 1 for paywall navigation. When checkCreditsAndNavigate() returns NavigationAction.ShowPaywall, navigation routes to Route.Purchase.route. PurchasePlaceholder already exists from Epic 1. Full paywall screen implementation will be completed in Epic 8 as noted in PRD.
 
 ### File List
 
