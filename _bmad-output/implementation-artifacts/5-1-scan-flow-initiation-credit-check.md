@@ -1,6 +1,6 @@
 # Story 5.1: Scan Flow Initiation & Credit Check
 
-Status: Ready for Review
+Status: done
 
 ## Story
 
