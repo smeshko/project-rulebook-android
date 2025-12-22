@@ -44,8 +44,8 @@ workflow:
 
     # Test phase: Run tests
     - name: test
-      enabled: false
-      command: /test
+      enabled: true
+      command: /bmad:bmm:workflows:run-tests
       on_failure: block
 
     # Review phase: Self-review the implementation
@@ -55,11 +55,11 @@ workflow:
 
     # Document phase: Update documentation
     - name: document
-      enabled: false
-      command: /document
+      enabled: true
+      command: /bmad:bmm:workflows:document-feature
       # skip_if: "issue.labels contains 'bug'"
 
     # Ship phase: Create PR and prepare for merge
     - name: ship
-      enabled: false
-      command: /pull_request
+      enabled: true
+      command: /bmad:bmm:workflows:ship

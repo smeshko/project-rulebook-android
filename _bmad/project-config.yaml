@@ -1,0 +1,25 @@
+project:
+  name: "project-rulebook-android"
+  type: mobile
+
+test:
+  pre_commands: []
+  unit:
+    command: "./gradlew test"
+    enabled: true
+  e2e:
+    enabled: false
+  lint:
+    enabled: false
+  typecheck:
+    enabled: false
+  custom: []
+
+document:
+  standards_file: "docs/DOCUMENTATION_STANDARDS.md"
+  check_inline: true
+  check_external: true
+  doc_locations:
+    - "README.md"
+    - "docs/"
+  patterns: []
