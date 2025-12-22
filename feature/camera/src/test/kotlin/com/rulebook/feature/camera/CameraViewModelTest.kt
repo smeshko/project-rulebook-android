@@ -491,6 +491,49 @@ class CameraViewModelTest {
 
         assertEquals(4, viewModel.uiState.first().creditBalance)
     }
+
+    // =========================================================================
+    // Credit Checking & Navigation Tests (Story 5.1)
+    // =========================================================================
+
+    @Test
+    fun `checkCreditsAndNavigate with credits greater than zero returns ProceedToProcessing`() = runTest {
+        // Given: Credit balance > 0
+        fakeCreditRepository.setCreditBalance(10)
+        advanceUntilIdle()
+
+        // When: Check credits
+        val result = viewModel.checkCreditsAndNavigate()
+
+        // Then: Should proceed to processing
+        assertEquals(NavigationAction.ProceedToProcessing, result)
+    }
+
+    @Test
+    fun `checkCreditsAndNavigate with zero credits returns ShowPaywall`() = runTest {
+        // Given: Credit balance = 0
+        fakeCreditRepository.setCreditBalance(0)
+        advanceUntilIdle()
+
+        // When: Check credits
+        val result = viewModel.checkCreditsAndNavigate()
+
+        // Then: Should show paywall
+        assertEquals(NavigationAction.ShowPaywall, result)
+    }
+
+    @Test
+    fun `checkCreditsAndNavigate with one credit returns ProceedToProcessing`() = runTest {
+        // Given: Credit balance = 1 (edge case - minimum to proceed)
+        fakeCreditRepository.setCreditBalance(1)
+        advanceUntilIdle()
+
+        // When: Check credits
+        val result = viewModel.checkCreditsAndNavigate()
+
+        // Then: Should proceed to processing
+        assertEquals(NavigationAction.ProceedToProcessing, result)
+    }
 }
 
 /**
