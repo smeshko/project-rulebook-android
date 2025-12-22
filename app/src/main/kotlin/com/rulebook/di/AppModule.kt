@@ -11,6 +11,7 @@ import com.rulebook.feature.library.di.libraryModule
 import com.rulebook.feature.onboarding.di.onboardingModule
 import com.rulebook.feature.purchase.di.purchaseModule
 import com.rulebook.feature.rules.di.rulesModule
+import com.rulebook.feature.scan.di.scanFlowModule
 import com.rulebook.feature.settings.di.settingsModule
 import com.rulebook.startup.StartupViewModel
 import org.koin.core.module.dsl.viewModel
@@ -41,6 +42,7 @@ val appModules = listOf(
     libraryModule,
     cameraModule,
     rulesModule,
+    scanFlowModule,
     settingsModule,
     onboardingModule,
     purchaseModule,
