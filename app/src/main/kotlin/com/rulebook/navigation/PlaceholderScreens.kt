@@ -90,29 +90,6 @@ fun OnboardingPlaceholder(modifier: Modifier = Modifier) {
 }
 
 /**
- * Placeholder for Processing screen - shows scan progress and AI processing.
- *
- * Supports predictive back gesture - swipe from left edge shows preview
- * of previous screen before navigating back. Compose Navigation 2.8+
- * handles the preview animation automatically via NavHost.
- *
- * @param imageUri The URI of the image being processed (displayed for debugging)
- */
-@Composable
-fun ProcessingPlaceholder(
-    imageUri: String,
-    modifier: Modifier = Modifier
-) {
-    // No BackHandler needed - Compose Navigation handles predictive back
-    // with preview animations automatically when using NavHost
-    PlaceholderContent(
-        title = "Processing",
-        subtitle = "Image: $imageUri\nFull implementation in Story 5.2",
-        modifier = modifier
-    )
-}
-
-/**
  * Placeholder for Purchase screen - premium features and subscriptions.
  *
  * Supports predictive back gesture - swipe from left edge shows preview
