@@ -26,10 +26,10 @@ So that I don't waste time if I can't complete the scan.
   - [x] If credits = 0, navigate to paywall
   - [x] Ensure credit check happens before navigation
 
-- [ ] Task 2: Navigate to Progress Screen (AC: #1)
-  - [ ] Define progress route in navigation
-  - [ ] Pass image URI to progress screen
-  - [ ] Set up navigation from camera to progress
+- [x] Task 2: Navigate to Progress Screen (AC: #1)
+  - [x] Define progress route in navigation
+  - [x] Pass image URI to progress screen
+  - [x] Set up navigation from camera to progress
 
 - [ ] Task 3: Credit Deduction on Success Only (AC: #2)
   - [ ] DO NOT deduct credit at scan initiation
@@ -502,12 +502,19 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
 **Task 1: Implement Credit Check Flow** - Created NavigationAction sealed class with ProceedToProcessing and ShowPaywall variants. Implemented checkCreditsAndNavigate() method in CameraViewModel that reads current creditBalance from uiState and returns appropriate navigation action. Credit check uses existing credit balance flow from Story 4.8 - no additional repository calls needed. Wrote 3 unit tests covering: credits > 0 returns ProceedToProcessing, credits = 0 returns ShowPaywall, and boundary case with 1 credit. All tests pass.
 
+**Task 2: Navigate to Progress Screen** - Added Route.Processing with imageUri parameter to NavigationDestination.kt. Implemented URI encoding/decoding for safe route parameter passing. Created ProcessingPlaceholder composable for Story 5.2 implementation. Wired up navigation in RulebookNavHost with proper navArgument configuration and slide transitions. Navigation triggered from both onPhotoCaptured and onGalleryImageSelected callbacks after credit check passes.
+
 ### File List
 
 **Task 1:**
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/NavigationAction.kt (created)
 - feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified)
 - feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt (modified)
+
+**Task 2:**
+- app/src/main/kotlin/com/rulebook/navigation/NavigationDestination.kt (modified)
+- app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (modified)
+- app/src/main/kotlin/com/rulebook/navigation/PlaceholderScreens.kt (modified)
 
 ## Epic Dependencies
 
