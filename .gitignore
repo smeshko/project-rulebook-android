@@ -131,5 +131,6 @@ node_modules/
 .claude/hooks/utils/__*
 
 logs/
+_bmad-backup/
 
 .vscode

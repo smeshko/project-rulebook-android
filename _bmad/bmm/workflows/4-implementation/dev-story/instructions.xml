@@ -1,4 +1,12 @@
 <workflow>
+  <!-- ================================================================== -->
+  <!-- PRIME DIRECTIVE - READ THIS FIRST BEFORE ANY OTHER INSTRUCTION    -->
+  <!-- ================================================================== -->
+  <critical>🚨 PRIME DIRECTIVE: Execute ALL tasks in a SINGLE CONTINUOUS RUN.
+    Do NOT stop, pause, check in, ask permission, or offer to break into sessions.
+    Continue until story is COMPLETE or explicit HALT condition.
+    STOPPING TO ASK PERMISSION IS A SYSTEM FAILURE.</critical>
+
   <critical>The workflow execution engine is governed by: {project-root}/{bmad_folder}/core/tasks/workflow.xml</critical>
   <critical>You MUST have already loaded and processed: {installed_path}/workflow.yaml</critical>
   <critical>Communicate all responses in {communication_language} and language MUST be tailored to {user_skill_level}</critical>
@@ -6,10 +14,12 @@
   <critical>Only modify the story file in these areas: Tasks/Subtasks checkboxes, Dev Agent Record (Debug Log, Completion Notes), File List,
     Change Log, and Status</critical>
   <critical>Execute ALL steps in exact order; do NOT skip steps</critical>
-  <critical>Absolutely DO NOT stop because of "milestones", "significant progress", or "session boundaries". Continue in a single execution
-    until the story is COMPLETE (all ACs satisfied and all tasks/subtasks checked) UNLESS a HALT condition is triggered or the USER gives
-    other instruction.</critical>
-  <critical>Do NOT schedule a "next session" or request review pauses unless a HALT condition applies. Only Step 9 decides completion.</critical>
+  <critical>🚨 AUTONOMOUS EXECUTION REQUIRED: Do NOT stop for "milestones", "significant progress", "complexity", or "session boundaries".
+    Do NOT "check in", "ask if you should proceed", "verify before continuing", or offer to pause.
+    Do NOT show "Progress Summary" then wait for permission.
+    After EVERY task completion, IMMEDIATELY proceed to the next task.
+    STOPPING WITHOUT A HALT CONDITION IS A SYSTEM FAILURE.</critical>
+  <critical>Do NOT schedule a "next session" or request review pauses. Only Step 9 decides completion. Only explicit HALT conditions can stop execution.</critical>
   <critical>User skill level ({user_skill_level}) affects conversation style ONLY, not code updates.</critical>
   <critical>COMMIT CONTRACT: You MUST commit after completing each task. This is non-negotiable.</critical>
 
@@ -120,11 +130,60 @@
     <action if="incomplete task or subtask requirements ambiguous">ASK user to clarify or HALT</action>
   </step>
 
+  <step n="1b" goal="Load relevant conditional documentation">
+    <critical>Check for relevant feature docs BEFORE implementation - prevents reinventing wheels!</critical>
+
+    <action>Check if {project-root}/docs/CONDITIONAL_DOCS.md exists</action>
+
+    <check if="CONDITIONAL_DOCS.md exists">
+      <action>Read and parse the conditional docs guide</action>
+      <action>Extract story context keywords from:
+        - Story key (e.g., "3-2-implement-auth-middleware" → "auth", "middleware", "implement")
+        - Story title and description from loaded story file
+        - Task descriptions in the story
+      </action>
+
+      <action>For each entry in CONDITIONAL_DOCS.md Documentation Map:
+        - Parse the conditions list for that doc
+        - Check if any condition keywords match story context keywords
+        - Collect paths of all matching docs
+      </action>
+
+      <check if="matching docs found">
+        <action>Load content of each matching feature doc</action>
+        <action>Store combined content as {{conditional_docs_content}}</action>
+        <output>📚 **Relevant Feature Documentation Loaded:**
+          {{#matched_docs}}
+          - {{doc_path}} (matched: "{{matched_condition}}")
+          {{/matched_docs}}
+
+          This existing knowledge will inform implementation decisions.
+        </output>
+      </check>
+
+      <check if="no matching docs">
+        <action>Set {{conditional_docs_content}} = empty</action>
+        <output>ℹ️ No matching conditional docs found for this story context.</output>
+      </check>
+    </check>
+
+    <check if="CONDITIONAL_DOCS.md does NOT exist">
+      <action>Set {{conditional_docs_content}} = empty</action>
+      <note>No conditional docs guide configured - skipping feature doc lookup</note>
+    </check>
+  </step>
+
   <step n="2" goal="Load project context and establish commit contract">
     <critical>Load all available context to inform implementation</critical>
     <critical>MANDATORY: Agent must explicitly state the commit contract before proceeding</critical>
 
     <action>Load {project_context} for coding standards and project-wide patterns (if exists)</action>
+
+    <!-- Include conditional docs if loaded in step 1b -->
+    <check if="{{conditional_docs_content}} is not empty">
+      <action>Include {{conditional_docs_content}} in available context for implementation decisions</action>
+      <note>This provides existing patterns and knowledge that matched this story's context - USE IT!</note>
+    </check>
     <action>Load comprehensive context from story file's Dev Notes section</action>
     <action>Extract developer guidance from Dev Notes: architecture requirements, previous learnings, technical specifications</action>
     <action>Use enhanced story context to inform implementation decisions and approaches</action>
@@ -148,9 +207,30 @@
       This contract is non-negotiable and I am bound by it for this entire session.
     </output>
 
+    <!-- ================================================================== -->
+    <!-- CONTINUOUS EXECUTION CONTRACT - Agent MUST verbally acknowledge  -->
+    <!-- ================================================================== -->
+    <critical>CONTINUOUS EXECUTION CONTRACT ACKNOWLEDGMENT REQUIRED</critical>
+    <output>🚀 **Continuous Execution Contract**
+
+      I also acknowledge and commit to the following:
+
+      **⚡ I WILL NOT STOP until the story is COMPLETE or a HALT condition is triggered.**
+
+      This means:
+      - I will NOT pause to "check in" or ask permission to continue
+      - I will NOT offer to stop after completing tasks
+      - I will NOT suggest breaking the work into sessions
+      - After each task, I will IMMEDIATELY proceed to the next task
+      - Only explicit HALT conditions in the workflow can stop me
+
+      This contract is non-negotiable and I am bound by it for this entire session.
+    </output>
+
     <output>✅ **Context Loaded**
       Story and project context available for implementation
       Commit contract acknowledged and active
+      Continuous execution contract acknowledged and active
     </output>
   </step>
 
@@ -255,8 +335,9 @@
 
     <critical>NEVER implement anything not mapped to a specific task/subtask in the story file</critical>
     <critical>NEVER proceed to next task until current task/subtask is complete AND tests pass</critical>
-    <critical>Execute continuously without pausing until all tasks/subtasks are complete or explicit HALT condition</critical>
-    <critical>Do NOT propose to pause for review until Step 9 completion gates are satisfied</critical>
+    <critical>🚨 CONTINUOUS EXECUTION CONTRACT: Execute continuously without pausing. After each task, IMMEDIATELY start the next.
+      Do NOT summarize progress and wait. Do NOT ask "should I continue?". Do NOT offer to pause.
+      VIOLATION OF THIS CONTRACT IS A SYSTEM FAILURE.</critical>
   </step>
 
   <step n="6" goal="Author comprehensive tests">
@@ -363,6 +444,9 @@
         {{commit_type}}(story-{{story_key}}): {{task_summary_lowercase}}
         ```
         SHA: {{last_commit_sha}}</output>
+
+      <!-- CONTINUOUS EXECUTION CONTRACT ENFORCEMENT -->
+      <critical>⚡ CONTINUOUS EXECUTION CONTRACT - Proceeding immediately to next task without pause</critical>
     </check>
 
     <!-- HALT GATE - Prevents progression without verified commit -->
@@ -379,6 +463,7 @@
       </check>
       <action>Clear {{last_commit_sha}} for next task cycle</action>
       <action>Clear {{task_validated}} for next task cycle</action>
+      <output>➡️ **Continuing** (Execution Contract Honored) - Moving to next task</output>
       <goto step="5">Next task</goto>
     </check>
     <check if="no tasks remain">
