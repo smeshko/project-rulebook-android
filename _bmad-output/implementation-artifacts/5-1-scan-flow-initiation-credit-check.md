@@ -39,10 +39,10 @@ so that I don't waste time if I can't complete the scan.
   - [x] Pass captured/compressed image URI to scan flow
   - [x] Ensure image is compressed before passing (from Story 4.7)
 
-- [ ] Task 4: Implement Paywall Navigation (AC: #1)
-  - [ ] Define paywall route in navigation graph
-  - [ ] Navigate to paywall route when credits == 0
-  - [ ] Note: Actual paywall UI is in Epic 8
+- [x] Task 4: Implement Paywall Navigation (AC: #1)
+  - [x] Define paywall route in navigation graph
+  - [x] Navigate to paywall route when credits == 0
+  - [x] Note: Actual paywall UI is in Epic 8
 
 - [ ] Task 5: Add Analytics Event (Related to Story 5.10)
   - [ ] Track `scan_started` event with TelemetryDeck
@@ -366,6 +366,8 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 ✅ Task 2 Completed: Implemented credit check logic in ScanFlowViewModel. ViewModel checks balance on init, navigates to paywall when balance is 0, proceeds to analysis when balance > 0, and does NOT deduct credits (verified by tests).
 
 ✅ Task 3 Completed: Wired camera navigation to scan flow. Updated RulebookNavHost to add scan flow and paywall screens, updated camera callbacks to navigate to scan flow with captured/compressed image URI.
+
+✅ Task 4 Completed: Paywall navigation already implemented in Task 3. Paywall route defined in NavigationDestination, PaywallPlaceholder created, and ScanFlowScreen navigates to paywall when credits == 0.
 
 ### File List
 
