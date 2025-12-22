@@ -273,28 +273,6 @@ class CameraViewModel(
     }
 
     // =========================================================================
-    // Credit Check Navigation (Story 5.1)
-    // =========================================================================
-
-    /**
-     * Checks credit balance and determines navigation action.
-     *
-     * Called after photo capture/selection to gate access to image processing.
-     * Credit is NOT deducted here - deduction happens on successful scan save (Story 5.7).
-     *
-     * @return [NavigationAction.ProceedToProcessing] if user has credits > 0,
-     *         [NavigationAction.ShowPaywall] if user has 0 credits
-     */
-    fun checkCreditsAndNavigate(): NavigationAction {
-        val currentBalance = _uiState.value.creditBalance
-        return if (currentBalance > 0) {
-            NavigationAction.ProceedToProcessing
-        } else {
-            NavigationAction.ShowPaywall
-        }
-    }
-
-    // =========================================================================
     // Resource Cleanup (Story 4.10)
     // =========================================================================
 
