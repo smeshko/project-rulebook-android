@@ -106,6 +106,8 @@ fun RulebookNavHost(
                 onNavigateBack = { navController.popBackStack() },
                 onPhotoCaptured = { imageUri ->
                     // Check credit balance before navigating (Story 5.1)
+                    // NOTE: Credit is NOT deducted here - deduction happens on successful
+                    // rules save in Story 5.7 to prevent credit loss on failures
                     when (viewModel.checkCreditsAndNavigate()) {
                         NavigationAction.ProceedToProcessing -> {
                             navController.navigate(Route.Processing.createRoute(imageUri))
@@ -118,6 +120,8 @@ fun RulebookNavHost(
                 onGalleryImageSelected = { imageUri ->
                     // Same processing path as captured photos (Story 4.6 AC #2)
                     // Check credit balance before navigating (Story 5.1)
+                    // NOTE: Credit is NOT deducted here - deduction happens on successful
+                    // rules save in Story 5.7 to prevent credit loss on failures
                     when (viewModel.checkCreditsAndNavigate()) {
                         NavigationAction.ProceedToProcessing -> {
                             navController.navigate(Route.Processing.createRoute(imageUri))

@@ -31,10 +31,10 @@ So that I don't waste time if I can't complete the scan.
   - [x] Pass image URI to progress screen
   - [x] Set up navigation from camera to progress
 
-- [ ] Task 3: Credit Deduction on Success Only (AC: #2)
-  - [ ] DO NOT deduct credit at scan initiation
-  - [ ] Credit deduction happens in Story 5.7 (save rules)
-  - [ ] Document this in code comments
+- [x] Task 3: Credit Deduction on Success Only (AC: #2)
+  - [x] DO NOT deduct credit at scan initiation
+  - [x] Credit deduction happens in Story 5.7 (save rules)
+  - [x] Document this in code comments
 
 - [ ] Task 4: Navigate to Paywall on Zero Credits (AC: #1)
   - [ ] Define paywall route placeholder
@@ -504,6 +504,8 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
 **Task 2: Navigate to Progress Screen** - Added Route.Processing with imageUri parameter to NavigationDestination.kt. Implemented URI encoding/decoding for safe route parameter passing. Created ProcessingPlaceholder composable for Story 5.2 implementation. Wired up navigation in RulebookNavHost with proper navArgument configuration and slide transitions. Navigation triggered from both onPhotoCaptured and onGalleryImageSelected callbacks after credit check passes.
 
+**Task 3: Credit Deduction on Success Only** - Added code documentation in CameraViewModel.checkCreditsAndNavigate() KDoc stating credit is NOT deducted at scan initiation. Added inline comments in RulebookNavHost navigation callbacks explaining deduction happens in Story 5.7 on successful rules save. This prevents credit loss on API failures and ensures users get the advertised 60-second experience.
+
 ### File List
 
 **Task 1:**
@@ -515,6 +517,10 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 - app/src/main/kotlin/com/rulebook/navigation/NavigationDestination.kt (modified)
 - app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (modified)
 - app/src/main/kotlin/com/rulebook/navigation/PlaceholderScreens.kt (modified)
+
+**Task 3:**
+- feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt (modified - comments)
+- app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (modified - comments)
 
 ## Epic Dependencies
 
