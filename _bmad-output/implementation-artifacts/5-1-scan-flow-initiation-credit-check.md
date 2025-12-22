@@ -27,12 +27,12 @@ so that I don't waste time if I can't complete the scan.
   - [x] Define `ScanFlowUiState` sealed class with states
   - [x] Set up navigation entry point with captured image parameter
 
-- [ ] Task 2: Implement Credit Check Logic in ViewModel (AC: #1, #2)
-  - [ ] Create `ScanFlowViewModel` injecting `CreditRepository`
-  - [ ] Check credit balance on initialization
-  - [ ] Navigate to paywall route if credits == 0
-  - [ ] Proceed to analysis phase if credits > 0
-  - [ ] Do NOT deduct credit yet (deduction in Story 5.7)
+- [x] Task 2: Implement Credit Check Logic in ViewModel (AC: #1, #2)
+  - [x] Create `ScanFlowViewModel` injecting `CreditRepository`
+  - [x] Check credit balance on initialization
+  - [x] Navigate to paywall route if credits == 0
+  - [x] Proceed to analysis phase if credits > 0
+  - [x] Do NOT deduct credit yet (deduction in Story 5.7)
 
 - [ ] Task 3: Handle Navigation from Camera (AC: #1)
   - [ ] Update `CameraViewModel` to navigate to scan flow after capture
@@ -362,6 +362,8 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 ### Completion Notes List
 
 ✅ Task 1 Completed: Created scan feature module with basic composable, UI state, ViewModel, and navigation structure. All unit tests passing.
+
+✅ Task 2 Completed: Implemented credit check logic in ScanFlowViewModel. ViewModel checks balance on init, navigates to paywall when balance is 0, proceeds to analysis when balance > 0, and does NOT deduct credits (verified by tests).
 
 ### File List
 
