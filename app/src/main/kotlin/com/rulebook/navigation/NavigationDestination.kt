@@ -25,6 +25,24 @@ sealed class Route(val route: String) {
     data object Purchase : Route("purchase")
 
     /**
+     * Processing screen - shows scan progress and AI processing.
+     *
+     * This route requires an imageUri argument to identify which image to process.
+     */
+    data object Processing : Route("processing/{${RulebookNavArgs.IMAGE_URI}}") {
+        /**
+         * Creates the full route string with the provided image URI.
+         *
+         * @param imageUri The URI of the captured/selected image
+         * @return The complete route string for navigation
+         */
+        fun createRoute(imageUri: String): String {
+            val encodedUri = android.net.Uri.encode(imageUri)
+            return "processing/$encodedUri"
+        }
+    }
+
+    /**
      * Rules screen - displays rules for a specific game.
      *
      * This route requires a gameId argument to identify which game's rules to display.
@@ -49,4 +67,7 @@ sealed class Route(val route: String) {
 object RulebookNavArgs {
     /** Argument key for game identifier in Rules route */
     const val GAME_ID = "gameId"
+
+    /** Argument key for image URI in Processing route */
+    const val IMAGE_URI = "imageUri"
 }
