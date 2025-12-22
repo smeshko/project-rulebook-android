@@ -1,5 +1,9 @@
 package com.rulebook.navigation
 
+import android.net.Uri
+import androidx.core.net.toUri
+import androidx.navigation.NavBackStackEntry
+
 /**
  * Sealed class defining all navigation routes in the Rulebook app.
  *
@@ -23,6 +27,42 @@ sealed class Route(val route: String) {
 
     /** Purchase screen - premium features and subscriptions */
     data object Purchase : Route("purchase")
+
+    /**
+     * Processing screen - game recognition and rules generation flow.
+     *
+     * This route requires an imageUri argument containing the captured photo
+     * that will be processed for game recognition and rules generation.
+     *
+     * Part of Story 5.1 - credit-gated navigation to processing flow.
+     */
+    data object Processing : Route("processing/{${RulebookNavArgs.IMAGE_URI}}") {
+        /**
+         * Creates the full route string with the provided image URI.
+         *
+         * The URI is URL-encoded to safely pass it as a route parameter.
+         *
+         * @param imageUri The URI of the captured image to process
+         * @return The complete route string for navigation
+         */
+        fun createRoute(imageUri: Uri): String {
+            val encodedUri = Uri.encode(imageUri.toString())
+            return "processing/$encodedUri"
+        }
+
+        /**
+         * Extracts the image URI from the navigation back stack entry.
+         *
+         * @param backStackEntry The navigation back stack entry containing route arguments
+         * @return The decoded image URI
+         * @throws IllegalArgumentException if the IMAGE_URI argument is missing
+         */
+        fun getImageUri(backStackEntry: NavBackStackEntry): Uri {
+            val uriString = backStackEntry.arguments?.getString(RulebookNavArgs.IMAGE_URI)
+                ?: throw IllegalArgumentException("Image URI not found in route arguments")
+            return uriString.toUri()
+        }
+    }
 
     /**
      * Rules screen - displays rules for a specific game.
@@ -49,4 +89,7 @@ sealed class Route(val route: String) {
 object RulebookNavArgs {
     /** Argument key for game identifier in Rules route */
     const val GAME_ID = "gameId"
+
+    /** Argument key for image URI in Processing route (Story 5.1) */
+    const val IMAGE_URI = "imageUri"
 }

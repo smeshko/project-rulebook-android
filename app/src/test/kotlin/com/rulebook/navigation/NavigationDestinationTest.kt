@@ -1,5 +1,6 @@
 package com.rulebook.navigation
 
+import androidx.core.net.toUri
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -52,4 +53,21 @@ class NavigationDestinationTest {
     fun `RulebookNavArgs GAME_ID has correct value`() {
         assertEquals("gameId", RulebookNavArgs.GAME_ID)
     }
+
+    // =========================================================================
+    // Processing Route Tests (Story 5.1)
+    // =========================================================================
+
+    @Test
+    fun `Processing route has correct route pattern with imageUri placeholder`() {
+        assertEquals("processing/{imageUri}", Route.Processing.route)
+    }
+
+    @Test
+    fun `RulebookNavArgs IMAGE_URI has correct value`() {
+        assertEquals("imageUri", RulebookNavArgs.IMAGE_URI)
+    }
+
+    // Note: createRoute() and getImageUri() are tested in instrumentation tests
+    // as they require Android runtime context (Uri.parse, Uri.encode)
 }

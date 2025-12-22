@@ -77,10 +77,10 @@ fun checkCreditsAndNavigate(): NavigationAction {
   - [x] Implement `checkCreditsAndNavigate(): NavigationAction` function (completed in Task 1)
   - [x] Add `clearCapturedImage()` for resource cleanup after navigation (already exists from Story 4.2)
 
-- [ ] Task 3: Add Navigation Routes (AC: #1)
-  - [ ] Add `Route.Processing` with `createRoute(imageUri: Uri)` function
-  - [ ] Add `Route.Purchase` for paywall destination (Epic 8 will implement screen)
-  - [ ] Update `NavigationDestination.kt` with new routes
+- [x] Task 3: Add Navigation Routes (AC: #1)
+  - [x] Add `Route.Processing` with `createRoute(imageUri: Uri)` function
+  - [x] Add `Route.Purchase` for paywall destination (Epic 8 will implement screen - already exists)
+  - [x] Update `NavigationDestination.kt` with new routes
 
 - [ ] Task 4: Integrate Credit Check in Navigation Graph (AC: #1)
   - [ ] Update `RulebookNavHost.kt` to handle `NavigationAction` outcomes
@@ -522,6 +522,13 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 - ✅ CameraUiState already has creditBalance field
 - ✅ clearCapturedImage() already exists from Story 4.2
 
+**Task 3 Complete:**
+- ✅ Added Route.Processing with createRoute(imageUri) and getImageUri(backStackEntry) functions
+- ✅ Added IMAGE_URI to RulebookNavArgs
+- ✅ Route.Purchase already exists from previous Epic
+- ✅ Added unit tests for Processing route pattern and nav args
+- ✅ All tests passing
+
 Story context created with comprehensive analysis:
 - ✅ Epic 5 Story 1 requirements extracted
 - ✅ Architecture patterns documented (MVI, StateFlow, Result<T>)
@@ -544,7 +551,8 @@ Files created/modified in this story:
 - `feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraViewModel.kt` (modified - Task 1)
 - `feature/camera/src/test/kotlin/com/rulebook/feature/camera/CameraViewModelTest.kt` (modified - Task 1)
 - `local.properties` (created - SDK configuration)
-- `app/src/main/kotlin/com/rulebook/navigation/NavigationDestination.kt` (pending - Task 3)
+- `app/src/main/kotlin/com/rulebook/navigation/NavigationDestination.kt` (modified - Task 3)
+- `app/src/test/kotlin/com/rulebook/navigation/NavigationDestinationTest.kt` (modified - Task 3)
 - `app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt` (pending - Task 4)
 - `app/src/main/kotlin/com/rulebook/navigation/PlaceholderScreens.kt` (pending - Task 5, 6)
 
