@@ -111,9 +111,11 @@ fun RulebookNavHost(
                     when (viewModel.checkCreditsAndNavigate()) {
                         NavigationAction.ProceedToProcessing -> {
                             navController.navigate(Route.Processing.createRoute(imageUri))
+                            viewModel.clearCapturedImage()
                         }
                         NavigationAction.ShowPaywall -> {
                             navController.navigate(Route.Purchase.route)
+                            viewModel.clearCapturedImage()
                         }
                     }
                 },
@@ -125,9 +127,11 @@ fun RulebookNavHost(
                     when (viewModel.checkCreditsAndNavigate()) {
                         NavigationAction.ProceedToProcessing -> {
                             navController.navigate(Route.Processing.createRoute(imageUri))
+                            viewModel.clearCapturedImage()
                         }
                         NavigationAction.ShowPaywall -> {
                             navController.navigate(Route.Purchase.route)
+                            viewModel.clearCapturedImage()
                         }
                     }
                 }
