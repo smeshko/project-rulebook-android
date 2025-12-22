@@ -70,12 +70,12 @@ fun checkCreditsAndNavigate(): NavigationAction {
   - [x] Define `ProceedToProcessing` and `ShowPaywall` outcomes
   - [x] Add KDoc documentation explaining credit-gating pattern
 
-- [ ] Task 2: Extend CameraViewModel for Credit Checking (AC: #1)
-  - [ ] Inject `CreditRepository` into `CameraViewModel` constructor
-  - [ ] Observe credit balance Flow in ViewModel init
-  - [ ] Add credit balance to `CameraUiState` data class
-  - [ ] Implement `checkCreditsAndNavigate(): NavigationAction` function
-  - [ ] Add `clearCapturedImage()` for resource cleanup after navigation
+- [x] Task 2: Extend CameraViewModel for Credit Checking (AC: #1)
+  - [x] Inject `CreditRepository` into `CameraViewModel` constructor (already done in Story 4.8)
+  - [x] Observe credit balance Flow in ViewModel init (already done in Story 4.8)
+  - [x] Add credit balance to `CameraUiState` data class (already done in Story 4.8)
+  - [x] Implement `checkCreditsAndNavigate(): NavigationAction` function (completed in Task 1)
+  - [x] Add `clearCapturedImage()` for resource cleanup after navigation (already exists from Story 4.2)
 
 - [ ] Task 3: Add Navigation Routes (AC: #1)
   - [ ] Add `Route.Processing` with `createRoute(imageUri: Uri)` function
@@ -514,6 +514,13 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 - ✅ Extended CameraViewModel with checkCreditsAndNavigate() function
 - ✅ Added unit tests for credit checking logic (3 tests covering > 0, = 0, and edge case = 1)
 - ✅ All tests passing
+
+**Task 2 Complete:**
+- ✅ Verified all subtasks already completed in previous stories (4.8, 4.2)
+- ✅ CreditRepository injection already exists
+- ✅ Credit balance observation already implemented
+- ✅ CameraUiState already has creditBalance field
+- ✅ clearCapturedImage() already exists from Story 4.2
 
 Story context created with comprehensive analysis:
 - ✅ Epic 5 Story 1 requirements extracted
