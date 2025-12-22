@@ -41,10 +41,10 @@ So that I don't waste time if I can't complete the scan.
   - [x] Navigate to paywall when credits = 0
   - [x] Note: Full paywall implementation in Epic 8
 
-- [ ] Task 5: Test Credit Check Flow (AC: #1, #2)
-  - [ ] Test with credits > 0 proceeds to processing
-  - [ ] Test with credits = 0 navigates to paywall
-  - [ ] Verify no credit deduction at initiation
+- [x] Task 5: Test Credit Check Flow (AC: #1, #2)
+  - [x] Test with credits > 0 proceeds to processing
+  - [x] Test with credits = 0 navigates to paywall
+  - [x] Verify no credit deduction at initiation
 
 ## Dev Notes
 
@@ -507,6 +507,8 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 **Task 3: Credit Deduction on Success Only** - Added code documentation in CameraViewModel.checkCreditsAndNavigate() KDoc stating credit is NOT deducted at scan initiation. Added inline comments in RulebookNavHost navigation callbacks explaining deduction happens in Story 5.7 on successful rules save. This prevents credit loss on API failures and ensures users get the advertised 60-second experience.
 
 **Task 4: Navigate to Paywall on Zero Credits** - Utilized existing Route.Purchase from Epic 1 for paywall navigation. When checkCreditsAndNavigate() returns NavigationAction.ShowPaywall, navigation routes to Route.Purchase.route. PurchasePlaceholder already exists from Epic 1. Full paywall screen implementation will be completed in Epic 8 as noted in PRD.
+
+**Task 5: Test Credit Check Flow** - All tests implemented in Task 1 and passing. Three comprehensive unit tests in CameraViewModelTest.kt: (1) checkCreditsAndNavigate with credits > 0 returns ProceedToProcessing, (2) with 0 credits returns ShowPaywall, (3) boundary test with 1 credit returns ProceedToProcessing. Tests verify credit check logic without credit deduction. FakeCreditRepository allows precise control over credit balance for testing. All tests use runTest coroutine scope and advanceUntilIdle for StateFlow synchronization.
 
 ### File List
 
