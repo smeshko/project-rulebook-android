@@ -24,6 +24,24 @@ sealed class Route(val route: String) {
     /** Purchase screen - premium features and subscriptions */
     data object Purchase : Route("purchase")
 
+    /** Paywall screen - shown when user has zero credits */
+    data object Paywall : Route("paywall")
+
+    /**
+     * Scan flow screen - orchestrates scan process from credit check to rules generation.
+     *
+     * This route requires an imageUri argument to identify which image to analyze.
+     */
+    data object ScanFlow : Route("scan_flow/{${RulebookNavArgs.IMAGE_URI}}") {
+        /**
+         * Creates the full route string with the provided image URI.
+         *
+         * @param imageUri The URI string of the captured/selected image
+         * @return The complete route string for navigation
+         */
+        fun createRoute(imageUri: String): String = "scan_flow/$imageUri"
+    }
+
     /**
      * Rules screen - displays rules for a specific game.
      *
@@ -49,4 +67,7 @@ sealed class Route(val route: String) {
 object RulebookNavArgs {
     /** Argument key for game identifier in Rules route */
     const val GAME_ID = "gameId"
+
+    /** Argument key for image URI in ScanFlow route */
+    const val IMAGE_URI = "imageUri"
 }

@@ -108,6 +108,24 @@ fun PurchasePlaceholder(modifier: Modifier = Modifier) {
 }
 
 /**
+ * Placeholder for Paywall screen - shown when user has zero credits.
+ *
+ * Supports predictive back gesture - swipe from left edge shows preview
+ * of previous screen before navigating back. Compose Navigation 2.8+
+ * handles the preview animation automatically via NavHost.
+ */
+@Composable
+fun PaywallPlaceholder(modifier: Modifier = Modifier) {
+    // No BackHandler needed - Compose Navigation handles predictive back
+    // with preview animations automatically when using NavHost
+    PlaceholderContent(
+        title = "Paywall",
+        subtitle = "Full implementation in Epic 8",
+        modifier = modifier
+    )
+}
+
+/**
  * Placeholder for Rules screen - displays rules for a specific game.
  *
  * Supports predictive back gesture - swipe from left edge shows preview

@@ -13,10 +13,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import androidx.lifecycle.SavedStateHandle
 import com.rulebook.feature.camera.CameraScreen
 import com.rulebook.feature.library.LibraryScreen
 import com.rulebook.feature.onboarding.OnboardingScreen
+import com.rulebook.feature.scan.ScanFlowScreen
+import com.rulebook.feature.scan.ScanFlowViewModel
 import com.rulebook.feature.settings.SettingsScreen
+import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 /**
  * Animation duration for screen transitions.
@@ -98,13 +103,12 @@ fun RulebookNavHost(
             CameraScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onPhotoCaptured = { imageUri ->
-                    // TODO: Navigate to processing screen with captured image
-                    // Will be implemented in Story 4.7 (image processing)
+                    // Navigate to scan flow (Story 5.1)
+                    navController.navigate(Route.ScanFlow.createRoute(imageUri))
                 },
                 onGalleryImageSelected = { imageUri ->
-                    // Same processing path as captured photos (Story 4.6 AC #2)
-                    // TODO: Navigate to processing screen with selected image
-                    // Will be implemented in Story 4.7 (image processing)
+                    // Same processing path as captured photos (Story 5.1)
+                    navController.navigate(Route.ScanFlow.createRoute(imageUri))
                 }
             )
         }
@@ -138,6 +142,56 @@ fun RulebookNavHost(
             popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
             PurchasePlaceholder()
+        }
+
+        // Paywall - shown when user has zero credits (Story 5.1)
+        // Full implementation in Epic 8
+        // Predictive back handled automatically by NavHost - shows preview during gesture
+        // Uses slide transition for detail screen
+        composable(
+            route = Route.Paywall.route,
+            enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
+        ) {
+            PaywallPlaceholder()
+        }
+
+        // Scan Flow - orchestrates scan process from credit check to rules generation (Story 5.1+)
+        // Predictive back handled automatically by NavHost - shows preview during gesture
+        // Uses slide transition for detail screen
+        composable(
+            route = Route.ScanFlow.route,
+            arguments = listOf(
+                navArgument(RulebookNavArgs.IMAGE_URI) {
+                    type = NavType.StringType
+                }
+            ),
+            enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
+        ) { backStackEntry ->
+            val imageUri = backStackEntry.arguments?.getString(RulebookNavArgs.IMAGE_URI) ?: ""
+
+            // Create SavedStateHandle with imageUri for ViewModel
+            val savedStateHandle = SavedStateHandle().apply {
+                set("imageUri", imageUri)
+            }
+
+            val viewModel: ScanFlowViewModel = koinViewModel { parametersOf(savedStateHandle) }
+
+            ScanFlowScreen(
+                viewModel = viewModel,
+                onNavigateToPaywall = {
+                    navController.navigate(Route.Paywall.route)
+                },
+                onProceedToAnalysis = {
+                    // Story 5.2+ will implement analysis screen
+                    // For now, just log that we're ready
+                }
+            )
         }
 
         // Rules - displays rules for a specific game with type-safe gameId argument

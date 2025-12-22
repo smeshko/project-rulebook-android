@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":feature:library"))
     implementation(project(":feature:camera"))
     implementation(project(":feature:rules"))
+    implementation(project(":feature:scan"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:onboarding"))
     implementation(project(":feature:purchase"))

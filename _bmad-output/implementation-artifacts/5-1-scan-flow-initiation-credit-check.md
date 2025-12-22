@@ -34,10 +34,10 @@ so that I don't waste time if I can't complete the scan.
   - [x] Proceed to analysis phase if credits > 0
   - [x] Do NOT deduct credit yet (deduction in Story 5.7)
 
-- [ ] Task 3: Handle Navigation from Camera (AC: #1)
-  - [ ] Update `CameraViewModel` to navigate to scan flow after capture
-  - [ ] Pass captured/compressed image URI to scan flow
-  - [ ] Ensure image is compressed before passing (from Story 4.7)
+- [x] Task 3: Handle Navigation from Camera (AC: #1)
+  - [x] Update `CameraViewModel` to navigate to scan flow after capture
+  - [x] Pass captured/compressed image URI to scan flow
+  - [x] Ensure image is compressed before passing (from Story 4.7)
 
 - [ ] Task 4: Implement Paywall Navigation (AC: #1)
   - [ ] Define paywall route in navigation graph
@@ -365,6 +365,8 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
 ✅ Task 2 Completed: Implemented credit check logic in ScanFlowViewModel. ViewModel checks balance on init, navigates to paywall when balance is 0, proceeds to analysis when balance > 0, and does NOT deduct credits (verified by tests).
 
+✅ Task 3 Completed: Wired camera navigation to scan flow. Updated RulebookNavHost to add scan flow and paywall screens, updated camera callbacks to navigate to scan flow with captured/compressed image URI.
+
 ### File List
 
 #### Task 1: Scan Flow Module Setup
@@ -377,6 +379,12 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 - feature/scan/src/test/kotlin/com/rulebook/feature/scan/ScanFlowViewModelTest.kt (new)
 - settings.gradle.kts (modified - added scan module)
 - app/src/main/kotlin/com/rulebook/di/AppModule.kt (modified - registered scan module)
+
+#### Task 3: Camera Navigation Integration
+- app/build.gradle.kts (modified - added scan module dependency)
+- app/src/main/kotlin/com/rulebook/navigation/NavigationDestination.kt (modified - added ScanFlow and Paywall routes)
+- app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt (modified - added scan flow and paywall screens, updated camera callbacks)
+- app/src/main/kotlin/com/rulebook/navigation/PlaceholderScreens.kt (modified - added PaywallPlaceholder)
 
 ## Epic Dependencies
 
