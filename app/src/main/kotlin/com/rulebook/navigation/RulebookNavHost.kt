@@ -7,6 +7,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.core.net.toUri
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -14,9 +15,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.rulebook.feature.camera.CameraScreen
+import com.rulebook.feature.camera.CameraViewModel
+import com.rulebook.feature.camera.NavigationAction
 import com.rulebook.feature.library.LibraryScreen
 import com.rulebook.feature.onboarding.OnboardingScreen
 import com.rulebook.feature.settings.SettingsScreen
+import org.koin.androidx.compose.koinViewModel
 
 /**
  * Animation duration for screen transitions.
@@ -87,6 +91,7 @@ fun RulebookNavHost(
         // Full-screen camera preview with immersive mode (hidden system bars)
         // Predictive back handled automatically by NavHost - shows preview during gesture
         // Close button and system back navigate to previous screen (Story 4.10)
+        // Credit-gated navigation to processing flow (Story 5.1)
         // Uses slide transition for detail screen
         composable(
             route = Route.Camera.route,
@@ -95,16 +100,37 @@ fun RulebookNavHost(
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
             popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
+            val viewModel: CameraViewModel = koinViewModel()
+
             CameraScreen(
+                viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onPhotoCaptured = { imageUri ->
-                    // TODO: Navigate to processing screen with captured image
-                    // Will be implemented in Story 4.7 (image processing)
+                    // Story 5.1: Check credits before navigating to processing
+                    when (val action = viewModel.checkCreditsAndNavigate()) {
+                        NavigationAction.ProceedToProcessing -> {
+                            navController.navigate(Route.Processing.createRoute(imageUri.toUri()))
+                            viewModel.clearCapturedImage()
+                        }
+                        NavigationAction.ShowPaywall -> {
+                            navController.navigate(Route.Purchase.route)
+                            viewModel.clearCapturedImage()
+                        }
+                    }
                 },
                 onGalleryImageSelected = { imageUri ->
                     // Same processing path as captured photos (Story 4.6 AC #2)
-                    // TODO: Navigate to processing screen with selected image
-                    // Will be implemented in Story 4.7 (image processing)
+                    // Story 5.1: Check credits before navigating to processing
+                    when (val action = viewModel.checkCreditsAndNavigate()) {
+                        NavigationAction.ProceedToProcessing -> {
+                            navController.navigate(Route.Processing.createRoute(imageUri.toUri()))
+                            viewModel.clearCapturedImage()
+                        }
+                        NavigationAction.ShowPaywall -> {
+                            navController.navigate(Route.Purchase.route)
+                            viewModel.clearCapturedImage()
+                        }
+                    }
                 }
             )
         }
@@ -138,6 +164,26 @@ fun RulebookNavHost(
             popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
             PurchasePlaceholder()
+        }
+
+        // Processing - game recognition and rules generation flow
+        // Entered via credit-gated navigation from Camera screen (Story 5.1)
+        // Predictive back handled automatically by NavHost - shows preview during gesture
+        // Uses slide transition for detail screen
+        composable(
+            route = Route.Processing.route,
+            arguments = listOf(
+                navArgument(RulebookNavArgs.IMAGE_URI) {
+                    type = NavType.StringType
+                }
+            ),
+            enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
+        ) { backStackEntry ->
+            val imageUri = Route.Processing.getImageUri(backStackEntry)
+            ProcessingPlaceholder(imageUri = imageUri)
         }
 
         // Rules - displays rules for a specific game with type-safe gameId argument

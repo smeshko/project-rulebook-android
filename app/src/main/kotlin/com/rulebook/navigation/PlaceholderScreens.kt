@@ -1,5 +1,6 @@
 package com.rulebook.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -103,6 +104,31 @@ fun PurchasePlaceholder(modifier: Modifier = Modifier) {
     PlaceholderContent(
         title = "Purchase",
         subtitle = "Coming in Epic 6",
+        modifier = modifier
+    )
+}
+
+/**
+ * Placeholder for Processing screen - game recognition and rules generation.
+ *
+ * Supports predictive back gesture - swipe from left edge shows preview
+ * of previous screen before navigating back. Compose Navigation 2.8+
+ * handles the preview animation automatically via NavHost.
+ *
+ * Part of Story 5.1 - credit-gated navigation to processing flow.
+ *
+ * @param imageUri The URI of the captured/selected image to process
+ */
+@Composable
+fun ProcessingPlaceholder(
+    imageUri: Uri,
+    modifier: Modifier = Modifier
+) {
+    // No BackHandler needed - Compose Navigation handles predictive back
+    // with preview animations automatically when using NavHost
+    PlaceholderContent(
+        title = "Processing",
+        subtitle = "Image: ${imageUri.lastPathSegment ?: "unknown"}\nComing in Stories 5.2-5.7",
         modifier = modifier
     )
 }
