@@ -14,9 +14,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.rulebook.feature.camera.CameraScreen
+import com.rulebook.feature.camera.CameraViewModel
+import com.rulebook.feature.camera.NavigationAction
 import com.rulebook.feature.library.LibraryScreen
 import com.rulebook.feature.onboarding.OnboardingScreen
 import com.rulebook.feature.settings.SettingsScreen
+import org.koin.androidx.compose.koinViewModel
 
 /**
  * Animation duration for screen transitions.
@@ -87,6 +90,7 @@ fun RulebookNavHost(
         // Full-screen camera preview with immersive mode (hidden system bars)
         // Predictive back handled automatically by NavHost - shows preview during gesture
         // Close button and system back navigate to previous screen (Story 4.10)
+        // Credit check gates access to processing screen (Story 5.1)
         // Uses slide transition for detail screen
         composable(
             route = Route.Camera.route,
@@ -95,18 +99,65 @@ fun RulebookNavHost(
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
             popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
+            val viewModel: CameraViewModel = koinViewModel()
+
             CameraScreen(
+                viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() },
                 onPhotoCaptured = { imageUri ->
-                    // TODO: Navigate to processing screen with captured image
-                    // Will be implemented in Story 4.7 (image processing)
+                    // Check credit balance before navigating (Story 5.1)
+                    // NOTE: Credit is NOT deducted here - deduction happens on successful
+                    // rules save in Story 5.7 to prevent credit loss on failures
+                    when (viewModel.checkCreditsAndNavigate()) {
+                        NavigationAction.ProceedToProcessing -> {
+                            navController.navigate(Route.Processing.createRoute(imageUri))
+                            viewModel.clearCapturedImage()
+                        }
+                        NavigationAction.ShowPaywall -> {
+                            navController.navigate(Route.Purchase.route)
+                            viewModel.clearCapturedImage()
+                        }
+                    }
                 },
                 onGalleryImageSelected = { imageUri ->
                     // Same processing path as captured photos (Story 4.6 AC #2)
-                    // TODO: Navigate to processing screen with selected image
-                    // Will be implemented in Story 4.7 (image processing)
+                    // Check credit balance before navigating (Story 5.1)
+                    // NOTE: Credit is NOT deducted here - deduction happens on successful
+                    // rules save in Story 5.7 to prevent credit loss on failures
+                    when (viewModel.checkCreditsAndNavigate()) {
+                        NavigationAction.ProceedToProcessing -> {
+                            navController.navigate(Route.Processing.createRoute(imageUri))
+                            viewModel.clearCapturedImage()
+                        }
+                        NavigationAction.ShowPaywall -> {
+                            navController.navigate(Route.Purchase.route)
+                            viewModel.clearCapturedImage()
+                        }
+                    }
                 }
             )
+        }
+
+        // Processing - AI scan progress and results (Story 5.2)
+        // Shows scan progress indicator while AI processes the image
+        // Placeholder screen for Story 5.1 - full implementation in Story 5.2
+        // Uses slide transition for detail screen
+        composable(
+            route = Route.Processing.route,
+            arguments = listOf(
+                navArgument(RulebookNavArgs.IMAGE_URI) {
+                    type = NavType.StringType
+                }
+            ),
+            enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
+        ) { backStackEntry ->
+            val imageUri = backStackEntry.arguments?.getString(RulebookNavArgs.IMAGE_URI) ?: ""
+            val decodedUri = android.net.Uri.decode(imageUri)
+            // Placeholder for Story 5.2 - will be replaced with actual ProcessingScreen
+            ProcessingPlaceholder(imageUri = decodedUri)
         }
 
         // Onboarding - first-time user experience
