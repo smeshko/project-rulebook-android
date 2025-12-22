@@ -48,11 +48,11 @@ so that I don't waste time if I can't complete the scan.
   - [x] Track `scan_started` event with TelemetryDeck
   - [x] Include properties: source (camera/gallery), credit_balance
 
-- [ ] Task 6: Write Unit Tests (AC: #1, #2)
-  - [ ] Test credit check logic with various balances
-  - [ ] Test navigation to paywall when credits == 0
-  - [ ] Test proceeding to analysis when credits > 0
-  - [ ] Test that credits are NOT deducted
+- [x] Task 6: Write Unit Tests (AC: #1, #2)
+  - [x] Test credit check logic with various balances
+  - [x] Test navigation to paywall when credits == 0
+  - [x] Test proceeding to analysis when credits > 0
+  - [x] Test that credits are NOT deducted
 
 ## Dev Notes
 
@@ -370,6 +370,8 @@ Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 ✅ Task 4 Completed: Paywall navigation already implemented in Task 3. Paywall route defined in NavigationDestination, PaywallPlaceholder created, and ScanFlowScreen navigates to paywall when credits == 0.
 
 ✅ Task 5 Completed: Analytics event already implemented in Task 2. ScanFlowViewModel.trackScanStarted() tracks scan_started event with source and credit_balance properties. Test verifies event is tracked only when credits > 0.
+
+✅ Task 6 Completed: Unit tests already implemented in Task 1. ScanFlowViewModelTest has 5 passing tests covering all acceptance criteria: credit check with various balances (0/3/5), paywall navigation, analysis proceed, no credit deduction, and analytics tracking.
 
 ### File List
 
