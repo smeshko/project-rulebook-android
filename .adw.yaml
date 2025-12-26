@@ -61,5 +61,5 @@ workflow:
 
     # Ship phase: Create PR and prepare for merge
     - name: ship
-      enabled: true
+      enabled: false
       command: /bmad:bmm:workflows:ship
