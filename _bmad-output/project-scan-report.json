@@ -1,0 +1,143 @@
+{
+  "workflow_version": "2.0.0",
+  "execution_mode": "autonomous",
+  "timestamps": {
+    "started": "2026-01-22T10:00:00Z",
+    "last_updated": "2026-01-22T10:10:00Z",
+    "completed": "2026-01-22T10:15:00Z"
+  },
+  "config": {
+    "scan_mode": "full",
+    "scan_level": "deep",
+    "fail_on_warning": "false"
+  },
+  "project_root": "/Users/A1E6E98/Developer/Projects/project-rulebook/project-rulebook-android",
+  "output_folder": "/Users/A1E6E98/Developer/Projects/project-rulebook/project-rulebook-android/_bmad-output",
+  "completed_steps": ["step-01", "step-04", "step-05", "step-06", "step-07", "step-08", "step-09", "step-10", "step-12", "step-13", "step-14", "step-15", "step-16"],
+  "current_step": "completed",
+  "exit_code": 0,
+  "validation_summary": {
+    "files_generated": 7,
+    "total_files": 73,
+    "total_size": "800K",
+    "incomplete_items": 0,
+    "all_complete": true
+  },
+  "warnings": ["Greenfield project detected - documentation workflow is typically for brownfield projects"],
+  "errors": [],
+  "findings": {
+    "project_structure": {
+      "repository_type": "monolith",
+      "architecture_type": "modular",
+      "project_type_id": "mobile",
+      "confidence": 95,
+      "project_name": "Rulebook",
+      "modules": {
+        "app": ["app"],
+        "core": ["analytics", "billing", "common", "data", "database", "datastore", "designsystem", "model", "network"],
+        "feature": ["camera", "library", "onboarding", "purchase", "rules", "settings"]
+      }
+    },
+    "existing_docs": {
+      "count": 14,
+      "readme": "README.md",
+      "bmm_artifacts": {
+        "product_brief": "_bmad-output/project-planning-artifacts/analysis/product-brief-project-rulebook-android-2025-12-02.md",
+        "prd": "_bmad-output/project-planning-artifacts/prd.md",
+        "architecture": "_bmad-output/project-planning-artifacts/architecture.md",
+        "ux_design": "_bmad-output/project-planning-artifacts/ux-design-specification.md",
+        "epics_count": 14,
+        "stories_count": 47
+      },
+      "feature_docs": ["docs/features/credit-gated-navigation.md"],
+      "planning_docs": ["docs/planning/RULE-121-implementation-plan.md"],
+      "reference_docs": {
+        "ios_migration": 6
+      }
+    },
+    "technology_stack": {
+      "languages": {
+        "kotlin": "2.0.21"
+      },
+      "build_system": {
+        "gradle": "8.9",
+        "agp": "8.7.2",
+        "ksp": "2.0.21-1.0.27"
+      },
+      "frameworks": {
+        "android": "AGP 8.7.2",
+        "jetpack_compose": "BOM 2024.11.00",
+        "compose_navigation": "2.8.4"
+      },
+      "dependency_injection": {
+        "koin": "4.0.0"
+      },
+      "database": {
+        "room": "2.6.1"
+      },
+      "networking": {
+        "retrofit": "2.11.0",
+        "okhttp": "4.12.0",
+        "kotlinx_serialization": "1.7.3"
+      },
+      "local_storage": {
+        "datastore": "1.1.1"
+      },
+      "image_loading": {
+        "coil": "3.0.3"
+      },
+      "camera": {
+        "camerax": "1.4.1"
+      },
+      "billing": {
+        "play_billing": "7.1.1"
+      },
+      "analytics": {
+        "telemetrydeck": "6.3.0"
+      },
+      "testing": {
+        "junit": "4.13.2",
+        "androidx_junit": "1.2.1",
+        "espresso": "3.6.1",
+        "coroutines_test": "1.9.0"
+      }
+    },
+    "architecture_pattern": "Clean Architecture (MVVM) with multi-module structure",
+    "conditional_scans": {
+      "api_layer": {
+        "endpoints": 2,
+        "endpoint_names": ["POST /analyze", "POST /generate"],
+        "client_config": "Retrofit + OkHttp",
+        "serialization": "kotlinx.serialization",
+        "error_handling": "Result<T> sealed class"
+      },
+      "data_models": {
+        "tables": 2,
+        "table_names": ["saved_games", "rules"],
+        "relationships": "One-to-Many (Game -> Rules) with CASCADE delete",
+        "orm": "Room"
+      },
+      "state_management": {
+        "pattern": "MVVM with StateFlow",
+        "viewmodels": 5,
+        "viewmodel_names": ["CameraViewModel", "LibraryViewModel", "SettingsViewModel", "OnboardingViewModel", "StartupViewModel"]
+      },
+      "ui_components": {
+        "design_system_components": 5,
+        "component_names": ["RulebookButton", "RulebookCard", "RulebookFAB", "RulebookHeaderBar", "CreditsDisplay"],
+        "feature_components": 15,
+        "theme": "Brutalist aesthetic on Material 3"
+      },
+      "ci_cd": {
+        "configured": false,
+        "note": "No .github/workflows or fastlane detected"
+      },
+      "localization": {
+        "locales": 1,
+        "default_locale": "English",
+        "string_files": 3
+      }
+    }
+  },
+  "outputs_generated": ["project-scan-report.json", "source-tree-analysis.md", "development-guide.md", "architecture.md", "project-overview.md", "component-inventory.md", "index.md"]
+}

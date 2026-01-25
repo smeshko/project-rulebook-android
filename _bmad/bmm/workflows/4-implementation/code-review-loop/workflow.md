@@ -1,6 +1,6 @@
 ---
 name: code-review-loop
-description: Automated code review loop with tiered reviewer options. Default uses GLM (fast, ~2-3 min/cycle). Use --thorough for GLM+Codex parallel (better coverage). Use --codex-only for legacy Codex mode. Validates findings, fixes issues, commits per cycle.
+description: Automated code review loop using GLM subagent in background. Default uses GLM subagent (fast, ~2-3 min/cycle). Use --thorough for GLM+Codex parallel (better coverage). Use --codex-only for legacy Codex mode. Returns structured JSON findings for validation.
 web_bundle: true
 
 # Input Parameters (all optional)
@@ -10,9 +10,15 @@ web_bundle: true
 # --codex-only - Force Codex-only mode (legacy behavior)
 #
 # Review Mode (auto-selected based on flags):
-# - "fast" (default): GLM-only, ~2-3 min per cycle
-# - "thorough": GLM + Codex in parallel, ~10 min but better coverage
+# - "fast" (default): GLM subagent in background, ~2-3 min per cycle
+# - "thorough": GLM subagent + Codex in parallel, ~10 min but better coverage
 # - "codex": Codex-only (legacy), ~10 min per cycle
+#
+# Subagent Usage:
+# - Fast mode: Spawns 'glm' subagent with run_in_background: true
+# - Thorough mode: Spawns 'glm' subagent + Codex in parallel
+# - Uses TaskOutput to retrieve results with 5-10 min timeout
+# - Expects structured JSON output from subagent
 ---
 
 <!-- AUTONOMOUS WORKFLOW PATTERN
@@ -29,9 +35,9 @@ Standard BMAD workflows are interactive; this is an AUTONOMOUS variant.
 
 # Code Review Loop
 
-**Goal:** Automate the code review and fix cycle using a tiered review system. Default "fast" mode uses GLM (~2-3 min/cycle). "Thorough" mode runs GLM+Codex in parallel for maximum coverage. Validates findings, fixes valid issues, and repeats until clean or max cycles reached.
+**Goal:** Automate the code review and fix cycle using background subagents. Default "fast" mode spawns GLM subagent in background (~2-3 min/cycle). "Thorough" mode runs GLM subagent + Codex in parallel for maximum coverage. Validates JSON findings, fixes valid issues, and repeats until clean or max cycles reached.
 
-**Your Role:** You are a senior developer and code quality guardian. You orchestrate the review process by delegating adversarial review to GLM (fast) or GLM+Codex (thorough), then validating and fixing issues yourself. You ensure only real issues are addressed, avoiding hallucinated problems. Work autonomously to deliver clean, reviewed code.
+**Your Role:** You are a senior developer and code quality guardian. You orchestrate the review process by spawning GLM subagent in background (Task tool with run_in_background: true), then retrieving structured JSON results via TaskOutput, validating findings, and fixing issues yourself. You ensure only real issues are addressed, avoiding hallucinated problems. Work autonomously to deliver clean, reviewed code.
 
 ---
 
@@ -45,6 +51,7 @@ This uses **step-file architecture** for disciplined execution:
 - **Just-In-Time Loading**: Only the current step file is in memory
 - **Sequential Enforcement**: Execute steps in order, no skipping
 - **Autonomous Execution**: This workflow runs without user interaction
+- **Append-Only Building**: Build review state incrementally across cycles
 
 ### Step Processing Rules
 
@@ -59,6 +66,8 @@ This uses **step-file architecture** for disciplined execution:
 - 📖 **ALWAYS** read entire step file before execution
 - 🚫 **NEVER** skip steps or optimize the sequence
 - 💾 **ALWAYS** commit after each fix cycle
+- 🎯 **ALWAYS** follow the exact instructions in the step file
+- 📋 **NEVER** create mental todo lists from future steps
 
 <!-- AUTONOMOUS WORKFLOW: Standard rules adapted for autonomous operation:
 - "halt at menus" → replaced by auto-proceed (no user interaction)
@@ -72,10 +81,10 @@ This uses **step-file architecture** for disciplined execution:
 
 ### 1. Configuration Loading
 
-Load config from {project-root}/.bmad/bmm/config.yaml and resolve:
+Load config from {project-root}/_bmad/bmm/config.yaml and resolve:
 
 - `project_name`, `output_folder`, `user_name`, `sprint_artifacts`
 
 ### 2. First Step Execution
 
-Load, read the full file, and execute `{project-root}/.bmad/bmm/workflows/4-implementation/code-review-loop/steps/step-01-init.md` to begin the workflow.
+Load, read the full file, and execute `{project-root}/_bmad/bmm/workflows/4-implementation/code-review-loop/steps/step-01-init.md` to begin the workflow.
