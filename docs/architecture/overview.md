@@ -1,41 +1,13 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8]
-status: 'complete'
-completedAt: '2025-12-03'
-inputDocuments:
-  - path: 'docs/prd.md'
-    type: 'prd'
-    description: 'Complete PRD with user journeys, 52 functional requirements, NFRs'
-  - path: 'docs/ux-design-specification.md'
-    type: 'ux-spec'
-    description: 'Complete UX design specification with flows, components, patterns'
-  - path: 'docs/ios/android-migration-product-overview.md'
-    type: 'ios-reference'
-    description: 'iOS architecture and implementation reference'
-  - path: 'docs/ios/android-migration-screens.md'
-    type: 'ios-reference'
-    description: 'Screen inventory and layout specifications'
-  - path: 'docs/ios/android-migration-components.md'
-    type: 'ios-reference'
-    description: 'Component library with Compose examples'
-  - path: 'docs/ios/android-migration-navigation.md'
-    type: 'ios-reference'
-    description: 'Navigation patterns and user flows'
-workflowType: 'architecture'
-lastStep: 1
-project_name: 'project-rulebook-android'
-user_name: 'Ivo'
-date: '2025-12-03'
+title: Architecture Overview
+description: System architecture and design decisions for project-rulebook-android
+author: Ivo
+date: 2025-12-03
 ---
 
 # Architecture Decision Document - project-rulebook-android
 
-**Author:** Ivo
-**Date:** 2025-12-03
-
----
-
-_This document builds collaboratively through step-by-step discovery. Sections are appended as we work through each architectural decision together._
+This document captures all architectural decisions made collaboratively through step-by-step discovery.
 
 ---
 
@@ -161,7 +133,7 @@ rulebook/
 - CameraX 1.x
 - Play Billing 7.x
 
-### iOS → Android Mapping
+### iOS to Android Mapping
 
 | iOS Concept | Android Equivalent |
 |-------------|-------------------|
@@ -204,7 +176,7 @@ rulebook/
 ```
 UI Layer (Compose)
     ↓ observes
-ViewModel (StateFlow)
+ ViewModel (StateFlow)
     ↓ calls
 Repository (interface)
     ↓ implements
@@ -486,88 +458,9 @@ feature/{name}/
 - All requirements have clear architectural homes
 - Modern, well-supported technology stack
 
-**Architecture Document Stats:**
-- Technology decisions: 10 categories
-- Implementation patterns: 6 categories
-- Modules defined: 16
-- Requirements mapped: 52 FRs + NFRs
-
-### Implementation Handoff
-
-**AI Agent Guidelines:**
-- Follow module structure exactly as defined
-- Use naming conventions consistently
-- Apply MVI pattern in all ViewModels
-- Use Result<T> for all repository operations
-- Reference iOS documentation for UX behavior
-
-**First Implementation Step:**
-Create Android Studio project with Empty Compose Activity, then restructure into multi-module architecture following the defined structure.
-
 ---
 
-## Architecture Completion Summary
+## Related Documentation
 
-### Workflow Completion
-
-**Architecture Decision Workflow:** COMPLETED
-**Total Steps Completed:** 8
-**Date Completed:** 2025-12-03
-**Document Location:** docs/architecture.md
-
-### Final Architecture Deliverables
-
-**Complete Architecture Document:**
-- All architectural decisions documented with specific versions
-- Implementation patterns ensuring AI agent consistency
-- Complete project structure with all files and directories
-- Requirements to architecture mapping
-- Validation confirming coherence and completeness
-
-**Implementation Ready Foundation:**
-- 10 architectural decisions made (technology categories)
-- 6 implementation pattern categories defined
-- 16 modules specified
-- 52 functional requirements fully supported
-
-**AI Agent Implementation Guide:**
-- Technology stack with verified versions
-- Consistency rules that prevent implementation conflicts
-- Project structure with clear boundaries
-- iOS to Android concept mapping for developer context
-
-### Development Sequence
-
-1. Initialize Android Studio project with Empty Compose Activity
-2. Create multi-module structure following architecture
-3. Set up Gradle version catalog with documented dependencies
-4. Implement core/designsystem module first (theme, components)
-5. Build features following established patterns
-6. Maintain consistency with documented rules
-
-### Quality Assurance
-
-**Architecture Coherence:**
-- [x] All decisions work together without conflicts
-- [x] Technology choices are compatible
-- [x] Patterns support the architectural decisions
-- [x] Structure aligns with all choices
-
-**Requirements Coverage:**
-- [x] All 52 functional requirements supported
-- [x] All non-functional requirements addressed
-- [x] Cross-cutting concerns handled
-- [x] Integration points defined
-
-**Implementation Readiness:**
-- [x] Decisions are specific and actionable
-- [x] Patterns prevent agent conflicts
-- [x] Structure is complete and unambiguous
-- [x] iOS mappings provided for developer context
-
----
-
-**Architecture Status:** READY FOR IMPLEMENTATION
-
----
-
+- [Development](../development/) - Implementation guides
+- [Reference](../reference/) - Technical specifications

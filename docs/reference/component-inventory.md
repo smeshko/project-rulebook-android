@@ -1,7 +1,13 @@
-# Component Inventory: Rulebook Android
+---
+title: Component Inventory
+description: Complete catalog of design system and feature components
+author: Ivo
+date: 2026-01-22
+---
 
-**Generated:** 2026-01-22
-**Design System:** Brutalist on Material 3
+# Component Inventory
+
+Complete catalog of all UI components in the Rulebook Android application.
 
 ---
 
@@ -76,6 +82,7 @@
 ### Colors (`theme/RulebookColors.kt`)
 
 **Surface Palette:**
+
 | Token | Light | Dark |
 |-------|-------|------|
 | Surface Primary | #FFFFFF | #1C1C1E |
@@ -83,6 +90,7 @@
 | Surface Tertiary | #F5E6D3 | #3A3A3C |
 
 **Content Palette:**
+
 | Token | Light | Dark |
 |-------|-------|------|
 | Content Primary | #000000 | #FFFFFF |
@@ -90,6 +98,7 @@
 | Content Tertiary | 40% opacity | 40% opacity |
 
 **Accent Palette:**
+
 | Token | Color | Usage |
 |-------|-------|-------|
 | Pink | Brand accent | Buttons, actions |

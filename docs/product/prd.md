@@ -1,25 +1,11 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 7, 9, 10]
-inputDocuments:
-  - path: 'docs/analysis/product-brief-project-rulebook-android-2025-12-02.md'
-    type: 'product-brief'
-    description: 'Complete Product Brief with vision, users, metrics, and MVP scope'
-  - path: 'docs/ios/product-spec.md'
-    type: 'ios-migration-spec'
-    description: 'Complete iOS product specification for Android migration'
-workflowType: 'prd'
-lastStep: 2
-project_name: 'project-rulebook-android'
-user_name: 'Ivo'
-date: '2025-12-03'
+title: Product Requirements Document
+description: Complete product requirements for project-rulebook-android
+author: Ivo
+date: 2025-12-03
 ---
 
 # Product Requirements Document - project-rulebook-android
-
-**Author:** Ivo
-**Date:** 2025-12-03
-
----
 
 ## Executive Summary
 
@@ -180,8 +166,6 @@ At 6:45 PM, fifteen minutes before guests arrive, Marcus unwraps Wingspan and st
 
 By the time his first guest rings the doorbell at 7:00 PM, Marcus is skimming the "First Round Guide" while setting up the bird feeder dice tower. When everyone's seated, he doesn't apologize for "needing a few minutes to explain." Instead, he walks them through setup using the checklist, reads the overview aloud, and they're playing their first round by 7:12 PM.
 
-The breakthrough moment comes when Sarah asks "wait, what do I do with these eggs?" Marcus pulls up the saved rules, expands "Advanced Rules," and finds the answer in three seconds. No rulebook diving. No game-stopping confusion. At 10 PM, as guests leave raving about the game, Marcus realizes something: he actually enjoyed hosting tonight. He didn't dread it. He opens the app and scans Terraforming Mars for next month's game night.
-
 **Journey reveals requirements for:**
 - Fast image recognition with high confidence display
 - Progressive rule structure (Overview → Setup → First Round → Advanced)
@@ -189,157 +173,39 @@ The breakthrough moment comes when Sarah asks "wait, what do I do with these egg
 - Quick in-game reference via saved library
 - Scan-ahead for future games
 
----
-
 ### Journey 2: Priya Sharma - The Guest Who Finally Gets It
 
-Priya loves her friends. She does not love being handed a 20-page rulebook while everyone stares at her expectantly. As the designated "reader" at last month's game night (she made the mistake of saying she "reads fast"), she spent 25 minutes stumbling through Gloomhaven rules while her friends checked their phones and got another beer. She didn't understand half of what she read. When the game started, she had no idea what she was doing and spent the whole night feeling one step behind.
+Priya loves her friends. She does not love being handed a 20-page rulebook while everyone stares at her expectantly. As the designated "reader" at last month's game night (she made the mistake of saying she "reads fast"), she spent 25 minutes stumbling through Gloomhaven rules while her friends checked their phones and got another beer.
 
-Tonight is different. When she arrives at Marcus's apartment and sees an unfamiliar game on the table, she reflexively tenses. But Marcus just says "give me one sec" and pulls out his phone. Priya watches the app work its magic - the box gets scanned, rules appear in neat sections, and suddenly Marcus is walking everyone through setup like he's known the game for years.
-
-The rules make sense. They're broken into digestible chunks. Priya actually understands what she's supposed to do on her turn. When she forgets something mid-game, she leans over and whispers "can I see that setup section again?" Marcus hands her the phone. No judgment. No "weren't you listening?" No thumbing through a massive rulebook.
-
-At the end of the night, Priya downloads Rulebook herself. Not because she owns games, but because next time someone asks her to "read the rules real quick," she has an answer.
+Tonight is different. When she arrives at Marcus's apartment and sees an unfamiliar game on the table, she reflexively tenses. But Marcus just says "give me one sec" and pulls out his phone. The rules make sense. They're broken into digestible chunks. Priya actually understands what she's supposed to do on her turn.
 
 **Journey reveals requirements for:**
 - Shareable rules (pass phone, no account needed for viewing)
 - Clear section navigation for quick reference
 - Non-intimidating progressive disclosure
-- Works for non-owners who just want to participate
-- "Hand-off" friendly UI (someone else using owner's phone briefly)
-
----
+- "Hand-off" friendly UI
 
 ### Journey 3: Jordan Williams - The Club Explorer Who Maximizes Game Night
 
-Jordan runs the Tuesday night board game meetup at the local library. Twenty regulars, three hours, one problem: they spend 45 minutes every week debating what to play and then learning the chosen game. By the time everyone understands the rules, they've got maybe 90 minutes of actual gaming.
+Jordan runs the Tuesday night board game meetup at the local library. Twenty regulars, three hours, one problem: they spend 45 minutes every week debating what to play and then learning the chosen game.
 
-Tonight, Jordan tries something different. They arrive early and scan three games from the library's collection: Azul, Ticket to Ride, and Codenames. When members start filtering in, Jordan holds up their phone showing the three game overviews. "Pick one. I can have us playing in five minutes."
-
-The group chooses Azul. Jordan reads the two-paragraph overview aloud, then walks through setup with the checklist while others help arrange tiles. The "First Round Guide" gets everyone through their first turns without confusion. A newcomer named Derek, attending his first meetup, keeps up with everyone else instead of feeling lost.
-
-They finish Azul by 7:45 PM. Jordan scans Codenames. By 8:00 PM they're playing again. By the end of the night, the group has played three complete games - a meetup record.
-
-The following week, half the regulars have Rulebook on their phones. Derek brings a friend. The meetup grows to 28 members. Jordan starts a tradition: "Scanner of the Week" - whoever arrives first picks and scans the opening game.
+Tonight, Jordan tries something different. They arrive early and scan three games from the library's collection. When members start filtering in, Jordan holds up their phone showing the three game overviews. "Pick one. I can have us playing in five minutes."
 
 **Journey reveals requirements for:**
 - Pre-scanning multiple games for comparison
 - Quick overview for group decision-making
 - Works offline (library basement has spotty wifi)
 - Newcomer-friendly progressive rules
-- Library persistence across sessions
-- Social/word-of-mouth viral loop
-
----
 
 ### Journey 4: Marcus Returns - When the AI Gets It Wrong
 
-It's been two months since Marcus discovered Rulebook. He's scanned 23 games and converted his entire friend group. Tonight, he's pulling out his prized possession: a Kickstarter-exclusive expansion for a niche Japanese game called "Karuta Kings: Tournament Edition." Only 2,000 copies exist worldwide.
-
-He scans the box. The app thinks for a moment, then returns "Karuta (Traditional Japanese Card Game)" with 62% confidence. Wrong game entirely. Marcus taps "Not quite right" and the app asks him to enter the correct game name. He types "Karuta Kings Tournament Edition" and the app generates rules for the actual game - drawing on its broader AI knowledge.
-
-The rules are good, but miss one expansion-specific mechanic. Marcus uses the game anyway, consulting the physical rulebook just for that one section. After the session, he wishes there was a way to add notes or corrections, but understands - the app is for quick starts, not comprehensive rule databases.
+Marcus scans a Kickstarter-exclusive expansion for a niche Japanese game. The app thinks for a moment, then returns "Karuta (Traditional Japanese Card Game)" with 62% confidence. Wrong game entirely. Marcus taps "Not quite right" and the app asks him to enter the correct game name.
 
 **Journey reveals requirements for:**
 - Confidence display and user confirmation
 - Manual game name entry for low-confidence results
 - Multi-model AI fallback for obscure games
 - Graceful handling of "close but not quite" scenarios
-- Clear user control over AI suggestions
-
----
-
-### Journey Requirements Summary
-
-| Journey | Key Capabilities Required |
-|---------|--------------------------|
-| **Marcus (Host - Success)** | Fast scan, progressive rules, setup checklist, in-game reference, library persistence |
-| **Priya (Guest - Participation)** | Shareable viewing, quick navigation, non-intimidating UI, hand-off friendly |
-| **Jordan (Club - Efficiency)** | Multi-game scanning, offline access, overview comparison, newcomer support |
-| **Marcus (Error Recovery)** | Confidence display, manual entry fallback, multi-model AI, user correction flow |
-
-**Core Capabilities Revealed:**
-1. **Photo Capture & AI Recognition** - Fast, confidence-scored, fallback-enabled
-2. **Progressive Rule Display** - Overview → Setup → First Round → Advanced
-3. **Offline Library** - Saved games accessible without network
-4. **Quick Reference** - Section navigation, checklist toggles, share capability
-5. **Error Handling** - Manual entry, confirmation prompts, graceful degradation
-
----
-
-## Mobile App Specific Requirements
-
-### Platform Requirements
-
-| Requirement | Specification |
-|-------------|---------------|
-| **Platform** | Android |
-| **Language** | Kotlin |
-| **UI Framework** | Jetpack Compose |
-| **Min SDK** | API 26 (Android 8.0) |
-| **Target SDK** | Latest stable (API 34+) |
-| **Architecture** | Feature-scoped Clean Architecture with MVI |
-
-### Device Permissions
-
-| Permission | Purpose | Required |
-|------------|---------|----------|
-| `CAMERA` | Photo capture for game box scanning | Yes |
-| `READ_MEDIA_IMAGES` | Gallery picker for existing photos | Yes |
-| `VIBRATE` | Haptic feedback for interactions | Optional |
-| `INTERNET` | API calls for AI analysis and rules generation | Yes |
-
-**Permission Handling:**
-- Request camera permission on first scan attempt (not at install)
-- Graceful fallback to gallery-only if camera denied
-- Link to system settings for permission re-grant
-
-### Offline Mode
-
-| Capability | Behavior |
-|------------|----------|
-| **Library Access** | Full offline access to saved games and rules |
-| **Rules Viewing** | All saved rules viewable without network |
-| **New Scans** | Requires network (AI processing is server-side) |
-| **Credit Display** | Cached locally, synced when online |
-
-**Offline Architecture:**
-- Room database for persistent rule storage
-- DataStore for preferences and credit balance
-- Network-first with local cache fallback for rules
-- Clear offline/online state indicators in UI
-
-### Push Notifications
-
-| Status | Details |
-|--------|---------|
-| **MVP** | No push notifications |
-| **Future (v1.1+)** | Background rules generation with completion notification |
-
-**Future Implementation Notes:**
-- Firebase Cloud Messaging (FCM) integration
-- Background WorkManager task for rules generation
-- Local notification on completion: "Your rules for [Game] are ready!"
-- User preference to enable/disable notifications
-
-### Store Compliance
-
-| Requirement | Approach |
-|-------------|----------|
-| **Google Play Policies** | Standard consumer app, no special review requirements |
-| **In-App Purchases** | Google Play Billing Library 6.x for credit packs |
-| **Content Rating** | Everyone (no objectionable content) |
-| **Data Safety** | Camera usage, analytics collection disclosed |
-| **Target Audience** | General audience (not children-directed) |
-
-### Android-Specific Enhancements
-
-| Feature | Implementation |
-|---------|----------------|
-| **App Shortcuts** | Long-press launcher icon → "Scan Game" quick action |
-| **Predictive Back** | Modern gesture navigation with preview animations |
-| **Edge-to-Edge** | Content extends under status/nav bars |
-| **Splash Screen** | Android 12+ SplashScreen API |
 
 ---
 
@@ -473,7 +339,3 @@ The rules are good, but miss one expansion-specific mechanic. Marcus uses the ga
 | **NFR22** | Compile SDK: API 35 | Gradle compileSdk configuration |
 | **NFR23** | Support both ARM and x86 architectures | APK/AAB includes all ABIs |
 | **NFR24** | Portrait orientation only | No landscape support required |
-
----
-
-*Product Requirements Document completed on 2025-12-03*

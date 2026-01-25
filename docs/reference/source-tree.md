@@ -1,8 +1,14 @@
-# Source Tree Analysis: Rulebook Android
+---
+title: Source Tree Analysis
+description: Annotated directory structure and module inventory
+author: Ivo
+date: 2026-01-22
+---
 
-**Generated:** 2026-01-22
-**Project:** project-rulebook-android
-**Type:** Android Mobile Application (Kotlin)
+# Source Tree Analysis
+
+Annotated directory structure for the Rulebook Android application.
+
 **Architecture:** Multi-Module Clean Architecture (MVVM)
 
 ---
@@ -34,7 +40,6 @@ project-rulebook-android/
 ├── gradle/                        # Gradle wrapper & version catalog
 │   └── libs.versions.toml         # Dependency versions
 ├── docs/                          # Project documentation
-├── _bmad-output/                  # BMAD workflow outputs
 ├── build.gradle.kts               # Root build configuration
 ├── settings.gradle.kts            # Module inclusion
 └── gradle.properties              # Build properties
@@ -290,24 +295,6 @@ feature/settings/src/main/kotlin/com/rulebook/feature/settings/
 
 ---
 
-## Build Configuration
-
-### build-logic/convention
-```
-build-logic/convention/
-├── build.gradle.kts               # Convention plugin project
-└── src/main/kotlin/
-    ├── AndroidApplicationConventionPlugin.kt  # App module setup
-    ├── AndroidLibraryConventionPlugin.kt      # Library module setup
-    ├── AndroidLibraryComposeConventionPlugin.kt  # Compose library
-    ├── AndroidFeatureConventionPlugin.kt      # Feature module setup
-    ├── KotlinAndroid.kt                       # Kotlin config
-    └── KotlinLibraryConventionPlugin.kt       # Pure Kotlin lib
-```
-**Purpose:** DRY build configuration via convention plugins.
-
----
-
 ## Module Dependency Graph
 
 ```
@@ -361,15 +348,14 @@ build-logic/convention/
 
 | Category | Key File | Location |
 |----------|----------|----------|
-| **Entry Point** | Application | `app/src/main/kotlin/com/rulebook/RulebookApplication.kt` |
+| **Entry Point** | Application | `app/.../RulebookApplication.kt` |
 | **Entry Point** | Manifest | `app/src/main/AndroidManifest.xml` |
-| **Navigation** | Nav Graph | `app/src/main/kotlin/com/rulebook/navigation/RulebookNavHost.kt` |
+| **Navigation** | Nav Graph | `app/.../navigation/RulebookNavHost.kt` |
 | **Database** | Room Config | `core/database/.../RulebookDatabase.kt` |
 | **API** | Endpoints | `core/network/.../api/RulebookApi.kt` |
 | **Theme** | Design System | `core/designsystem/.../theme/RulebookTheme.kt` |
 | **State** | Result Type | `core/common/.../Result.kt` |
 | **Build** | Version Catalog | `gradle/libs.versions.toml` |
-| **Build** | App Build | `app/build.gradle.kts` |
 
 ---
 

@@ -1,50 +1,13 @@
 ---
-stepsCompleted: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-workflowComplete: true
-inputDocuments:
-  - path: 'docs/prd.md'
-    type: 'prd'
-    description: 'Complete Product Requirements Document with user journeys, functional requirements'
-  - path: 'docs/analysis/product-brief-project-rulebook-android-2025-12-02.md'
-    type: 'product-brief'
-    description: 'Product Brief with vision, users, metrics, and MVP scope'
-  - path: 'docs/ios/android-migration-product-overview.md'
-    type: 'ios-reference'
-    description: 'Complete iOS product specification for Android migration'
-  - path: 'docs/ios/android-migration-screens.md'
-    type: 'ios-reference'
-    description: 'Screen inventory and layout specifications'
-  - path: 'docs/ios/android-migration-components.md'
-    type: 'ios-reference'
-    description: 'Component library specifications for Jetpack Compose'
-  - path: 'docs/ios/android-migration-navigation.md'
-    type: 'ios-reference'
-    description: 'Navigation patterns and user flows'
-  - path: 'docs/ios/android-migration-prd.md'
-    type: 'ios-reference'
-    description: 'iOS migration-specific PRD'
-  - path: 'docs/ios/design-system-android.json'
-    type: 'design-tokens'
-    description: 'Design system tokens (colors, typography, spacing) exported for Android'
-  - path: 'docs/ios/screenshots/'
-    type: 'visual-reference'
-    description: '17 iOS screenshots covering all screens and states'
-workflowType: 'ux-design'
-workflowContext: 'ios-to-android-migration'
-lastStep: 1
-project_name: 'project-rulebook-android'
-user_name: 'Ivo'
-date: '2025-12-03'
+title: UX Design Specification
+description: Complete UX design specification for the Rulebook Android application
+author: Ivo
+date: 2025-12-03
 ---
 
 # UX Design Specification - project-rulebook-android
 
-**Author:** Ivo
-**Date:** 2025-12-03
-
 ---
-
-<!-- UX design content will be appended sequentially through collaborative workflow steps -->
 
 ## Project Context
 
@@ -1031,3 +994,9 @@ Modifier extension applying offset rectangle shadow. Configurable offset (4-12dp
 **Note:** No accessibility blockers created - can enhance later without refactoring.
 
 ---
+
+## Related Sections
+
+- [Architecture](../architecture/) - Technical design decisions
+- [Reference](../reference/) - Component inventory and design tokens
+- [Templates](../templates/) - Design component patterns
