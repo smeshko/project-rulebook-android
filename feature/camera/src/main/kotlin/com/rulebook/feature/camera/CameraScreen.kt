@@ -85,6 +85,7 @@ import org.koin.androidx.compose.koinViewModel
  * - Immersive mode with hidden system bars (status bar and navigation bar)
  * - Loading state while camera initializes
  * - Error state display for camera failures
+ * - Credit check before proceeding with scan (Story 5.1)
  *
  * The screen automatically hides system bars when entering and restores them on exit.
  * This provides an immersive camera experience without any UI chrome.
@@ -92,9 +93,10 @@ import org.koin.androidx.compose.koinViewModel
  * @param modifier Optional modifier for the screen container.
  * @param viewModel The ViewModel managing camera state.
  * @param onNavigateBack Callback invoked when user requests to close camera and return to previous screen.
- * @param onPhotoCaptured Callback invoked when a photo is captured successfully with the image URI.
- * @param onGalleryImageSelected Callback invoked when a gallery image is selected with the image URI.
+ * @param onPhotoCaptured Callback invoked when a photo is captured and user has credits to proceed.
+ * @param onGalleryImageSelected Callback invoked when a gallery image is selected and user has credits.
  *                                Uses the same processing flow as captured photos.
+ * @param onNavigateToPaywall Callback invoked when user attempts to scan but has no credits (Story 5.1).
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -103,7 +105,8 @@ fun CameraScreen(
     viewModel: CameraViewModel = koinViewModel(),
     onNavigateBack: () -> Unit = {},
     onPhotoCaptured: (String) -> Unit = {},
-    onGalleryImageSelected: (String) -> Unit = {}
+    onGalleryImageSelected: (String) -> Unit = {},
+    onNavigateToPaywall: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
@@ -112,14 +115,15 @@ fun CameraScreen(
     // Store the capture function when CameraPreview provides it
     val capturePhotoState = remember { mutableStateOf<(() -> Unit)?>(null) }
 
-    // Photo picker for gallery selection (Story 4.6)
+    // Photo picker for gallery selection (Story 4.6, Story 5.1)
     val pickMedia = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         // uri is null when user cancels - no action needed (AC #3)
         uri?.let { selectedUri ->
-            // Pass directly to parent via callback - same processing path as captured photos
-            onGalleryImageSelected(selectedUri.toString())
+            // Check credits before proceeding (Story 5.1)
+            // Event will be emitted via events channel and collected above
+            viewModel.onGalleryImageSelected(selectedUri.toString())
         }
     }
 
@@ -159,13 +163,22 @@ fun CameraScreen(
         }
     }
 
-    // Handle successful capture - trigger haptic feedback and notify parent
-    LaunchedEffect(uiState.capturedImageUri) {
-        uiState.capturedImageUri?.let { uri ->
-            // Haptic feedback confirms successful capture (AC #2)
-            hapticFeedback()
-            onPhotoCaptured(uri)
-            viewModel.clearCapturedImage()
+    // Collect navigation events from ViewModel (Story 5.1)
+    // Handle credit check results for both photo capture and gallery selection
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is CameraEvent.ProceedToAnalysis -> {
+                    // Haptic feedback confirms successful capture check
+                    hapticFeedback()
+                    // Note: In Story 5.1, both captured and gallery images go through the same flow
+                    // The parent navigation decides the processing path
+                    onPhotoCaptured(event.imageUri)
+                }
+                is CameraEvent.NavigateToPaywall -> {
+                    onNavigateToPaywall()
+                }
+            }
         }
     }
 
