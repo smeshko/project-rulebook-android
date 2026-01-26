@@ -161,16 +161,24 @@ class CameraViewModel(
     /**
      * Called when photo capture completes successfully.
      *
+     * Checks if the user has credits before proceeding:
+     * - If credits > 0: emits [CameraEvent.ProceedToAnalysis]
+     * - If credits = 0: emits [CameraEvent.NavigateToPaywall]
+     *
+     * Note: Credits are NOT deducted here. Deduction happens only on successful
+     * rules generation (Story 5.7).
+     *
      * @param imageUri The URI of the captured image file.
      */
     fun onCaptureSuccess(imageUri: String) {
         _uiState.update {
             it.copy(
                 isCapturing = false,
-                capturedImageUri = imageUri,
                 error = null
             )
         }
+        // Check credits and emit appropriate navigation event (Story 5.1)
+        checkCreditsAndProceed(imageUri)
     }
 
     /**

@@ -200,15 +200,31 @@ class CameraViewModelTest {
     }
 
     @Test
-    fun `onCaptureSuccess sets capturedImageUri and clears isCapturing`() = runTest {
+    fun `onCaptureSuccess clears isCapturing and emits event`() = runTest {
+        // Given user has credits (so we can verify event emission)
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
         val testUri = "file:///test/image.jpg"
         viewModel.onCaptureStarted()
         viewModel.onCaptureSuccess(testUri)
+        advanceUntilIdle()
         val state = viewModel.uiState.first()
 
+        // isCapturing is cleared
         assertFalse(state.isCapturing)
-        assertEquals(testUri, state.capturedImageUri)
         assertNull(state.error)
+        // capturedImageUri is NOT set (now uses events for navigation)
+        assertNull(state.capturedImageUri)
+        // Event is emitted instead
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.ProceedToAnalysis)
+        assertEquals(testUri, (events[0] as CameraEvent.ProceedToAnalysis).imageUri)
+
+        job.cancel()
     }
 
     @Test
@@ -553,6 +569,55 @@ class CameraViewModelTest {
 
         // Then credit balance is unchanged (Story 5.1: credit NOT deducted until scan succeeds)
         assertEquals(3, viewModel.uiState.first().creditBalance)
+    }
+
+    // =========================================================================
+    // Photo Capture Credit Check Tests (Story 5.1 - Task 3)
+    // =========================================================================
+
+    @Test
+    fun `onCaptureSuccess triggers credit check and emits event`() = runTest {
+        // Given user has credits
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When capture succeeds
+        val testUri = "file:///test/captured.jpg"
+        viewModel.onCaptureSuccess(testUri)
+        advanceUntilIdle()
+
+        // Then ProceedToAnalysis event is emitted (not directly to capturedImageUri)
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.ProceedToAnalysis)
+        assertEquals(testUri, (events[0] as CameraEvent.ProceedToAnalysis).imageUri)
+
+        // And capturedImageUri is NOT set (event-based navigation now)
+        assertNull(viewModel.uiState.first().capturedImageUri)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `onCaptureSuccess with no credits emits NavigateToPaywall`() = runTest {
+        // Given user has no credits
+        fakeCreditRepository.setCreditBalance(0)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When capture succeeds but no credits
+        viewModel.onCaptureSuccess("file:///test/captured.jpg")
+        advanceUntilIdle()
+
+        // Then NavigateToPaywall event is emitted
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.NavigateToPaywall)
+
+        job.cancel()
     }
 }
 
