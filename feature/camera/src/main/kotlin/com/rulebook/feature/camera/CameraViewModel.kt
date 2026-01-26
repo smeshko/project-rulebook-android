@@ -131,6 +131,8 @@ class CameraViewModel(
                 // Analytics is wrapped separately so it doesn't block navigation
                 try {
                     analyticsManager.trackScanCreditCheck(hasCredits, creditBalance)
+                } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                    throw e // Respect coroutine cancellation
                 } catch (e: Exception) {
                     Log.e(TAG, "Failed to track scan credit check analytics", e)
                 }
@@ -140,6 +142,8 @@ class CameraViewModel(
                 } else {
                     _events.send(CameraEvent.NavigateToPaywall)
                 }
+            } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                throw e // Respect coroutine cancellation
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to check credits", e)
                 // Fallback: navigate to paywall on error (safe default)
