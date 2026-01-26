@@ -1,5 +1,6 @@
 package com.rulebook.feature.camera
 
+import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.data.repository.CreditRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -29,12 +30,17 @@ class CameraViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: CameraViewModel
     private lateinit var fakeCreditRepository: FakeCreditRepository
+    private lateinit var fakeAnalyticsManager: FakeAnalyticsManager
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         fakeCreditRepository = FakeCreditRepository()
-        viewModel = CameraViewModel(creditRepository = fakeCreditRepository)
+        fakeAnalyticsManager = FakeAnalyticsManager()
+        viewModel = CameraViewModel(
+            creditRepository = fakeCreditRepository,
+            analyticsManager = fakeAnalyticsManager
+        )
     }
 
     @After
@@ -665,6 +671,48 @@ class CameraViewModelTest {
 
         job.cancel()
     }
+
+    // =========================================================================
+    // Analytics Tests (Story 5.1 - Task 7)
+    // =========================================================================
+
+    @Test
+    fun `checkCreditsAndProceed tracks scan_credit_check analytics event with credits`() = runTest {
+        // Given user has credits
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+        fakeAnalyticsManager.clear()
+
+        // When checking credits
+        viewModel.checkCreditsAndProceed("file:///test/image.jpg")
+        advanceUntilIdle()
+
+        // Then analytics event is tracked with correct properties
+        val analyticsEvents = fakeAnalyticsManager.trackedEvents
+        assertEquals(1, analyticsEvents.size)
+        assertEquals("scan_credit_check", analyticsEvents[0].name)
+        assertEquals("true", analyticsEvents[0].properties["has_credits"])
+        assertEquals("3", analyticsEvents[0].properties["credit_balance"])
+    }
+
+    @Test
+    fun `checkCreditsAndProceed tracks scan_credit_check analytics event without credits`() = runTest {
+        // Given user has no credits
+        fakeCreditRepository.setCreditBalance(0)
+        advanceUntilIdle()
+        fakeAnalyticsManager.clear()
+
+        // When checking credits
+        viewModel.checkCreditsAndProceed("file:///test/image.jpg")
+        advanceUntilIdle()
+
+        // Then analytics event is tracked with correct properties
+        val analyticsEvents = fakeAnalyticsManager.trackedEvents
+        assertEquals(1, analyticsEvents.size)
+        assertEquals("scan_credit_check", analyticsEvents[0].name)
+        assertEquals("false", analyticsEvents[0].properties["has_credits"])
+        assertEquals("0", analyticsEvents[0].properties["credit_balance"])
+    }
 }
 
 /**
@@ -701,5 +749,35 @@ class FakeCreditRepository : CreditRepository {
 
     fun resetTracking() {
         hasCreditsWasCalled = false
+    }
+}
+
+/**
+ * Fake implementation of [AnalyticsManager] for testing.
+ */
+class FakeAnalyticsManager : AnalyticsManager {
+
+    data class TrackedEvent(
+        val name: String,
+        val properties: Map<String, String>
+    )
+
+    private val _trackedEvents = mutableListOf<TrackedEvent>()
+    val trackedEvents: List<TrackedEvent> get() = _trackedEvents.toList()
+
+    private val _trackedScreenViews = mutableListOf<String>()
+    val trackedScreenViews: List<String> get() = _trackedScreenViews.toList()
+
+    override fun trackEvent(name: String, properties: Map<String, String>) {
+        _trackedEvents.add(TrackedEvent(name, properties))
+    }
+
+    override fun trackScreenView(screenName: String) {
+        _trackedScreenViews.add(screenName)
+    }
+
+    fun clear() {
+        _trackedEvents.clear()
+        _trackedScreenViews.clear()
     }
 }

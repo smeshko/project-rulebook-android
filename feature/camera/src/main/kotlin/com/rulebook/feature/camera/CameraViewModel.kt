@@ -3,6 +3,7 @@ package com.rulebook.feature.camera
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.data.repository.CreditRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -37,9 +38,11 @@ private const val TAG = "CameraViewModel"
  * ViewModel for UI updates.
  *
  * @param creditRepository Repository for observing credit balance.
+ * @param analyticsManager Manager for tracking analytics events (Story 5.1).
  */
 class CameraViewModel(
-    private val creditRepository: CreditRepository
+    private val creditRepository: CreditRepository,
+    private val analyticsManager: AnalyticsManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiState())
@@ -109,6 +112,8 @@ class CameraViewModel(
      * If the user has credits, emits [CameraEvent.ProceedToAnalysis] with the image URI.
      * If the user has no credits, emits [CameraEvent.NavigateToPaywall].
      *
+     * Also tracks the "scan_credit_check" analytics event with credit status.
+     *
      * Note: This method does NOT deduct credits. Credit deduction happens only
      * when the scan completes successfully (Story 5.7).
      *
@@ -117,6 +122,11 @@ class CameraViewModel(
     fun checkCreditsAndProceed(imageUri: String) {
         viewModelScope.launch {
             val hasCredits = creditRepository.hasCredits()
+            val creditBalance = _uiState.value.creditBalance
+
+            // Track analytics event for credit check (Story 5.1)
+            analyticsManager.trackScanCreditCheck(hasCredits, creditBalance)
+
             if (hasCredits) {
                 _events.send(CameraEvent.ProceedToAnalysis(imageUri))
             } else {
