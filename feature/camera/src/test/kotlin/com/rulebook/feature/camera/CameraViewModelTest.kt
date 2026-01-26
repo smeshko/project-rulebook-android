@@ -713,6 +713,52 @@ class CameraViewModelTest {
         assertEquals("false", analyticsEvents[0].properties["has_credits"])
         assertEquals("0", analyticsEvents[0].properties["credit_balance"])
     }
+
+    // =========================================================================
+    // Error Handling Tests (Story 5.1 - Code Review Fixes)
+    // =========================================================================
+
+    @Test
+    fun `checkCreditsAndProceed emits NavigateToPaywall when credit check fails`() = runTest {
+        // Given credit repository throws an error
+        fakeCreditRepository.setThrowOnBalanceRead(true)
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When checking credits (which will fail)
+        viewModel.checkCreditsAndProceed("file:///test/image.jpg")
+        advanceUntilIdle()
+
+        // Then NavigateToPaywall is emitted as fallback (safe default)
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.NavigateToPaywall)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `checkCreditsAndProceed still navigates when analytics fails`() = runTest {
+        // Given user has credits but analytics throws
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+        fakeAnalyticsManager.setThrowOnTrackEvent(true)
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When checking credits (analytics will fail but shouldn't block)
+        val imageUri = "file:///test/image.jpg"
+        viewModel.checkCreditsAndProceed(imageUri)
+        advanceUntilIdle()
+
+        // Then ProceedToAnalysis is still emitted (analytics failure doesn't block navigation)
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.ProceedToAnalysis)
+        assertEquals(imageUri, (events[0] as CameraEvent.ProceedToAnalysis).imageUri)
+
+        job.cancel()
+    }
 }
 
 /**
@@ -720,10 +766,21 @@ class CameraViewModelTest {
  */
 class FakeCreditRepository : CreditRepository {
     private val _creditBalance = MutableStateFlow(0)
-    override val creditBalance: Flow<Int> = _creditBalance
+    private var shouldThrowOnBalanceRead = false
+
+    override val creditBalance: Flow<Int>
+        get() = if (shouldThrowOnBalanceRead) {
+            kotlinx.coroutines.flow.flow { throw RuntimeException("Simulated balance read error") }
+        } else {
+            _creditBalance
+        }
 
     fun setCreditBalance(balance: Int) {
         _creditBalance.value = balance
+    }
+
+    fun setThrowOnBalanceRead(shouldThrow: Boolean) {
+        shouldThrowOnBalanceRead = shouldThrow
     }
 
     override suspend fun awardInitialCredits(amount: Int): Boolean {
@@ -749,6 +806,7 @@ class FakeCreditRepository : CreditRepository {
 
     fun resetTracking() {
         hasCreditsWasCalled = false
+        shouldThrowOnBalanceRead = false
     }
 }
 
@@ -768,7 +826,16 @@ class FakeAnalyticsManager : AnalyticsManager {
     private val _trackedScreenViews = mutableListOf<String>()
     val trackedScreenViews: List<String> get() = _trackedScreenViews.toList()
 
+    private var shouldThrowOnTrackEvent = false
+
+    fun setThrowOnTrackEvent(shouldThrow: Boolean) {
+        shouldThrowOnTrackEvent = shouldThrow
+    }
+
     override fun trackEvent(name: String, properties: Map<String, String>) {
+        if (shouldThrowOnTrackEvent) {
+            throw RuntimeException("Simulated analytics error")
+        }
         _trackedEvents.add(TrackedEvent(name, properties))
     }
 
@@ -779,5 +846,6 @@ class FakeAnalyticsManager : AnalyticsManager {
     fun clear() {
         _trackedEvents.clear()
         _trackedScreenViews.clear()
+        shouldThrowOnTrackEvent = false
     }
 }

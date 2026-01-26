@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -121,15 +122,27 @@ class CameraViewModel(
      */
     fun checkCreditsAndProceed(imageUri: String) {
         viewModelScope.launch {
-            val hasCredits = creditRepository.hasCredits()
-            val creditBalance = _uiState.value.creditBalance
+            try {
+                // Read credit balance from repository for consistent analytics data
+                val creditBalance = creditRepository.creditBalance.first()
+                val hasCredits = creditBalance > 0
 
-            // Track analytics event for credit check (Story 5.1)
-            analyticsManager.trackScanCreditCheck(hasCredits, creditBalance)
+                // Track analytics event for credit check (Story 5.1)
+                // Analytics is wrapped separately so it doesn't block navigation
+                try {
+                    analyticsManager.trackScanCreditCheck(hasCredits, creditBalance)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to track scan credit check analytics", e)
+                }
 
-            if (hasCredits) {
-                _events.send(CameraEvent.ProceedToAnalysis(imageUri))
-            } else {
+                if (hasCredits) {
+                    _events.send(CameraEvent.ProceedToAnalysis(imageUri))
+                } else {
+                    _events.send(CameraEvent.NavigateToPaywall)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to check credits", e)
+                // Fallback: navigate to paywall on error (safe default)
                 _events.send(CameraEvent.NavigateToPaywall)
             }
         }

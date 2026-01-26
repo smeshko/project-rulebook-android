@@ -4,6 +4,12 @@ plugins {
 
 android {
     namespace = "com.rulebook.feature.camera"
+
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
