@@ -1,3 +1,8 @@
+---
+title: Conditional Documentation Guide
+description: Find documentation based on your current task
+---
+
 # Conditional Documentation Guide
 
 This guide helps you find relevant documentation based on what you're working on.
