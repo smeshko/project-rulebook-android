@@ -291,6 +291,23 @@ class CameraViewModel(
         _uiState.update { it.copy(lastGalleryThumbnailUri = uri) }
     }
 
+    /**
+     * Called when a gallery image is selected by the user.
+     *
+     * Performs the same credit check as photo capture:
+     * - If credits > 0: emits [CameraEvent.ProceedToAnalysis]
+     * - If credits = 0: emits [CameraEvent.NavigateToPaywall]
+     *
+     * Note: Credits are NOT deducted here. Deduction happens only on successful
+     * rules generation (Story 5.7).
+     *
+     * @param imageUri The URI of the selected gallery image.
+     */
+    fun onGalleryImageSelected(imageUri: String) {
+        // Same flow as captured photos - check credits before proceeding (Story 5.1)
+        checkCreditsAndProceed(imageUri)
+    }
+
     // =========================================================================
     // Permission Handling (Story 4.9)
     // =========================================================================

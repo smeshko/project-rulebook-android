@@ -619,6 +619,52 @@ class CameraViewModelTest {
 
         job.cancel()
     }
+
+    // =========================================================================
+    // Gallery Selection Credit Check Tests (Story 5.1 - Task 4)
+    // =========================================================================
+
+    @Test
+    fun `onGalleryImageSelected triggers credit check with credits`() = runTest {
+        // Given user has credits
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When gallery image is selected
+        val testUri = "content://media/external/images/1234"
+        viewModel.onGalleryImageSelected(testUri)
+        advanceUntilIdle()
+
+        // Then ProceedToAnalysis event is emitted
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.ProceedToAnalysis)
+        assertEquals(testUri, (events[0] as CameraEvent.ProceedToAnalysis).imageUri)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `onGalleryImageSelected triggers NavigateToPaywall with no credits`() = runTest {
+        // Given user has no credits
+        fakeCreditRepository.setCreditBalance(0)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When gallery image is selected
+        viewModel.onGalleryImageSelected("content://media/external/images/1234")
+        advanceUntilIdle()
+
+        // Then NavigateToPaywall event is emitted
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.NavigateToPaywall)
+
+        job.cancel()
+    }
 }
 
 /**
