@@ -4,13 +4,17 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rulebook.core.data.repository.CreditRepository
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 private const val TAG = "CameraViewModel"
 
@@ -35,10 +39,26 @@ private const val TAG = "CameraViewModel"
  * @param creditRepository Repository for observing credit balance.
  */
 class CameraViewModel(
-    creditRepository: CreditRepository
+    private val creditRepository: CreditRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiState())
+
+    /**
+     * Channel for one-time navigation events.
+     *
+     * Using Channel with BUFFERED capacity ensures events aren't lost if emitted
+     * before the collector is ready. Events are consumed exactly once.
+     */
+    private val _events = Channel<CameraEvent>(Channel.BUFFERED)
+
+    /**
+     * Flow of one-time navigation events for the UI to collect.
+     *
+     * Use this for navigation actions that should only be handled once,
+     * such as navigating to paywall or proceeding to image analysis.
+     */
+    val events: Flow<CameraEvent> = _events.receiveAsFlow()
 
     init {
         // Observe credit balance changes and update UI state (Story 4.8)
@@ -77,6 +97,32 @@ class CameraViewModel(
      */
     fun clearError() {
         _uiState.update { it.copy(error = null) }
+    }
+
+    // =========================================================================
+    // Credit Check (Story 5.1)
+    // =========================================================================
+
+    /**
+     * Checks if the user has credits and emits the appropriate navigation event.
+     *
+     * If the user has credits, emits [CameraEvent.ProceedToAnalysis] with the image URI.
+     * If the user has no credits, emits [CameraEvent.NavigateToPaywall].
+     *
+     * Note: This method does NOT deduct credits. Credit deduction happens only
+     * when the scan completes successfully (Story 5.7).
+     *
+     * @param imageUri The URI of the captured or selected image.
+     */
+    fun checkCreditsAndProceed(imageUri: String) {
+        viewModelScope.launch {
+            val hasCredits = creditRepository.hasCredits()
+            if (hasCredits) {
+                _events.send(CameraEvent.ProceedToAnalysis(imageUri))
+            } else {
+                _events.send(CameraEvent.NavigateToPaywall)
+            }
+        }
     }
 
     // =========================================================================

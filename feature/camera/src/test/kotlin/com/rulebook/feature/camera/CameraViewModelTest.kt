@@ -11,6 +11,8 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -491,6 +493,67 @@ class CameraViewModelTest {
 
         assertEquals(4, viewModel.uiState.first().creditBalance)
     }
+
+    // =========================================================================
+    // Credit Check Tests (Story 5.1)
+    // =========================================================================
+
+    @Test
+    fun `checkCreditsAndProceed emits ProceedToAnalysis when user has credits`() = runTest {
+        // Given user has credits
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When checking credits with image URI
+        val imageUri = "file:///test/image.jpg"
+        viewModel.checkCreditsAndProceed(imageUri)
+        advanceUntilIdle()
+
+        // Then ProceedToAnalysis event is emitted with the image URI
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.ProceedToAnalysis)
+        assertEquals(imageUri, (events[0] as CameraEvent.ProceedToAnalysis).imageUri)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `checkCreditsAndProceed emits NavigateToPaywall when user has no credits`() = runTest {
+        // Given user has no credits
+        fakeCreditRepository.setCreditBalance(0)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When checking credits
+        val imageUri = "file:///test/image.jpg"
+        viewModel.checkCreditsAndProceed(imageUri)
+        advanceUntilIdle()
+
+        // Then NavigateToPaywall event is emitted
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.NavigateToPaywall)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `checkCreditsAndProceed does not deduct credits`() = runTest {
+        // Given user has credits
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+
+        // When checking credits
+        viewModel.checkCreditsAndProceed("file:///test/image.jpg")
+        advanceUntilIdle()
+
+        // Then credit balance is unchanged (Story 5.1: credit NOT deducted until scan succeeds)
+        assertEquals(3, viewModel.uiState.first().creditBalance)
+    }
 }
 
 /**
@@ -521,4 +584,11 @@ class FakeCreditRepository : CreditRepository {
     }
 
     override suspend fun hasCredits(): Boolean = _creditBalance.value > 0
+
+    var hasCreditsWasCalled = false
+        private set
+
+    fun resetTracking() {
+        hasCreditsWasCalled = false
+    }
 }
