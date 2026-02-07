@@ -2,6 +2,9 @@ package com.rulebook.feature.generation
 
 import androidx.lifecycle.SavedStateHandle
 import com.rulebook.core.analytics.AnalyticsManager
+import com.rulebook.core.common.Result
+import com.rulebook.core.data.repository.ScanRepository
+import com.rulebook.core.model.ScanResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -17,6 +20,7 @@ import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -25,11 +29,13 @@ class GenerationViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var fakeAnalyticsManager: FakeAnalyticsManager
+    private lateinit var fakeScanRepository: FakeScanRepository
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         fakeAnalyticsManager = FakeAnalyticsManager()
+        fakeScanRepository = FakeScanRepository()
     }
 
     @After
@@ -41,7 +47,8 @@ class GenerationViewModelTest {
         val savedStateHandle = SavedStateHandle(mapOf("imageUri" to imageUri))
         return GenerationViewModel(
             savedStateHandle = savedStateHandle,
-            analyticsManager = fakeAnalyticsManager
+            analyticsManager = fakeAnalyticsManager,
+            scanRepository = fakeScanRepository,
         )
     }
 
@@ -50,12 +57,12 @@ class GenerationViewModelTest {
     // =========================================================================
 
     @Test
-    fun `initial state has PROCESSING_IMAGE phase when imageUri provided`() = runTest {
+    fun `successful analysis advances to IDENTIFYING_GAME phase`() = runTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        assertEquals(ScanPhase.PROCESSING_IMAGE, state.currentPhase)
+        assertEquals(ScanPhase.IDENTIFYING_GAME, state.currentPhase)
     }
 
     @Test
@@ -68,12 +75,12 @@ class GenerationViewModelTest {
     }
 
     @Test
-    fun `initial state has zero progress for PROCESSING_IMAGE`() = runTest {
+    fun `successful analysis sets progress to IDENTIFYING_GAME start`() = runTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        assertEquals(0f, state.overallProgress)
+        assertEquals(0.40f, state.overallProgress)
     }
 
     @Test
@@ -86,7 +93,7 @@ class GenerationViewModelTest {
     }
 
     @Test
-    fun `initial state has no error`() = runTest {
+    fun `successful analysis has no error`() = runTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
         val state = viewModel.uiState.first()
@@ -106,13 +113,13 @@ class GenerationViewModelTest {
     @Test
     fun `does not start generation with blank imageUri`() = runTest {
         val savedStateHandle = SavedStateHandle(mapOf("imageUri" to ""))
-        val viewModel = GenerationViewModel(
+        GenerationViewModel(
             savedStateHandle = savedStateHandle,
-            analyticsManager = fakeAnalyticsManager
+            analyticsManager = fakeAnalyticsManager,
+            scanRepository = fakeScanRepository,
         )
         advanceUntilIdle()
 
-        // No scan_started event since generation didn't start
         assertTrue(fakeAnalyticsManager.trackedEvents.none { it.name == "scan_started" })
     }
 
@@ -121,7 +128,8 @@ class GenerationViewModelTest {
         val savedStateHandle = SavedStateHandle(mapOf("imageUri" to ""))
         val viewModel = GenerationViewModel(
             savedStateHandle = savedStateHandle,
-            analyticsManager = fakeAnalyticsManager
+            analyticsManager = fakeAnalyticsManager,
+            scanRepository = fakeScanRepository,
         )
         advanceUntilIdle()
         val state = viewModel.uiState.first()
@@ -136,7 +144,8 @@ class GenerationViewModelTest {
 
         val viewModel = GenerationViewModel(
             savedStateHandle = savedStateHandle,
-            analyticsManager = fakeAnalyticsManager
+            analyticsManager = fakeAnalyticsManager,
+            scanRepository = fakeScanRepository,
         )
         val job = launch { viewModel.events.toList(events) }
         advanceUntilIdle()
@@ -150,9 +159,10 @@ class GenerationViewModelTest {
     @Test
     fun `does not start generation with missing imageUri`() = runTest {
         val savedStateHandle = SavedStateHandle()
-        val viewModel = GenerationViewModel(
+        GenerationViewModel(
             savedStateHandle = savedStateHandle,
-            analyticsManager = fakeAnalyticsManager
+            analyticsManager = fakeAnalyticsManager,
+            scanRepository = fakeScanRepository,
         )
         advanceUntilIdle()
 
@@ -164,7 +174,8 @@ class GenerationViewModelTest {
         val savedStateHandle = SavedStateHandle()
         val viewModel = GenerationViewModel(
             savedStateHandle = savedStateHandle,
-            analyticsManager = fakeAnalyticsManager
+            analyticsManager = fakeAnalyticsManager,
+            scanRepository = fakeScanRepository,
         )
         advanceUntilIdle()
         val state = viewModel.uiState.first()
@@ -231,10 +242,11 @@ class GenerationViewModelTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
 
-        viewModel.updateProgress(0.10f)
+        // After successful analysis, phase is IDENTIFYING_GAME (40-60%)
+        viewModel.updateProgress(0.50f)
         val state = viewModel.uiState.first()
 
-        assertEquals(0.10f, state.overallProgress)
+        assertEquals(0.50f, state.overallProgress)
     }
 
     @Test
@@ -242,7 +254,7 @@ class GenerationViewModelTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
 
-        // Phase is PROCESSING_IMAGE (0-15%)
+        viewModel.updatePhase(ScanPhase.PROCESSING_IMAGE) // 0-15%
         viewModel.updateProgress(0.50f) // Try to go beyond 15%
         val state = viewModel.uiState.first()
 
@@ -400,8 +412,152 @@ class GenerationViewModelTest {
         val state = viewModel.uiState.first()
 
         // ViewModel should still be in valid state despite analytics failure
-        assertEquals(ScanPhase.PROCESSING_IMAGE, state.currentPhase)
+        // Pipeline still runs — scan repo is called after analytics tracking
         assertNull(state.error)
+    }
+
+    // =========================================================================
+    // Image Analysis Tests (Story 5.3)
+    // =========================================================================
+
+    @Test
+    fun `analyzeImage success stores scanResult in state`() = runTest {
+        val expectedResult = ScanResult(
+            gameTitle = "Catan",
+            confidence = 0.92f,
+            thumbnailUrl = "https://example.com/catan.jpg"
+        )
+        fakeScanRepository.analyzeResult = Result.Success(expectedResult)
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertNotNull(state.scanResult)
+        assertEquals("Catan", state.scanResult?.gameTitle)
+        assertEquals(0.92f, state.scanResult?.confidence)
+        assertEquals("https://example.com/catan.jpg", state.scanResult?.thumbnailUrl)
+    }
+
+    @Test
+    fun `analyzeImage success advances phase to IDENTIFYING_GAME`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals(ScanPhase.IDENTIFYING_GAME, state.currentPhase)
+    }
+
+    @Test
+    fun `analyzeImage calls repository with correct imageUri`() = runTest {
+        createViewModel(imageUri = "content://media/photo_123.jpg")
+        advanceUntilIdle()
+
+        assertEquals(1, fakeScanRepository.analyzeCallCount)
+        assertEquals("content://media/photo_123.jpg", fakeScanRepository.lastAnalyzeUri)
+    }
+
+    @Test
+    fun `analyzeImage error sets error state`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Error(
+            message = "The analysis took too long. Please try again."
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals("The analysis took too long. Please try again.", state.error)
+    }
+
+    @Test
+    fun `analyzeImage error emits Error event`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Error(
+            message = "No internet connection. Please check your network."
+        )
+        val events = mutableListOf<GenerationEvent>()
+
+        val viewModel = createViewModel()
+        val job = launch { viewModel.events.toList(events) }
+        advanceUntilIdle()
+
+        assertTrue(events.any { it is GenerationEvent.Error })
+        val errorEvent = events.filterIsInstance<GenerationEvent.Error>().first()
+        assertEquals("No internet connection. Please check your network.", errorEvent.message)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `analyzeImage error does not advance phase`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Error(message = "Server error.")
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        // Phase should remain at ANALYZING_IMAGE (where the error occurred)
+        assertEquals(ScanPhase.ANALYZING_IMAGE, state.currentPhase)
+    }
+
+    @Test
+    fun `analyzeImage error does not set scanResult`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Error(message = "Server error.")
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertNull(state.scanResult)
+    }
+
+    @Test
+    fun `analyzeImage success with null thumbnailUrl stores scanResult`() = runTest {
+        val expectedResult = ScanResult(
+            gameTitle = "Chess",
+            confidence = 0.99f,
+            thumbnailUrl = null
+        )
+        fakeScanRepository.analyzeResult = Result.Success(expectedResult)
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertNotNull(state.scanResult)
+        assertEquals("Chess", state.scanResult?.gameTitle)
+        assertNull(state.scanResult?.thumbnailUrl)
+    }
+
+    @Test
+    fun `blank imageUri does not call scanRepository`() = runTest {
+        val savedStateHandle = SavedStateHandle(mapOf("imageUri" to ""))
+        GenerationViewModel(
+            savedStateHandle = savedStateHandle,
+            analyticsManager = fakeAnalyticsManager,
+            scanRepository = fakeScanRepository,
+        )
+        advanceUntilIdle()
+
+        assertEquals(0, fakeScanRepository.analyzeCallCount)
+    }
+}
+
+/**
+ * Fake implementation of [ScanRepository] for testing.
+ */
+class FakeScanRepository : ScanRepository {
+
+    var analyzeResult: Result<ScanResult> = Result.Success(
+        ScanResult(gameTitle = "Test Game", confidence = 0.95f, thumbnailUrl = null)
+    )
+    var analyzeCallCount = 0
+    var lastAnalyzeUri: String? = null
+
+    override suspend fun analyzeImage(imageUri: String): Result<ScanResult> {
+        analyzeCallCount++
+        lastAnalyzeUri = imageUri
+        return analyzeResult
     }
 }
 

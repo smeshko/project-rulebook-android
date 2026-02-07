@@ -14,6 +14,7 @@ android {
 
 dependencies {
     implementation(project(":core:analytics"))
+    implementation(project(":core:data"))
 
     // Testing
     testImplementation(libs.junit)

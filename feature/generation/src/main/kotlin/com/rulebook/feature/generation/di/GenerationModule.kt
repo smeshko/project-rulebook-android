@@ -13,7 +13,14 @@ import org.koin.dsl.module
  * Dependencies:
  * - SavedStateHandle (auto-injected by Koin for navigation arguments)
  * - AnalyticsManager (from :core:analytics) for tracking events
+ * - ScanRepository (from :core:data) for image analysis API calls
  */
 val generationModule = module {
-    viewModel { GenerationViewModel(savedStateHandle = get(), analyticsManager = get()) }
+    viewModel {
+        GenerationViewModel(
+            savedStateHandle = get(),
+            analyticsManager = get(),
+            scanRepository = get(),
+        )
+    }
 }

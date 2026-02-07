@@ -6,6 +6,8 @@ import com.rulebook.core.data.repository.GameRepository
 import com.rulebook.core.data.repository.GameRepositoryImpl
 import com.rulebook.core.data.repository.OnboardingRepository
 import com.rulebook.core.data.repository.OnboardingRepositoryImpl
+import com.rulebook.core.data.repository.ScanRepository
+import com.rulebook.core.data.repository.ScanRepositoryImpl
 import com.rulebook.core.datastore.CreditPreferencesSource
 import com.rulebook.core.datastore.OnboardingPreferencesSource
 import com.rulebook.core.datastore.RulebookPreferences
@@ -17,4 +19,5 @@ val dataModule = module {
     single<OnboardingRepository> { OnboardingRepositoryImpl(get()) }
     single<CreditPreferencesSource> { get<RulebookPreferences>() }
     single<CreditRepository> { CreditRepositoryImpl(get()) }
+    single<ScanRepository> { ScanRepositoryImpl(api = get(), context = get()) }
 }
