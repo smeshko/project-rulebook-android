@@ -24,3 +24,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When implementing paywall navigation
     - When managing resource cleanup after navigation
     - When preventing memory leaks in ViewModels with navigation
+
+- docs/features/generation-progress-screen.md
+  - Conditions:
+    - When implementing the scan/generation pipeline (Stories 5.3-5.7)
+    - When adding new scan phases or modifying progress ranges
+    - When working with the ProgressPhaseIndicator design system component
+    - When navigating to or from the generation screen
+    - When implementing multi-step progress tracking in other features
