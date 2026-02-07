@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":core:common"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.retrofit)
 
     // Koin
     implementation(platform(libs.koin.bom))
@@ -23,4 +24,6 @@ dependencies {
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.okhttp.mockwebserver)
 }
