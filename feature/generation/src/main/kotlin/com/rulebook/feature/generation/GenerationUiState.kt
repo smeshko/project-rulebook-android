@@ -1,5 +1,7 @@
 package com.rulebook.feature.generation
 
+import com.rulebook.core.model.ScanResult
+
 /**
  * UI state for the Generation/Progress screen.
  *
@@ -11,11 +13,13 @@ package com.rulebook.feature.generation
  * @param isCancelling True when cancel has been requested but not yet completed.
  * @param error An error message if the operation failed, null otherwise.
  * @param imageUri The URI of the image being processed.
+ * @param scanResult The result from image analysis, null until analysis completes.
  */
 data class GenerationUiState(
     val currentPhase: ScanPhase = ScanPhase.PROCESSING_IMAGE,
     val overallProgress: Float = 0f,
     val isCancelling: Boolean = false,
     val error: String? = null,
-    val imageUri: String = ""
+    val imageUri: String = "",
+    val scanResult: ScanResult? = null,
 )
