@@ -87,6 +87,7 @@ fun RulebookNavHost(
         // Full-screen camera preview with immersive mode (hidden system bars)
         // Predictive back handled automatically by NavHost - shows preview during gesture
         // Close button and system back navigate to previous screen (Story 4.10)
+        // Credit check before proceeding to scan (Story 5.1)
         // Uses slide transition for detail screen
         composable(
             route = Route.Camera.route,
@@ -99,12 +100,17 @@ fun RulebookNavHost(
                 onNavigateBack = { navController.popBackStack() },
                 onPhotoCaptured = { imageUri ->
                     // TODO: Navigate to processing screen with captured image
-                    // Will be implemented in Story 4.7 (image processing)
+                    // Will be implemented in Story 5.2 (image analysis)
                 },
                 onGalleryImageSelected = { imageUri ->
                     // Same processing path as captured photos (Story 4.6 AC #2)
                     // TODO: Navigate to processing screen with selected image
-                    // Will be implemented in Story 4.7 (image processing)
+                    // Will be implemented in Story 5.2 (image analysis)
+                },
+                onNavigateToPaywall = {
+                    // Navigate to paywall when user has no credits (Story 5.1)
+                    // Actual paywall UI implemented in Epic 8
+                    navController.navigate(Route.Purchase.route)
                 }
             )
         }

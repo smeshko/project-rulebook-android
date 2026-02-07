@@ -1,5 +1,6 @@
 package com.rulebook.feature.camera
 
+import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.data.repository.CreditRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -11,6 +12,8 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -27,12 +30,17 @@ class CameraViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: CameraViewModel
     private lateinit var fakeCreditRepository: FakeCreditRepository
+    private lateinit var fakeAnalyticsManager: FakeAnalyticsManager
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         fakeCreditRepository = FakeCreditRepository()
-        viewModel = CameraViewModel(creditRepository = fakeCreditRepository)
+        fakeAnalyticsManager = FakeAnalyticsManager()
+        viewModel = CameraViewModel(
+            creditRepository = fakeCreditRepository,
+            analyticsManager = fakeAnalyticsManager
+        )
     }
 
     @After
@@ -198,15 +206,31 @@ class CameraViewModelTest {
     }
 
     @Test
-    fun `onCaptureSuccess sets capturedImageUri and clears isCapturing`() = runTest {
+    fun `onCaptureSuccess clears isCapturing and emits event`() = runTest {
+        // Given user has credits (so we can verify event emission)
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
         val testUri = "file:///test/image.jpg"
         viewModel.onCaptureStarted()
         viewModel.onCaptureSuccess(testUri)
+        advanceUntilIdle()
         val state = viewModel.uiState.first()
 
+        // isCapturing is cleared
         assertFalse(state.isCapturing)
-        assertEquals(testUri, state.capturedImageUri)
         assertNull(state.error)
+        // capturedImageUri is NOT set (now uses events for navigation)
+        assertNull(state.capturedImageUri)
+        // Event is emitted instead
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.ProceedToAnalysis)
+        assertEquals(testUri, (events[0] as CameraEvent.ProceedToAnalysis).imageUri)
+
+        job.cancel()
     }
 
     @Test
@@ -491,6 +515,250 @@ class CameraViewModelTest {
 
         assertEquals(4, viewModel.uiState.first().creditBalance)
     }
+
+    // =========================================================================
+    // Credit Check Tests (Story 5.1)
+    // =========================================================================
+
+    @Test
+    fun `checkCreditsAndProceed emits ProceedToAnalysis when user has credits`() = runTest {
+        // Given user has credits
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When checking credits with image URI
+        val imageUri = "file:///test/image.jpg"
+        viewModel.checkCreditsAndProceed(imageUri)
+        advanceUntilIdle()
+
+        // Then ProceedToAnalysis event is emitted with the image URI
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.ProceedToAnalysis)
+        assertEquals(imageUri, (events[0] as CameraEvent.ProceedToAnalysis).imageUri)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `checkCreditsAndProceed emits NavigateToPaywall when user has no credits`() = runTest {
+        // Given user has no credits
+        fakeCreditRepository.setCreditBalance(0)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When checking credits
+        val imageUri = "file:///test/image.jpg"
+        viewModel.checkCreditsAndProceed(imageUri)
+        advanceUntilIdle()
+
+        // Then NavigateToPaywall event is emitted
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.NavigateToPaywall)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `checkCreditsAndProceed does not deduct credits`() = runTest {
+        // Given user has credits
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+
+        // When checking credits
+        viewModel.checkCreditsAndProceed("file:///test/image.jpg")
+        advanceUntilIdle()
+
+        // Then credit balance is unchanged (Story 5.1: credit NOT deducted until scan succeeds)
+        assertEquals(3, viewModel.uiState.first().creditBalance)
+    }
+
+    // =========================================================================
+    // Photo Capture Credit Check Tests (Story 5.1 - Task 3)
+    // =========================================================================
+
+    @Test
+    fun `onCaptureSuccess triggers credit check and emits event`() = runTest {
+        // Given user has credits
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When capture succeeds
+        val testUri = "file:///test/captured.jpg"
+        viewModel.onCaptureSuccess(testUri)
+        advanceUntilIdle()
+
+        // Then ProceedToAnalysis event is emitted (not directly to capturedImageUri)
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.ProceedToAnalysis)
+        assertEquals(testUri, (events[0] as CameraEvent.ProceedToAnalysis).imageUri)
+
+        // And capturedImageUri is NOT set (event-based navigation now)
+        assertNull(viewModel.uiState.first().capturedImageUri)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `onCaptureSuccess with no credits emits NavigateToPaywall`() = runTest {
+        // Given user has no credits
+        fakeCreditRepository.setCreditBalance(0)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When capture succeeds but no credits
+        viewModel.onCaptureSuccess("file:///test/captured.jpg")
+        advanceUntilIdle()
+
+        // Then NavigateToPaywall event is emitted
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.NavigateToPaywall)
+
+        job.cancel()
+    }
+
+    // =========================================================================
+    // Gallery Selection Credit Check Tests (Story 5.1 - Task 4)
+    // =========================================================================
+
+    @Test
+    fun `onGalleryImageSelected triggers credit check with credits`() = runTest {
+        // Given user has credits
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When gallery image is selected
+        val testUri = "content://media/external/images/1234"
+        viewModel.onGalleryImageSelected(testUri)
+        advanceUntilIdle()
+
+        // Then ProceedToAnalysis event is emitted
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.ProceedToAnalysis)
+        assertEquals(testUri, (events[0] as CameraEvent.ProceedToAnalysis).imageUri)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `onGalleryImageSelected triggers NavigateToPaywall with no credits`() = runTest {
+        // Given user has no credits
+        fakeCreditRepository.setCreditBalance(0)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When gallery image is selected
+        viewModel.onGalleryImageSelected("content://media/external/images/1234")
+        advanceUntilIdle()
+
+        // Then NavigateToPaywall event is emitted
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.NavigateToPaywall)
+
+        job.cancel()
+    }
+
+    // =========================================================================
+    // Analytics Tests (Story 5.1 - Task 7)
+    // =========================================================================
+
+    @Test
+    fun `checkCreditsAndProceed tracks scan_credit_check analytics event with credits`() = runTest {
+        // Given user has credits
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+        fakeAnalyticsManager.clear()
+
+        // When checking credits
+        viewModel.checkCreditsAndProceed("file:///test/image.jpg")
+        advanceUntilIdle()
+
+        // Then analytics event is tracked with correct properties
+        val analyticsEvents = fakeAnalyticsManager.trackedEvents
+        assertEquals(1, analyticsEvents.size)
+        assertEquals("scan_credit_check", analyticsEvents[0].name)
+        assertEquals("true", analyticsEvents[0].properties["has_credits"])
+        assertEquals("3", analyticsEvents[0].properties["credit_balance"])
+    }
+
+    @Test
+    fun `checkCreditsAndProceed tracks scan_credit_check analytics event without credits`() = runTest {
+        // Given user has no credits
+        fakeCreditRepository.setCreditBalance(0)
+        advanceUntilIdle()
+        fakeAnalyticsManager.clear()
+
+        // When checking credits
+        viewModel.checkCreditsAndProceed("file:///test/image.jpg")
+        advanceUntilIdle()
+
+        // Then analytics event is tracked with correct properties
+        val analyticsEvents = fakeAnalyticsManager.trackedEvents
+        assertEquals(1, analyticsEvents.size)
+        assertEquals("scan_credit_check", analyticsEvents[0].name)
+        assertEquals("false", analyticsEvents[0].properties["has_credits"])
+        assertEquals("0", analyticsEvents[0].properties["credit_balance"])
+    }
+
+    // =========================================================================
+    // Error Handling Tests (Story 5.1 - Code Review Fixes)
+    // =========================================================================
+
+    @Test
+    fun `checkCreditsAndProceed emits NavigateToPaywall when credit check fails`() = runTest {
+        // Given credit repository throws an error
+        fakeCreditRepository.setThrowOnBalanceRead(true)
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When checking credits (which will fail)
+        viewModel.checkCreditsAndProceed("file:///test/image.jpg")
+        advanceUntilIdle()
+
+        // Then NavigateToPaywall is emitted as fallback (safe default)
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.NavigateToPaywall)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `checkCreditsAndProceed still navigates when analytics fails`() = runTest {
+        // Given user has credits but analytics throws
+        fakeCreditRepository.setCreditBalance(3)
+        advanceUntilIdle()
+        fakeAnalyticsManager.setThrowOnTrackEvent(true)
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When checking credits (analytics will fail but shouldn't block)
+        val imageUri = "file:///test/image.jpg"
+        viewModel.checkCreditsAndProceed(imageUri)
+        advanceUntilIdle()
+
+        // Then ProceedToAnalysis is still emitted (analytics failure doesn't block navigation)
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.ProceedToAnalysis)
+        assertEquals(imageUri, (events[0] as CameraEvent.ProceedToAnalysis).imageUri)
+
+        job.cancel()
+    }
 }
 
 /**
@@ -498,10 +766,21 @@ class CameraViewModelTest {
  */
 class FakeCreditRepository : CreditRepository {
     private val _creditBalance = MutableStateFlow(0)
-    override val creditBalance: Flow<Int> = _creditBalance
+    private var shouldThrowOnBalanceRead = false
+
+    override val creditBalance: Flow<Int>
+        get() = if (shouldThrowOnBalanceRead) {
+            kotlinx.coroutines.flow.flow { throw RuntimeException("Simulated balance read error") }
+        } else {
+            _creditBalance
+        }
 
     fun setCreditBalance(balance: Int) {
         _creditBalance.value = balance
+    }
+
+    fun setThrowOnBalanceRead(shouldThrow: Boolean) {
+        shouldThrowOnBalanceRead = shouldThrow
     }
 
     override suspend fun awardInitialCredits(amount: Int): Boolean {
@@ -521,4 +800,52 @@ class FakeCreditRepository : CreditRepository {
     }
 
     override suspend fun hasCredits(): Boolean = _creditBalance.value > 0
+
+    var hasCreditsWasCalled = false
+        private set
+
+    fun resetTracking() {
+        hasCreditsWasCalled = false
+        shouldThrowOnBalanceRead = false
+    }
+}
+
+/**
+ * Fake implementation of [AnalyticsManager] for testing.
+ */
+class FakeAnalyticsManager : AnalyticsManager {
+
+    data class TrackedEvent(
+        val name: String,
+        val properties: Map<String, String>
+    )
+
+    private val _trackedEvents = mutableListOf<TrackedEvent>()
+    val trackedEvents: List<TrackedEvent> get() = _trackedEvents.toList()
+
+    private val _trackedScreenViews = mutableListOf<String>()
+    val trackedScreenViews: List<String> get() = _trackedScreenViews.toList()
+
+    private var shouldThrowOnTrackEvent = false
+
+    fun setThrowOnTrackEvent(shouldThrow: Boolean) {
+        shouldThrowOnTrackEvent = shouldThrow
+    }
+
+    override fun trackEvent(name: String, properties: Map<String, String>) {
+        if (shouldThrowOnTrackEvent) {
+            throw RuntimeException("Simulated analytics error")
+        }
+        _trackedEvents.add(TrackedEvent(name, properties))
+    }
+
+    override fun trackScreenView(screenName: String) {
+        _trackedScreenViews.add(screenName)
+    }
+
+    fun clear() {
+        _trackedEvents.clear()
+        _trackedScreenViews.clear()
+        shouldThrowOnTrackEvent = false
+    }
 }

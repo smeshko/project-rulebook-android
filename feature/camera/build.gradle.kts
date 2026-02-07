@@ -4,10 +4,17 @@ plugins {
 
 android {
     namespace = "com.rulebook.feature.camera"
+
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
     implementation(project(":core:data"))
+    implementation(project(":core:analytics"))
 
     // CameraX
     implementation(libs.camerax.core)

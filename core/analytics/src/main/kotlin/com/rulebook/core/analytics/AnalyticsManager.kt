@@ -55,4 +55,21 @@ interface AnalyticsManager {
     fun trackOnboardingSkipped(pageNumber: Int) {
         trackEvent("onboarding_skipped", mapOf("page" to pageNumber.toString()))
     }
+
+    /**
+     * Track when a scan credit check is performed (Story 5.1).
+     * This is a convenience method that fires the "scan_credit_check" event.
+     *
+     * @param hasCredits Whether the user has credits available
+     * @param creditBalance The user's current credit balance
+     */
+    fun trackScanCreditCheck(hasCredits: Boolean, creditBalance: Int) {
+        trackEvent(
+            "scan_credit_check",
+            mapOf(
+                "has_credits" to hasCredits.toString(),
+                "credit_balance" to creditBalance.toString()
+            )
+        )
+    }
 }

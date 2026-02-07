@@ -3,14 +3,20 @@ package com.rulebook.feature.camera
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.data.repository.CreditRepository
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 private const val TAG = "CameraViewModel"
 
@@ -33,12 +39,30 @@ private const val TAG = "CameraViewModel"
  * ViewModel for UI updates.
  *
  * @param creditRepository Repository for observing credit balance.
+ * @param analyticsManager Manager for tracking analytics events (Story 5.1).
  */
 class CameraViewModel(
-    creditRepository: CreditRepository
+    private val creditRepository: CreditRepository,
+    private val analyticsManager: AnalyticsManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiState())
+
+    /**
+     * Channel for one-time navigation events.
+     *
+     * Using Channel with BUFFERED capacity ensures events aren't lost if emitted
+     * before the collector is ready. Events are consumed exactly once.
+     */
+    private val _events = Channel<CameraEvent>(Channel.BUFFERED)
+
+    /**
+     * Flow of one-time navigation events for the UI to collect.
+     *
+     * Use this for navigation actions that should only be handled once,
+     * such as navigating to paywall or proceeding to image analysis.
+     */
+    val events: Flow<CameraEvent> = _events.receiveAsFlow()
 
     init {
         // Observe credit balance changes and update UI state (Story 4.8)
@@ -80,6 +104,55 @@ class CameraViewModel(
     }
 
     // =========================================================================
+    // Credit Check (Story 5.1)
+    // =========================================================================
+
+    /**
+     * Checks if the user has credits and emits the appropriate navigation event.
+     *
+     * If the user has credits, emits [CameraEvent.ProceedToAnalysis] with the image URI.
+     * If the user has no credits, emits [CameraEvent.NavigateToPaywall].
+     *
+     * Also tracks the "scan_credit_check" analytics event with credit status.
+     *
+     * Note: This method does NOT deduct credits. Credit deduction happens only
+     * when the scan completes successfully (Story 5.7).
+     *
+     * @param imageUri The URI of the captured or selected image.
+     */
+    fun checkCreditsAndProceed(imageUri: String) {
+        viewModelScope.launch {
+            try {
+                // Read credit balance from repository for consistent analytics data
+                val creditBalance = creditRepository.creditBalance.first()
+                val hasCredits = creditBalance > 0
+
+                // Track analytics event for credit check (Story 5.1)
+                // Analytics is wrapped separately so it doesn't block navigation
+                try {
+                    analyticsManager.trackScanCreditCheck(hasCredits, creditBalance)
+                } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                    throw e // Respect coroutine cancellation
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to track scan credit check analytics", e)
+                }
+
+                if (hasCredits) {
+                    _events.send(CameraEvent.ProceedToAnalysis(imageUri))
+                } else {
+                    _events.send(CameraEvent.NavigateToPaywall)
+                }
+            } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                throw e // Respect coroutine cancellation
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to check credits", e)
+                // Fallback: navigate to paywall on error (safe default)
+                _events.send(CameraEvent.NavigateToPaywall)
+            }
+        }
+    }
+
+    // =========================================================================
     // Flash Mode Control (Story 4.3)
     // =========================================================================
 
@@ -115,16 +188,24 @@ class CameraViewModel(
     /**
      * Called when photo capture completes successfully.
      *
+     * Checks if the user has credits before proceeding:
+     * - If credits > 0: emits [CameraEvent.ProceedToAnalysis]
+     * - If credits = 0: emits [CameraEvent.NavigateToPaywall]
+     *
+     * Note: Credits are NOT deducted here. Deduction happens only on successful
+     * rules generation (Story 5.7).
+     *
      * @param imageUri The URI of the captured image file.
      */
     fun onCaptureSuccess(imageUri: String) {
         _uiState.update {
             it.copy(
                 isCapturing = false,
-                capturedImageUri = imageUri,
                 error = null
             )
         }
+        // Check credits and emit appropriate navigation event (Story 5.1)
+        checkCreditsAndProceed(imageUri)
     }
 
     /**
@@ -235,6 +316,23 @@ class CameraViewModel(
      */
     fun setLastGalleryThumbnail(uri: String?) {
         _uiState.update { it.copy(lastGalleryThumbnailUri = uri) }
+    }
+
+    /**
+     * Called when a gallery image is selected by the user.
+     *
+     * Performs the same credit check as photo capture:
+     * - If credits > 0: emits [CameraEvent.ProceedToAnalysis]
+     * - If credits = 0: emits [CameraEvent.NavigateToPaywall]
+     *
+     * Note: Credits are NOT deducted here. Deduction happens only on successful
+     * rules generation (Story 5.7).
+     *
+     * @param imageUri The URI of the selected gallery image.
+     */
+    fun onGalleryImageSelected(imageUri: String) {
+        // Same flow as captured photos - check credits before proceeding (Story 5.1)
+        checkCreditsAndProceed(imageUri)
     }
 
     // =========================================================================
