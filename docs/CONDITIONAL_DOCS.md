@@ -32,3 +32,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When working with the ProgressPhaseIndicator design system component
     - When navigating to or from the generation screen
     - When implementing multi-step progress tracking in other features
+
+- docs/features/image-analysis-api-integration.md
+  - Conditions:
+    - When implementing image upload or base64 encoding for the Rulebook API
+    - When adding new API calls that need user-friendly error messages via NetworkErrorMapper
+    - When working with the scan/generation pipeline (Stories 5.4-5.7)
+    - When modifying image compression or bitmap processing logic
+    - When extending NetworkErrorMapper with new error types

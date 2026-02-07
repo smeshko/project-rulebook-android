@@ -34,7 +34,7 @@ The Generation screen displays real-time progress while a board game image is be
 
 - **URL-Encoded Navigation Arguments**: The `imageUri` is URL-encoded when creating the route (`URLEncoder.encode` + replacing `+` with `%20`) because content URIs contain special characters that break navigation route parsing.
 
-- **Placeholder Pipeline**: `startGeneration()` currently sets the initial phase but does not call the API. Stories 5.3-5.7 will wire the actual backend calls. The ViewModel is designed so `updatePhase()` and `updateProgress()` can be called from the pipeline without modification.
+- **Pipeline Execution**: `startGeneration()` executes the image analysis pipeline (Story 5.3), advancing through PROCESSING_IMAGE and ANALYZING_IMAGE phases, then calling `ScanRepository.analyzeImage()`. Stories 5.4-5.7 will wire subsequent phases (IDENTIFYING_GAME through SAVING_RULES). See `docs/features/image-analysis-api-integration.md` for the image analysis details.
 
 ### Code Examples
 
@@ -93,7 +93,7 @@ internal fun buildPhaseItems(currentPhase: ScanPhase): List<PhaseItem> {
 
 ## Notes
 
-- The pipeline implementation is a placeholder - Stories 5.3-5.7 will wire actual API calls through `updatePhase()` and `updateProgress()`
+- Story 5.3 wired the image analysis API call into the pipeline - Stories 5.4-5.7 will wire the remaining phases (confidence display, rules generation, saving)
 - Progress is clamped per-phase to prevent visual jumps if the backend reports out-of-range values
 - The `generationJob` is stored for cancellation support - calling `cancel()` cancels the coroutine and emits a `Cancelled` event
 - `CancellationException` is rethrown in the pipeline to respect structured concurrency
