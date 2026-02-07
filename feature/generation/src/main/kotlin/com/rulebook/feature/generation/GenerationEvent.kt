@@ -23,4 +23,18 @@ sealed class GenerationEvent {
      * @param message A user-friendly error message.
      */
     data class Error(val message: String) : GenerationEvent()
+
+    /**
+     * Event indicating the user rejected the identified game and wants manual entry.
+     * The UI should navigate to the manual entry screen (Story 5.5).
+     */
+    data object NavigateToManualEntry : GenerationEvent()
+
+    /**
+     * Event indicating the system is auto-proceeding due to high confidence.
+     * The UI should briefly flash the identified game name.
+     *
+     * @param gameName The name of the identified game.
+     */
+    data class AutoProceeding(val gameName: String) : GenerationEvent()
 }

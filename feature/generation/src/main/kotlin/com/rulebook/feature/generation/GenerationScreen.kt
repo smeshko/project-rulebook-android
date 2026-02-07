@@ -52,6 +52,13 @@ fun GenerationScreen(
                     // Error handling will be expanded in Story 5.9
                     onNavigateBack()
                 }
+                is GenerationEvent.NavigateToManualEntry -> {
+                    // Placeholder: Story 5.5 will add ManualEntry destination
+                    onNavigateBack()
+                }
+                is GenerationEvent.AutoProceeding -> {
+                    // Brief flash handled in UI state, no navigation needed
+                }
             }
         }
     }
