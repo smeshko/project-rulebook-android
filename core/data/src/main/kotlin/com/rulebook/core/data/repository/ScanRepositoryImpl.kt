@@ -56,8 +56,12 @@ class ScanRepositoryImpl(
                 ?: throw IllegalStateException("Cannot decode image from URI: $imageUri")
 
             val outputStream = ByteArrayOutputStream()
-            bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, outputStream)
+            val compressed = bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, outputStream)
             bitmap.recycle()
+
+            if (!compressed) {
+                throw IllegalStateException("Failed to compress image from URI: $imageUri")
+            }
 
             Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
         }
