@@ -29,13 +29,15 @@ fun ConfidenceBadge(
     val colors = RulebookTheme.colors
     val spacing = RulebookTheme.spacing
 
+    val safeConfidence = confidence.coerceIn(0f, 1f)
+
     val badgeColor = when {
-        confidence > 0.80f -> colors.green
-        confidence >= 0.50f -> colors.yellow
+        safeConfidence > 0.80f -> colors.green
+        safeConfidence >= 0.50f -> colors.yellow
         else -> colors.red
     }
 
-    val percentageText = "${(confidence * 100).toInt()}%"
+    val percentageText = "${(safeConfidence * 100).toInt()}%"
 
     Text(
         text = percentageText,

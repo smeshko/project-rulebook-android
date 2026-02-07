@@ -209,6 +209,7 @@ class GenerationViewModel(
      */
     fun onRejectGame() {
         val confidence = _uiState.value.scanResult?.confidence ?: return
+        _uiState.update { it.copy(showConfirmation = false) }
         trackScanManualEntry(confidence)
         viewModelScope.launch {
             _events.send(GenerationEvent.NavigateToManualEntry)
