@@ -72,4 +72,44 @@ interface AnalyticsManager {
             )
         )
     }
+
+    /**
+     * Track when image analysis completes with confidence result (Story 5.4).
+     *
+     * @param confidence The confidence level from the scan result (0.0-1.0)
+     * @param autoProceeded Whether the system auto-proceeded due to high confidence
+     */
+    fun trackScanAnalysisComplete(confidence: Float, autoProceeded: Boolean) {
+        trackEvent(
+            "scan_analysis_complete",
+            mapOf(
+                "confidence" to confidence.toString(),
+                "auto_proceed" to autoProceeded.toString()
+            )
+        )
+    }
+
+    /**
+     * Track when user confirms the identified game (Story 5.4).
+     *
+     * @param confidence The confidence level at the time of confirmation
+     */
+    fun trackScanConfirmed(confidence: Float) {
+        trackEvent(
+            "scan_confirmed",
+            mapOf("confidence" to confidence.toString())
+        )
+    }
+
+    /**
+     * Track when user rejects the identified game and opts for manual entry (Story 5.4).
+     *
+     * @param confidence The confidence level at the time of rejection
+     */
+    fun trackScanManualEntry(confidence: Float) {
+        trackEvent(
+            "scan_manual_entry",
+            mapOf("confidence" to confidence.toString())
+        )
+    }
 }

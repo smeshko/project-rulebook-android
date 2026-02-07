@@ -91,17 +91,31 @@ class GenerationViewModel(
 
                 when (result) {
                     is Result.Success -> {
-                        _uiState.update { it.copy(scanResult = result.data) }
+                        val scanResult = result.data
+                        _uiState.update { it.copy(scanResult = scanResult) }
                         updatePhase(ScanPhase.IDENTIFYING_GAME)
+
+                        // Story 5.4: Confidence check — auto-proceed or show confirmation
+                        val confidence = scanResult.confidence
+                        if (confidence >= autoProceedThreshold) {
+                            // High confidence: auto-proceed
+                            trackScanAnalysisComplete(confidence, autoProceeded = true)
+                            _uiState.update { it.copy(gameTitleDisplay = scanResult.gameTitle) }
+                            _events.send(GenerationEvent.AutoProceeding(scanResult.gameTitle))
+                            updatePhase(ScanPhase.GENERATING_RULES)
+                            // Subsequent phases (GENERATING_RULES, SAVING_RULES)
+                            // will be implemented in Stories 5.6-5.7.
+                        } else {
+                            // Low confidence: show confirmation screen
+                            trackScanAnalysisComplete(confidence, autoProceeded = false)
+                            _uiState.update { it.copy(showConfirmation = true) }
+                        }
                     }
                     is Result.Error -> {
                         _uiState.update { it.copy(error = result.message) }
                         _events.send(GenerationEvent.Error(result.message))
                     }
                 }
-
-                // Subsequent phases (IDENTIFYING_GAME, GENERATING_RULES, SAVING_RULES)
-                // will be implemented in Stories 5.4-5.7.
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
                 throw e // Respect coroutine cancellation
             } catch (e: Exception) {
@@ -173,6 +187,61 @@ class GenerationViewModel(
                 Log.e(TAG, "Failed to track scan cancelled analytics", e)
             }
             _events.send(GenerationEvent.Cancelled)
+        }
+    }
+
+    /**
+     * Called when the user confirms the identified game on the confirmation screen.
+     * Clears the confirmation, tracks analytics, and advances to rules generation.
+     */
+    fun onConfirmGame() {
+        val confidence = _uiState.value.scanResult?.confidence ?: return
+        _uiState.update { it.copy(showConfirmation = false) }
+        trackScanConfirmed(confidence)
+        updatePhase(ScanPhase.GENERATING_RULES)
+        // Subsequent phases (GENERATING_RULES, SAVING_RULES)
+        // will be implemented in Stories 5.6-5.7.
+    }
+
+    /**
+     * Called when the user rejects the identified game and wants manual entry.
+     * Tracks analytics and emits a navigation event to manual entry.
+     */
+    fun onRejectGame() {
+        val confidence = _uiState.value.scanResult?.confidence ?: return
+        trackScanManualEntry(confidence)
+        viewModelScope.launch {
+            _events.send(GenerationEvent.NavigateToManualEntry)
+        }
+    }
+
+    private fun trackScanAnalysisComplete(confidence: Float, autoProceeded: Boolean) {
+        try {
+            analyticsManager.trackScanAnalysisComplete(confidence, autoProceeded)
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to track scan analysis complete analytics", e)
+        }
+    }
+
+    private fun trackScanConfirmed(confidence: Float) {
+        try {
+            analyticsManager.trackScanConfirmed(confidence)
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to track scan confirmed analytics", e)
+        }
+    }
+
+    private fun trackScanManualEntry(confidence: Float) {
+        try {
+            analyticsManager.trackScanManualEntry(confidence)
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to track scan manual entry analytics", e)
         }
     }
 

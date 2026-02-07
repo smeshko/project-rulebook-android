@@ -57,12 +57,13 @@ class GenerationViewModelTest {
     // =========================================================================
 
     @Test
-    fun `successful analysis advances to IDENTIFYING_GAME phase`() = runTest {
+    fun `successful analysis with high confidence auto-proceeds to GENERATING_RULES phase`() = runTest {
+        // Default fake returns 0.95 confidence (>= 0.80 threshold) → auto-proceed
         val viewModel = createViewModel()
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        assertEquals(ScanPhase.IDENTIFYING_GAME, state.currentPhase)
+        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
     }
 
     @Test
@@ -75,12 +76,13 @@ class GenerationViewModelTest {
     }
 
     @Test
-    fun `successful analysis sets progress to IDENTIFYING_GAME start`() = runTest {
+    fun `successful analysis with high confidence sets progress to GENERATING_RULES start`() = runTest {
+        // Default fake returns 0.95 confidence → auto-proceed to GENERATING_RULES (0.60)
         val viewModel = createViewModel()
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        assertEquals(0.40f, state.overallProgress)
+        assertEquals(0.60f, state.overallProgress)
     }
 
     @Test
@@ -242,11 +244,11 @@ class GenerationViewModelTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
 
-        // After successful analysis, phase is IDENTIFYING_GAME (40-60%)
-        viewModel.updateProgress(0.50f)
+        // After successful analysis with high confidence, phase is GENERATING_RULES (60-90%)
+        viewModel.updateProgress(0.75f)
         val state = viewModel.uiState.first()
 
-        assertEquals(0.50f, state.overallProgress)
+        assertEquals(0.75f, state.overallProgress)
     }
 
     @Test
@@ -312,8 +314,7 @@ class GenerationViewModelTest {
         viewModel.cancel()
         advanceUntilIdle()
 
-        assertEquals(1, events.size)
-        assertTrue(events[0] is GenerationEvent.Cancelled)
+        assertTrue(events.any { it is GenerationEvent.Cancelled })
 
         job.cancel()
     }
@@ -375,8 +376,9 @@ class GenerationViewModelTest {
         viewModel.cancel() // Second cancel should be ignored
         advanceUntilIdle()
 
-        // Only one Cancelled event
-        assertEquals(1, events.size)
+        // Only one Cancelled event (other events may exist from auto-proceed)
+        val cancelledEvents = events.filterIsInstance<GenerationEvent.Cancelled>()
+        assertEquals(1, cancelledEvents.size)
 
         job.cancel()
     }
@@ -397,8 +399,7 @@ class GenerationViewModelTest {
         viewModel.cancel()
         advanceUntilIdle()
 
-        assertEquals(1, events.size)
-        assertTrue(events[0] is GenerationEvent.Cancelled)
+        assertTrue(events.any { it is GenerationEvent.Cancelled })
 
         job.cancel()
     }
@@ -440,12 +441,13 @@ class GenerationViewModelTest {
     }
 
     @Test
-    fun `analyzeImage success advances phase to IDENTIFYING_GAME`() = runTest {
+    fun `analyzeImage success with high confidence advances past IDENTIFYING_GAME`() = runTest {
+        // Default fake returns 0.95 confidence → auto-proceed to GENERATING_RULES
         val viewModel = createViewModel()
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        assertEquals(ScanPhase.IDENTIFYING_GAME, state.currentPhase)
+        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
     }
 
     @Test
