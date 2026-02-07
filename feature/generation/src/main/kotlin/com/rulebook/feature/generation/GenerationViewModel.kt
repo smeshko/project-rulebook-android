@@ -56,9 +56,10 @@ class GenerationViewModel(
             startGeneration()
         } else {
             Log.e(TAG, "Missing or blank imageUri argument")
-            _uiState.update { it.copy(error = "No image provided.") }
+            val message = "No image provided."
+            _uiState.update { it.copy(error = message) }
             viewModelScope.launch {
-                _events.send(GenerationEvent.Error("No image provided"))
+                _events.send(GenerationEvent.Error(message))
             }
         }
     }
@@ -100,8 +101,9 @@ class GenerationViewModel(
                 throw e // Respect coroutine cancellation
             } catch (e: Exception) {
                 Log.e(TAG, "Generation failed", e)
-                _uiState.update { it.copy(error = "Something went wrong. Please try again.") }
-                _events.send(GenerationEvent.Error(e.message ?: "Unknown error"))
+                val message = "Something went wrong. Please try again."
+                _uiState.update { it.copy(error = message) }
+                _events.send(GenerationEvent.Error(message))
             }
         }
     }
