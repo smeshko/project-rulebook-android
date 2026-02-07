@@ -543,6 +543,278 @@ class GenerationViewModelTest {
 
         assertEquals(0, fakeScanRepository.analyzeCallCount)
     }
+
+    // =========================================================================
+    // Confidence Logic Tests (Story 5.4)
+    // =========================================================================
+
+    @Test
+    fun `high confidence does not set showConfirmation`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.92f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.showConfirmation)
+    }
+
+    @Test
+    fun `high confidence auto-advances past IDENTIFYING_GAME`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.95f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+    }
+
+    @Test
+    fun `high confidence tracks scan_analysis_complete with auto_proceed true`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.92f, thumbnailUrl = null)
+        )
+        createViewModel()
+        advanceUntilIdle()
+
+        val event = fakeAnalyticsManager.trackedEvents.first { it.name == "scan_analysis_complete" }
+        assertEquals("0.92", event.properties["confidence"])
+        assertEquals("true", event.properties["auto_proceed"])
+    }
+
+    @Test
+    fun `high confidence sets gameTitleDisplay`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.92f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals("Catan", state.gameTitleDisplay)
+    }
+
+    @Test
+    fun `high confidence emits AutoProceeding event`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.92f, thumbnailUrl = null)
+        )
+        val events = mutableListOf<GenerationEvent>()
+        val viewModel = createViewModel()
+        val job = launch { viewModel.events.toList(events) }
+        advanceUntilIdle()
+
+        val autoProceedingEvents = events.filterIsInstance<GenerationEvent.AutoProceeding>()
+        assertEquals(1, autoProceedingEvents.size)
+        assertEquals("Catan", autoProceedingEvents[0].gameName)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `low confidence sets showConfirmation to true`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.showConfirmation)
+    }
+
+    @Test
+    fun `low confidence stays at IDENTIFYING_GAME phase`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals(ScanPhase.IDENTIFYING_GAME, state.currentPhase)
+    }
+
+    @Test
+    fun `low confidence tracks scan_analysis_complete with auto_proceed false`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        createViewModel()
+        advanceUntilIdle()
+
+        val event = fakeAnalyticsManager.trackedEvents.first { it.name == "scan_analysis_complete" }
+        assertEquals("0.65", event.properties["confidence"])
+        assertEquals("false", event.properties["auto_proceed"])
+    }
+
+    @Test
+    fun `boundary confidence at exactly 0_80 auto-proceeds`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.80f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        // 0.80 >= 0.80 → auto-proceed
+        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+        assertFalse(state.showConfirmation)
+    }
+
+    @Test
+    fun `confidence just below threshold shows confirmation`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.799f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.showConfirmation)
+        assertEquals(ScanPhase.IDENTIFYING_GAME, state.currentPhase)
+    }
+
+    @Test
+    fun `confidence just above threshold auto-proceeds`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.801f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.showConfirmation)
+        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+    }
+
+    @Test
+    fun `confidence of 0_0 shows confirmation`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Unknown", confidence = 0.0f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.showConfirmation)
+    }
+
+    @Test
+    fun `confidence of 1_0 auto-proceeds`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 1.0f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.showConfirmation)
+        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+    }
+
+    // =========================================================================
+    // Confirm/Reject Game Tests (Story 5.4)
+    // =========================================================================
+
+    @Test
+    fun `onConfirmGame clears showConfirmation`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.first().showConfirmation)
+
+        viewModel.onConfirmGame()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.showConfirmation)
+    }
+
+    @Test
+    fun `onConfirmGame advances to GENERATING_RULES`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onConfirmGame()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+    }
+
+    @Test
+    fun `onConfirmGame tracks scan_confirmed analytics`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        fakeAnalyticsManager.clear()
+
+        viewModel.onConfirmGame()
+        advanceUntilIdle()
+
+        val event = fakeAnalyticsManager.trackedEvents.first { it.name == "scan_confirmed" }
+        assertEquals("0.65", event.properties["confidence"])
+    }
+
+    @Test
+    fun `onRejectGame emits NavigateToManualEntry`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        val events = mutableListOf<GenerationEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        viewModel.onRejectGame()
+        advanceUntilIdle()
+
+        assertTrue(events.any { it is GenerationEvent.NavigateToManualEntry })
+
+        job.cancel()
+    }
+
+    @Test
+    fun `onRejectGame tracks scan_manual_entry analytics`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        fakeAnalyticsManager.clear()
+
+        viewModel.onRejectGame()
+        advanceUntilIdle()
+
+        val event = fakeAnalyticsManager.trackedEvents.first { it.name == "scan_manual_entry" }
+        assertEquals("0.65", event.properties["confidence"])
+    }
+
+    @Test
+    fun `confidence at 0_50 shows confirmation with yellow badge range`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Game", confidence = 0.50f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.showConfirmation)
+        assertEquals(ScanPhase.IDENTIFYING_GAME, state.currentPhase)
+    }
 }
 
 /**
