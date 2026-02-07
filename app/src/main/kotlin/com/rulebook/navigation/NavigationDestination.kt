@@ -36,7 +36,8 @@ sealed class Route(val route: String) {
          * @param imageUri The URI of the image to process (URL-encoded)
          * @return The complete route string for navigation
          */
-        fun createRoute(imageUri: String): String = "generation/${java.net.URLEncoder.encode(imageUri, "UTF-8")}"
+        fun createRoute(imageUri: String): String =
+            "generation/${java.net.URLEncoder.encode(imageUri, "UTF-8").replace("+", "%20")}"
     }
 
     /**

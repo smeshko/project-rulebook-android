@@ -52,6 +52,12 @@ class GenerationViewModel(
 
         if (imageUri.isNotBlank()) {
             startGeneration()
+        } else {
+            Log.e(TAG, "Missing or blank imageUri argument")
+            _uiState.update { it.copy(error = "No image provided.") }
+            viewModelScope.launch {
+                _events.send(GenerationEvent.Error("No image provided"))
+            }
         }
     }
 

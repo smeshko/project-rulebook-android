@@ -117,6 +117,37 @@ class GenerationViewModelTest {
     }
 
     @Test
+    fun `blank imageUri sets error state`() = runTest {
+        val savedStateHandle = SavedStateHandle(mapOf("imageUri" to ""))
+        val viewModel = GenerationViewModel(
+            savedStateHandle = savedStateHandle,
+            analyticsManager = fakeAnalyticsManager
+        )
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals("No image provided.", state.error)
+    }
+
+    @Test
+    fun `blank imageUri emits Error event`() = runTest {
+        val savedStateHandle = SavedStateHandle(mapOf("imageUri" to ""))
+        val events = mutableListOf<GenerationEvent>()
+
+        val viewModel = GenerationViewModel(
+            savedStateHandle = savedStateHandle,
+            analyticsManager = fakeAnalyticsManager
+        )
+        val job = launch { viewModel.events.toList(events) }
+        advanceUntilIdle()
+
+        assertEquals(1, events.size)
+        assertTrue(events[0] is GenerationEvent.Error)
+
+        job.cancel()
+    }
+
+    @Test
     fun `does not start generation with missing imageUri`() = runTest {
         val savedStateHandle = SavedStateHandle()
         val viewModel = GenerationViewModel(
@@ -126,6 +157,19 @@ class GenerationViewModelTest {
         advanceUntilIdle()
 
         assertTrue(fakeAnalyticsManager.trackedEvents.none { it.name == "scan_started" })
+    }
+
+    @Test
+    fun `missing imageUri sets error state`() = runTest {
+        val savedStateHandle = SavedStateHandle()
+        val viewModel = GenerationViewModel(
+            savedStateHandle = savedStateHandle,
+            analyticsManager = fakeAnalyticsManager
+        )
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals("No image provided.", state.error)
     }
 
     // =========================================================================
