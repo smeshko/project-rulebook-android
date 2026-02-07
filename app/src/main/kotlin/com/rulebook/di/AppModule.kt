@@ -7,6 +7,7 @@ import com.rulebook.core.database.di.databaseModule
 import com.rulebook.core.datastore.di.dataStoreModule
 import com.rulebook.core.network.di.networkModule
 import com.rulebook.feature.camera.di.cameraModule
+import com.rulebook.feature.generation.di.generationModule
 import com.rulebook.feature.library.di.libraryModule
 import com.rulebook.feature.onboarding.di.onboardingModule
 import com.rulebook.feature.purchase.di.purchaseModule
@@ -40,6 +41,7 @@ val appModules = listOf(
     // Feature modules
     libraryModule,
     cameraModule,
+    generationModule,
     rulesModule,
     settingsModule,
     onboardingModule,
