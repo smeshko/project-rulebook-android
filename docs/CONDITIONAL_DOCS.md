@@ -40,3 +40,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When working with the scan/generation pipeline (Stories 5.4-5.7)
     - When modifying image compression or bitmap processing logic
     - When extending NetworkErrorMapper with new error types
+
+- docs/features/confidence-auto-proceed.md
+  - Conditions:
+    - When implementing confidence-based branching in the scan/generation pipeline
+    - When modifying the auto-proceed threshold or adding remote config for confidence settings
+    - When working with the ConfidenceBadge design system component
+    - When adding new confirmation/validation screens to the generation flow
+    - When implementing analytics for scan confidence events (scan_analysis_complete, scan_confirmed, scan_manual_entry)

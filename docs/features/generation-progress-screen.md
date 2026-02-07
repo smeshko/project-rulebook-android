@@ -34,7 +34,7 @@ The Generation screen displays real-time progress while a board game image is be
 
 - **URL-Encoded Navigation Arguments**: The `imageUri` is URL-encoded when creating the route (`URLEncoder.encode` + replacing `+` with `%20`) because content URIs contain special characters that break navigation route parsing.
 
-- **Pipeline Execution**: `startGeneration()` executes the image analysis pipeline (Story 5.3), advancing through PROCESSING_IMAGE and ANALYZING_IMAGE phases, then calling `ScanRepository.analyzeImage()`. Stories 5.4-5.7 will wire subsequent phases (IDENTIFYING_GAME through SAVING_RULES). See `docs/features/image-analysis-api-integration.md` for the image analysis details.
+- **Pipeline Execution**: `startGeneration()` executes the image analysis pipeline, advancing through PROCESSING_IMAGE and ANALYZING_IMAGE phases, then calling `ScanRepository.analyzeImage()`. After analysis, Story 5.4's confidence logic evaluates the result against `autoProceedThreshold` — high confidence auto-advances to GENERATING_RULES, low confidence shows a confirmation screen. See `docs/features/image-analysis-api-integration.md` for image analysis details and `docs/features/confidence-auto-proceed.md` for the confidence branching logic.
 
 ### Code Examples
 
@@ -93,7 +93,7 @@ internal fun buildPhaseItems(currentPhase: ScanPhase): List<PhaseItem> {
 
 ## Notes
 
-- Story 5.3 wired the image analysis API call into the pipeline - Stories 5.4-5.7 will wire the remaining phases (confidence display, rules generation, saving)
+- Story 5.3 wired the image analysis API call; Story 5.4 added confidence-based branching (auto-proceed vs. confirmation screen) — Stories 5.5-5.7 will wire manual entry, rules generation, and saving
 - Progress is clamped per-phase to prevent visual jumps if the backend reports out-of-range values
 - The `generationJob` is stored for cancellation support - calling `cancel()` cancels the coroutine and emits a `Cancelled` event
 - `CancellationException` is rethrown in the pipeline to respect structured concurrency
