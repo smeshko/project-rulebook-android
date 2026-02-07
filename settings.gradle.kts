@@ -39,6 +39,7 @@ include(":core:network")
 
 // Feature modules
 include(":feature:camera")
+include(":feature:generation")
 include(":feature:library")
 include(":feature:onboarding")
 include(":feature:purchase")
