@@ -44,6 +44,7 @@ dependencies {
     // Feature modules
     implementation(project(":feature:library"))
     implementation(project(":feature:camera"))
+    implementation(project(":feature:generation"))
     implementation(project(":feature:rules"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:onboarding"))

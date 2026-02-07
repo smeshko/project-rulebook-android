@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.rulebook.feature.camera.CameraScreen
+import com.rulebook.feature.generation.GenerationScreen
 import com.rulebook.feature.library.LibraryScreen
 import com.rulebook.feature.onboarding.OnboardingScreen
 import com.rulebook.feature.settings.SettingsScreen
@@ -99,13 +100,12 @@ fun RulebookNavHost(
             CameraScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onPhotoCaptured = { imageUri ->
-                    // TODO: Navigate to processing screen with captured image
-                    // Will be implemented in Story 5.2 (image analysis)
+                    // Navigate to generation/progress screen (Story 5.2)
+                    navController.navigate(Route.Generation.createRoute(imageUri))
                 },
                 onGalleryImageSelected = { imageUri ->
-                    // Same processing path as captured photos (Story 4.6 AC #2)
-                    // TODO: Navigate to processing screen with selected image
-                    // Will be implemented in Story 5.2 (image analysis)
+                    // Same processing path as captured photos (Story 4.6 AC #2, Story 5.2)
+                    navController.navigate(Route.Generation.createRoute(imageUri))
                 },
                 onNavigateToPaywall = {
                     // Navigate to paywall when user has no credits (Story 5.1)
@@ -130,6 +130,27 @@ fun RulebookNavHost(
                         popUpTo(Route.Onboarding.route) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        // Generation - scan progress screen with phase indicator (Story 5.2)
+        // Shows 5 phases of the scan pipeline with animated progress
+        // Cancel returns to camera; completion will navigate to rules (Story 5.7)
+        // Uses slide transition for detail screen
+        composable(
+            route = Route.Generation.route,
+            arguments = listOf(
+                navArgument(RulebookNavArgs.IMAGE_URI) {
+                    type = NavType.StringType
+                }
+            ),
+            enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
+        ) {
+            GenerationScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
