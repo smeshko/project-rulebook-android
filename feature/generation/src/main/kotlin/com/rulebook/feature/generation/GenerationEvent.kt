@@ -1,0 +1,26 @@
+package com.rulebook.feature.generation
+
+/**
+ * Sealed class representing one-time navigation events from the Generation screen.
+ *
+ * These events are emitted via a Channel to ensure they are handled exactly once,
+ * following the same MVI pattern as [CameraEvent] from Story 5.1.
+ *
+ * @see GenerationViewModel.events
+ */
+sealed class GenerationEvent {
+
+    /**
+     * Event indicating the scan was cancelled by the user.
+     * The UI should navigate back to the camera screen.
+     */
+    data object Cancelled : GenerationEvent()
+
+    /**
+     * Event indicating an error occurred during the scan.
+     * The UI should show an error state or navigate to retry.
+     *
+     * @param message A user-friendly error message.
+     */
+    data class Error(val message: String) : GenerationEvent()
+}

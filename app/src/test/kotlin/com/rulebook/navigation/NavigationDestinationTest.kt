@@ -49,7 +49,32 @@ class NavigationDestinationTest {
     }
 
     @Test
+    fun `Generation route has correct route pattern with argument placeholder`() {
+        assertEquals("generation/{imageUri}", Route.Generation.route)
+    }
+
+    @Test
+    fun `Generation createRoute URL-encodes the imageUri`() {
+        val imageUri = "file:///storage/image.jpg"
+        val route = Route.Generation.createRoute(imageUri)
+        // URL-encoded: colons, slashes encoded
+        assertEquals("generation/file%3A%2F%2F%2Fstorage%2Fimage.jpg", route)
+    }
+
+    @Test
+    fun `Generation createRoute handles content URI`() {
+        val imageUri = "content://media/external/images/1234"
+        val route = Route.Generation.createRoute(imageUri)
+        assertEquals("generation/content%3A%2F%2Fmedia%2Fexternal%2Fimages%2F1234", route)
+    }
+
+    @Test
     fun `RulebookNavArgs GAME_ID has correct value`() {
         assertEquals("gameId", RulebookNavArgs.GAME_ID)
+    }
+
+    @Test
+    fun `RulebookNavArgs IMAGE_URI has correct value`() {
+        assertEquals("imageUri", RulebookNavArgs.IMAGE_URI)
     }
 }
