@@ -36,7 +36,12 @@ class GenerationViewModel(
     savedStateHandle: SavedStateHandle,
     private val analyticsManager: AnalyticsManager,
     private val scanRepository: ScanRepository,
+    private val autoProceedThreshold: Float = DEFAULT_AUTO_PROCEED_THRESHOLD,
 ) : ViewModel() {
+
+    companion object {
+        const val DEFAULT_AUTO_PROCEED_THRESHOLD = 0.80f
+    }
 
     private val _uiState = MutableStateFlow(GenerationUiState())
     val uiState: StateFlow<GenerationUiState> = _uiState.asStateFlow()
