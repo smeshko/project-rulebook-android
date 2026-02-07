@@ -134,3 +134,6 @@ logs/
 _bmad-backup/
 
 .vscode
+
+# ADW worktree directory
+trees/
