@@ -23,6 +23,7 @@ import com.rulebook.core.designsystem.component.ProgressPhaseIndicator
 import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
 import com.rulebook.core.designsystem.theme.RulebookTheme
+import com.rulebook.feature.generation.components.ConfirmationContent
 import org.koin.androidx.compose.koinViewModel
 
 /**
@@ -52,6 +53,13 @@ fun GenerationScreen(
                     // Error handling will be expanded in Story 5.9
                     onNavigateBack()
                 }
+                is GenerationEvent.NavigateToManualEntry -> {
+                    // Placeholder: Story 5.5 will add ManualEntry destination
+                    onNavigateBack()
+                }
+                is GenerationEvent.AutoProceeding -> {
+                    // Brief flash handled in UI state, no navigation needed
+                }
             }
         }
     }
@@ -59,6 +67,8 @@ fun GenerationScreen(
     GenerationScreenContent(
         uiState = uiState,
         onCancel = viewModel::cancel,
+        onConfirmGame = viewModel::onConfirmGame,
+        onRejectGame = viewModel::onRejectGame,
         modifier = modifier
     )
 }
@@ -66,55 +76,73 @@ fun GenerationScreen(
 /**
  * Stateless content composable for the generation screen.
  * Separated from the stateful [GenerationScreen] for preview and testing.
+ *
+ * Conditionally renders the confirmation screen when the confidence is below
+ * the auto-proceed threshold, or the progress phase indicator otherwise.
  */
 @Composable
 internal fun GenerationScreenContent(
     uiState: GenerationUiState,
     onCancel: () -> Unit,
+    onConfirmGame: () -> Unit = {},
+    onRejectGame: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val spacing = RulebookTheme.spacing
+    if (uiState.showConfirmation && uiState.scanResult != null) {
+        ConfirmationContent(
+            gameTitle = uiState.scanResult.gameTitle,
+            confidence = uiState.scanResult.confidence,
+            onConfirm = onConfirmGame,
+            onReject = onRejectGame,
+            modifier = modifier
+        )
+    } else {
+        val spacing = RulebookTheme.spacing
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        // Header bar
-        RulebookHeaderBar(title = "Analyzing")
+        // Determine header title — briefly show game name during auto-proceed
+        val headerTitle = uiState.gameTitleDisplay ?: "Analyzing"
 
-        // Content area
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(vertical = spacing.xl),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            // Phase indicator with progress
-            ProgressPhaseIndicator(
-                phases = buildPhaseItems(uiState.currentPhase),
-                overallProgress = uiState.overallProgress,
-                currentMessage = uiState.currentPhase.message
-            )
-        }
+            // Header bar
+            RulebookHeaderBar(title = headerTitle)
 
-        // Cancel button at bottom
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = spacing.md)
-                .padding(bottom = spacing.xl),
-            contentAlignment = Alignment.Center
-        ) {
-            RulebookButton(
-                text = if (uiState.isCancelling) "Cancelling..." else "Cancel",
-                onClick = onCancel,
-                variant = ButtonVariant.Secondary,
-                enabled = !uiState.isCancelling,
-                modifier = Modifier.fillMaxWidth()
-            )
+            // Content area
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(vertical = spacing.xl),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Phase indicator with progress
+                ProgressPhaseIndicator(
+                    phases = buildPhaseItems(uiState.currentPhase),
+                    overallProgress = uiState.overallProgress,
+                    currentMessage = uiState.currentPhase.message
+                )
+            }
+
+            // Cancel button at bottom
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = spacing.md)
+                    .padding(bottom = spacing.xl),
+                contentAlignment = Alignment.Center
+            ) {
+                RulebookButton(
+                    text = if (uiState.isCancelling) "Cancelling..." else "Cancel",
+                    onClick = onCancel,
+                    variant = ButtonVariant.Secondary,
+                    enabled = !uiState.isCancelling,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }

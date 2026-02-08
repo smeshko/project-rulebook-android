@@ -22,4 +22,6 @@ data class GenerationUiState(
     val error: String? = null,
     val imageUri: String = "",
     val scanResult: ScanResult? = null,
+    val showConfirmation: Boolean = false,
+    val gameTitleDisplay: String? = null,
 )
