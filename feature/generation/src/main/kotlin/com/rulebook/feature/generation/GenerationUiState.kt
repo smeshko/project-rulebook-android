@@ -14,6 +14,8 @@ import com.rulebook.core.model.ScanResult
  * @param error An error message if the operation failed, null otherwise.
  * @param imageUri The URI of the image being processed.
  * @param scanResult The result from image analysis, null until analysis completes.
+ * @param showManualEntry True when the manual game name entry UI should be displayed.
+ * @param manualGameName The current text value of the manual game name input.
  */
 data class GenerationUiState(
     val currentPhase: ScanPhase = ScanPhase.PROCESSING_IMAGE,
@@ -24,4 +26,6 @@ data class GenerationUiState(
     val scanResult: ScanResult? = null,
     val showConfirmation: Boolean = false,
     val gameTitleDisplay: String? = null,
+    val showManualEntry: Boolean = false,
+    val manualGameName: String = "",
 )

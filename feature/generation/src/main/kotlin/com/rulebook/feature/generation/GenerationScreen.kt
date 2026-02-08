@@ -24,6 +24,7 @@ import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.feature.generation.components.ConfirmationContent
+import com.rulebook.feature.generation.components.ManualEntryContent
 import org.koin.androidx.compose.koinViewModel
 
 /**
@@ -53,10 +54,6 @@ fun GenerationScreen(
                     // Error handling will be expanded in Story 5.9
                     onNavigateBack()
                 }
-                is GenerationEvent.NavigateToManualEntry -> {
-                    // Placeholder: Story 5.5 will add ManualEntry destination
-                    onNavigateBack()
-                }
                 is GenerationEvent.AutoProceeding -> {
                     // Brief flash handled in UI state, no navigation needed
                 }
@@ -69,6 +66,8 @@ fun GenerationScreen(
         onCancel = viewModel::cancel,
         onConfirmGame = viewModel::onConfirmGame,
         onRejectGame = viewModel::onRejectGame,
+        onManualGameNameChanged = viewModel::onManualGameNameChanged,
+        onManualGameNameSubmitted = viewModel::onManualGameNameSubmitted,
         modifier = modifier
     )
 }
@@ -86,9 +85,18 @@ internal fun GenerationScreenContent(
     onCancel: () -> Unit,
     onConfirmGame: () -> Unit = {},
     onRejectGame: () -> Unit = {},
+    onManualGameNameChanged: (String) -> Unit = {},
+    onManualGameNameSubmitted: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    if (uiState.showConfirmation && uiState.scanResult != null) {
+    if (uiState.showManualEntry) {
+        ManualEntryContent(
+            gameName = uiState.manualGameName,
+            onGameNameChanged = onManualGameNameChanged,
+            onSubmit = onManualGameNameSubmitted,
+            modifier = modifier
+        )
+    } else if (uiState.showConfirmation && uiState.scanResult != null) {
         ConfirmationContent(
             gameTitle = uiState.scanResult.gameTitle,
             confidence = uiState.scanResult.confidence,
