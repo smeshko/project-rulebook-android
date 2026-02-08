@@ -205,15 +205,39 @@ class GenerationViewModel(
 
     /**
      * Called when the user rejects the identified game and wants manual entry.
-     * Tracks analytics and emits a navigation event to manual entry.
+     * Tracks analytics and shows the manual entry UI.
      */
     fun onRejectGame() {
         val confidence = _uiState.value.scanResult?.confidence ?: return
-        _uiState.update { it.copy(showConfirmation = false) }
+        _uiState.update { it.copy(showConfirmation = false, showManualEntry = true) }
         trackScanManualEntry(confidence)
-        viewModelScope.launch {
-            _events.send(GenerationEvent.NavigateToManualEntry)
+    }
+
+    /**
+     * Called when the manual game name text changes.
+     * Updates the manual game name in the UI state.
+     */
+    fun onManualGameNameChanged(name: String) {
+        _uiState.update { it.copy(manualGameName = name) }
+    }
+
+    /**
+     * Called when the user submits a manually entered game name.
+     * Validates the name is not blank, clears manual entry, sets the game title,
+     * tracks analytics, and advances to rules generation.
+     */
+    fun onManualGameNameSubmitted() {
+        val name = _uiState.value.manualGameName.trim()
+        if (name.isBlank()) return
+
+        _uiState.update {
+            it.copy(
+                showManualEntry = false,
+                gameTitleDisplay = name
+            )
         }
+        trackScanManualNameSubmitted(name)
+        updatePhase(ScanPhase.GENERATING_RULES)
     }
 
     private fun trackScanAnalysisComplete(confidence: Float, autoProceeded: Boolean) {
@@ -243,6 +267,16 @@ class GenerationViewModel(
             throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to track scan manual entry analytics", e)
+        }
+    }
+
+    private fun trackScanManualNameSubmitted(gameName: String) {
+        try {
+            analyticsManager.trackScanManualNameSubmitted(gameName)
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to track scan manual name submitted analytics", e)
         }
     }
 

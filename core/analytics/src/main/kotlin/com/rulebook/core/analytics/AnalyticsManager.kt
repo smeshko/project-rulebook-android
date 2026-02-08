@@ -112,4 +112,16 @@ interface AnalyticsManager {
             mapOf("confidence" to confidence.toString())
         )
     }
+
+    /**
+     * Track when user submits a manually entered game name (Story 5.5).
+     *
+     * @param gameName The game name entered by the user
+     */
+    fun trackScanManualNameSubmitted(gameName: String) {
+        trackEvent(
+            "scan_manual_name_submitted",
+            mapOf("game_name" to gameName)
+        )
+    }
 }

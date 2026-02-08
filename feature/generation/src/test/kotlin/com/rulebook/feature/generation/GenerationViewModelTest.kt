@@ -769,22 +769,35 @@ class GenerationViewModelTest {
     }
 
     @Test
-    fun `onRejectGame emits NavigateToManualEntry`() = runTest {
+    fun `onRejectGame sets showManualEntry to true`() = runTest {
         fakeScanRepository.analyzeResult = Result.Success(
             ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
         )
         val viewModel = createViewModel()
         advanceUntilIdle()
 
-        val events = mutableListOf<GenerationEvent>()
-        val job = launch { viewModel.events.toList(events) }
+        viewModel.onRejectGame()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.showManualEntry)
+    }
+
+    @Test
+    fun `onRejectGame clears showConfirmation`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.first().showConfirmation)
 
         viewModel.onRejectGame()
         advanceUntilIdle()
+        val state = viewModel.uiState.first()
 
-        assertTrue(events.any { it is GenerationEvent.NavigateToManualEntry })
-
-        job.cancel()
+        assertFalse(state.showConfirmation)
     }
 
     @Test
@@ -814,6 +827,156 @@ class GenerationViewModelTest {
 
         assertTrue(state.showConfirmation)
         assertEquals(ScanPhase.IDENTIFYING_GAME, state.currentPhase)
+    }
+
+    // =========================================================================
+    // Manual Entry Tests (Story 5.5)
+    // =========================================================================
+
+    @Test
+    fun `showManualEntry initially false`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.showManualEntry)
+    }
+
+    @Test
+    fun `manualGameName initially empty`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals("", state.manualGameName)
+    }
+
+    @Test
+    fun `onManualGameNameChanged updates manualGameName state`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onManualGameNameChanged("Settlers of Catan")
+        val state = viewModel.uiState.first()
+
+        assertEquals("Settlers of Catan", state.manualGameName)
+    }
+
+    @Test
+    fun `onManualGameNameSubmitted with valid name advances to GENERATING_RULES`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onRejectGame()
+        advanceUntilIdle()
+
+        viewModel.onManualGameNameChanged("Monopoly")
+        viewModel.onManualGameNameSubmitted()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+    }
+
+    @Test
+    fun `onManualGameNameSubmitted sets gameTitleDisplay to manual name`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onRejectGame()
+        advanceUntilIdle()
+
+        viewModel.onManualGameNameChanged("Monopoly")
+        viewModel.onManualGameNameSubmitted()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals("Monopoly", state.gameTitleDisplay)
+    }
+
+    @Test
+    fun `onManualGameNameSubmitted clears showManualEntry`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onRejectGame()
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.first().showManualEntry)
+
+        viewModel.onManualGameNameChanged("Monopoly")
+        viewModel.onManualGameNameSubmitted()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.showManualEntry)
+    }
+
+    @Test
+    fun `onManualGameNameSubmitted with blank name does not advance`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onRejectGame()
+        advanceUntilIdle()
+
+        viewModel.onManualGameNameChanged("   ")
+        viewModel.onManualGameNameSubmitted()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.showManualEntry)
+        assertEquals(ScanPhase.IDENTIFYING_GAME, state.currentPhase)
+    }
+
+    @Test
+    fun `onManualGameNameSubmitted tracks scan_manual_name_submitted analytics`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onRejectGame()
+        advanceUntilIdle()
+        fakeAnalyticsManager.clear()
+
+        viewModel.onManualGameNameChanged("Monopoly")
+        viewModel.onManualGameNameSubmitted()
+        advanceUntilIdle()
+
+        val event = fakeAnalyticsManager.trackedEvents.first { it.name == "scan_manual_name_submitted" }
+        assertEquals("Monopoly", event.properties["game_name"])
+    }
+
+    @Test
+    fun `onManualGameNameSubmitted trims whitespace from game name`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onRejectGame()
+        advanceUntilIdle()
+
+        viewModel.onManualGameNameChanged("  Monopoly  ")
+        viewModel.onManualGameNameSubmitted()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals("Monopoly", state.gameTitleDisplay)
     }
 }
 

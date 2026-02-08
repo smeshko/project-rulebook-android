@@ -28,8 +28,9 @@ project-rulebook-android/
 │   ├── designsystem/              # Design system components
 │   ├── model/                     # Domain models (pure Kotlin)
 │   └── network/                   # Retrofit API client
-├── feature/                       # Feature modules (6 modules)
+├── feature/                       # Feature modules (7 modules)
 │   ├── camera/                    # Photo capture feature
+│   ├── generation/                # Scan pipeline & rules generation
 │   ├── library/                   # Game library feature
 │   ├── onboarding/                # Onboarding flow
 │   ├── purchase/                  # In-app purchases
@@ -168,6 +169,7 @@ core/designsystem/src/main/kotlin/com/rulebook/core/designsystem/
 │   ├── RulebookCard.kt            # [COMPONENT] Content container
 │   ├── RulebookFAB.kt             # [COMPONENT] Floating action button
 │   ├── RulebookHeaderBar.kt       # [COMPONENT] Screen header
+│   ├── RulebookTextField.kt       # [COMPONENT] Brutalist text input
 │   └── CreditsDisplay.kt          # [COMPONENT] Credit balance pill
 └── modifier/
     └── BrutalistModifiers.kt      # Shadow, border modifiers
