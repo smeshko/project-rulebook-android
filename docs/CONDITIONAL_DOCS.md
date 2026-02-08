@@ -48,3 +48,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When working with the ConfidenceBadge design system component
     - When adding new confirmation/validation screens to the generation flow
     - When implementing analytics for scan confidence events (scan_analysis_complete, scan_confirmed, scan_manual_entry)
+
+- docs/features/manual-game-entry.md
+  - Conditions:
+    - When implementing manual game name input or text entry in the generation flow
+    - When working with the RulebookTextField design system component
+    - When modifying the reject/manual entry flow after AI identification
+    - When implementing analytics for manual name submission (scan_manual_name_submitted)
+    - When adding new text input components to the app

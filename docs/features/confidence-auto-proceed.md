@@ -12,7 +12,7 @@ After image analysis returns a `ScanResult` with a confidence level, the generat
 - `ConfidenceBadge` design system component — color-coded badge displaying confidence as a percentage
 - `ConfirmationContent` composable — full-screen confirmation UI with game title, confidence badge, and confirm/reject buttons
 - Confidence threshold logic in `GenerationViewModel` — evaluates `ScanResult.confidence` against a configurable threshold
-- New `GenerationEvent` variants: `AutoProceeding` and `NavigateToManualEntry`
+- New `GenerationEvent` variant: `AutoProceeding` (note: `NavigateToManualEntry` was removed in Story 5.5 — manual entry is now in-screen state)
 - New `GenerationUiState` fields: `showConfirmation` and `gameTitleDisplay`
 - Analytics convenience methods: `trackScanAnalysisComplete`, `trackScanConfirmed`, `trackScanManualEntry`
 
@@ -24,7 +24,7 @@ After image analysis returns a `ScanResult` with a confidence level, the generat
 - `feature/generation/src/main/kotlin/.../components/ConfirmationContent.kt`: Confirmation screen with game title, ConfidenceBadge, and two action buttons
 - `feature/generation/src/main/kotlin/.../GenerationViewModel.kt`: Confidence evaluation logic, `onConfirmGame()`, `onRejectGame()` handlers
 - `feature/generation/src/main/kotlin/.../GenerationUiState.kt`: Added `showConfirmation` and `gameTitleDisplay` fields
-- `feature/generation/src/main/kotlin/.../GenerationEvent.kt`: Added `NavigateToManualEntry` and `AutoProceeding` event types
+- `feature/generation/src/main/kotlin/.../GenerationEvent.kt`: Added `AutoProceeding` event type (note: `NavigateToManualEntry` was removed in Story 5.5)
 - `feature/generation/src/main/kotlin/.../GenerationScreen.kt`: Conditional rendering — `ConfirmationContent` vs progress indicator
 - `core/analytics/src/main/kotlin/.../AnalyticsManager.kt`: Three new convenience methods for confidence analytics
 
@@ -76,7 +76,7 @@ if (uiState.showConfirmation && uiState.scanResult != null) {
 2. If confidence >= 80%: auto-proceeds, briefly shows game name in header title via `gameTitleDisplay`
 3. If confidence < 80%: renders `ConfirmationContent` instead of progress indicator
 4. "Yes, continue" calls `viewModel.onConfirmGame()` — clears confirmation, advances to `GENERATING_RULES`
-5. "No, enter manually" calls `viewModel.onRejectGame()` — emits `NavigateToManualEntry` event (routes to Story 5.5)
+5. "No, enter manually" calls `viewModel.onRejectGame()` — sets `showManualEntry = true` to show manual game name entry (see `docs/features/manual-game-entry.md`)
 6. To use `ConfidenceBadge` elsewhere: `ConfidenceBadge(confidence = 0.75f)` — accepts 0.0-1.0 float
 
 ## Configuration
@@ -91,7 +91,7 @@ if (uiState.showConfirmation && uiState.scanResult != null) {
 ## Notes
 
 - The `autoProceedThreshold` is injected via constructor parameter to support future remote config (e.g., Firebase Remote Config)
-- `NavigateToManualEntry` currently navigates back as a placeholder — Story 5.5 will add the actual ManualEntry destination
+- `NavigateToManualEntry` event was removed in Story 5.5 — manual entry is now handled via in-screen state (`showManualEntry`)
 - `AutoProceeding` event does not trigger navigation; it's consumed by the UI for brief game name display
 - The `ConfidenceBadge` component is in the design system module and can be reused for any score/quality display
 - Boundary case: exactly 0.80 confidence auto-proceeds (uses `>=` comparison)
