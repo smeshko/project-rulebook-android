@@ -94,6 +94,7 @@ internal fun GenerationScreenContent(
             gameName = uiState.manualGameName,
             onGameNameChanged = onManualGameNameChanged,
             onSubmit = onManualGameNameSubmitted,
+            onCancel = onCancel,
             modifier = modifier
         )
     } else if (uiState.showConfirmation && uiState.scanResult != null) {

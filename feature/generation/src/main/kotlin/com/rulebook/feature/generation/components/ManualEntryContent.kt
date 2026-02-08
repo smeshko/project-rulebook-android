@@ -37,6 +37,7 @@ import com.rulebook.core.designsystem.theme.RulebookTheme
  * @param gameName The current text value of the game name input.
  * @param onGameNameChanged Callback invoked when the game name text changes.
  * @param onSubmit Callback invoked when the user submits the manual game name.
+ * @param onCancel Callback invoked when the user taps the back/cancel button.
  * @param modifier Modifier to be applied to the content.
  */
 @Composable
@@ -44,6 +45,7 @@ internal fun ManualEntryContent(
     gameName: String,
     onGameNameChanged: (String) -> Unit,
     onSubmit: () -> Unit,
+    onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val spacing = RulebookTheme.spacing
@@ -60,7 +62,7 @@ internal fun ManualEntryContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        RulebookHeaderBar(title = "Enter Game Name")
+        RulebookHeaderBar(title = "Enter Game Name", onBackClick = onCancel)
 
         Column(
             modifier = Modifier
@@ -127,7 +129,8 @@ private fun ManualEntryContentEmptyLightPreview() {
         ManualEntryContent(
             gameName = "",
             onGameNameChanged = {},
-            onSubmit = {}
+            onSubmit = {},
+            onCancel = {}
         )
     }
 }
@@ -139,7 +142,8 @@ private fun ManualEntryContentEmptyDarkPreview() {
         ManualEntryContent(
             gameName = "",
             onGameNameChanged = {},
-            onSubmit = {}
+            onSubmit = {},
+            onCancel = {}
         )
     }
 }
@@ -151,7 +155,8 @@ private fun ManualEntryContentWithTextLightPreview() {
         ManualEntryContent(
             gameName = "Settlers of Catan",
             onGameNameChanged = {},
-            onSubmit = {}
+            onSubmit = {},
+            onCancel = {}
         )
     }
 }
@@ -163,7 +168,8 @@ private fun ManualEntryContentWithTextDarkPreview() {
         ManualEntryContent(
             gameName = "Settlers of Catan",
             onGameNameChanged = {},
-            onSubmit = {}
+            onSubmit = {},
+            onCancel = {}
         )
     }
 }
