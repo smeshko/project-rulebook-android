@@ -567,14 +567,7 @@ class GenerationViewModel(
 
     private fun trackScanFallbackUsed(primaryErrorType: String, primaryConfidence: Float?, fallbackResult: String) {
         try {
-            val properties = mutableMapOf(
-                "primary_error_type" to primaryErrorType,
-                "fallback_result" to fallbackResult
-            )
-            if (primaryConfidence != null) {
-                properties["primary_confidence"] = primaryConfidence.toString()
-            }
-            analyticsManager.trackEvent("scan_fallback_used", properties)
+            analyticsManager.trackScanFallbackUsed(primaryErrorType, primaryConfidence, fallbackResult)
         } catch (e: kotlin.coroutines.cancellation.CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -584,13 +577,7 @@ class GenerationViewModel(
 
     private fun trackScanFallbackFailed(primaryErrorType: String, fallbackErrorType: String) {
         try {
-            analyticsManager.trackEvent(
-                "scan_fallback_failed",
-                mapOf(
-                    "primary_error_type" to primaryErrorType,
-                    "fallback_error_type" to fallbackErrorType
-                )
-            )
+            analyticsManager.trackScanFallbackFailed(primaryErrorType, fallbackErrorType)
         } catch (e: kotlin.coroutines.cancellation.CancellationException) {
             throw e
         } catch (e: Exception) {
