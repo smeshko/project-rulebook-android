@@ -189,4 +189,12 @@ private class FakeGameRepository(
     override suspend fun deleteGame(id: String): Result<Unit> {
         return Result.Success(Unit)
     }
+
+    override suspend fun saveGameWithRules(
+        game: Game,
+        rules: com.rulebook.core.model.Rules,
+        rawJson: String
+    ): Result<String> {
+        return Result.Success("test-game-id")
+    }
 }

@@ -41,7 +41,8 @@ import org.koin.androidx.compose.koinViewModel
 fun GenerationScreen(
     modifier: Modifier = Modifier,
     viewModel: GenerationViewModel = koinViewModel(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onNavigateToRules: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -56,6 +57,9 @@ fun GenerationScreen(
                 }
                 is GenerationEvent.AutoProceeding -> {
                     // Brief flash handled in UI state, no navigation needed
+                }
+                is GenerationEvent.NavigateToRules -> {
+                    onNavigateToRules(event.gameId)
                 }
             }
         }

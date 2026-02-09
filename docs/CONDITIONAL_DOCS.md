@@ -65,3 +65,12 @@ This guide helps you find relevant documentation based on what you're working on
     - When adding analytics tracking for generation events (scan_generation_complete, scan_failed)
     - When working with the intelligent section mapper or RulesMapper patterns
     - When implementing similar API response transformation patterns with positional fallback
+
+- docs/features/rules-persistence-and-database-save.md
+  - Conditions:
+    - When saving generated rules to the local database after generation completes
+    - When implementing transaction-based database operations with Room DAOs
+    - When integrating credit deduction with database save operations
+    - When working with GameRepository or extending game persistence functionality
+    - When troubleshooting game save failures or understanding back stack navigation after save
+    - When implementing defensive error handling for critical state-changing operations
