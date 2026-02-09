@@ -14,6 +14,8 @@ import org.koin.dsl.module
  * - SavedStateHandle (auto-injected by Koin for navigation arguments)
  * - AnalyticsManager (from :core:analytics) for tracking events
  * - ScanRepository (from :core:data) for image analysis API calls
+ * - GameRepository (from :core:data) for saving games to database
+ * - CreditRepository (from :core:data) for credit management
  */
 val generationModule = module {
     viewModel {
@@ -21,6 +23,8 @@ val generationModule = module {
             savedStateHandle = get(),
             analyticsManager = get(),
             scanRepository = get(),
+            gameRepository = get(),
+            creditRepository = get(),
         )
     }
 }

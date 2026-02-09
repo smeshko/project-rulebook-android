@@ -31,4 +31,12 @@ sealed class GenerationEvent {
      * @param gameName The name of the identified game.
      */
     data class AutoProceeding(val gameName: String) : GenerationEvent()
+
+    /**
+     * Event indicating the game and rules were saved successfully.
+     * The UI should navigate to the Rules display screen with the given game ID.
+     *
+     * @param gameId The ID of the saved game to display.
+     */
+    data class NavigateToRules(val gameId: String) : GenerationEvent()
 }

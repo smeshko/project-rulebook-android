@@ -51,6 +51,8 @@ class GenerationViewModelTest {
             savedStateHandle = savedStateHandle,
             analyticsManager = fakeAnalyticsManager,
             scanRepository = fakeScanRepository,
+            gameRepository = FakeGameRepository(),
+            creditRepository = FakeCreditRepository(),
         )
     }
 
@@ -78,13 +80,13 @@ class GenerationViewModelTest {
     }
 
     @Test
-    fun `successful analysis with high confidence sets progress to SAVING_RULES start`() = runTest {
-        // Default fake returns 0.95 confidence → auto-proceed → generate rules → SAVING_RULES (0.90)
+    fun `successful analysis with high confidence completes with 100 percent progress`() = runTest {
+        // Default fake returns 0.95 confidence → auto-proceed → generate rules → save → complete (1.0)
         val viewModel = createViewModel()
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        assertEquals(0.90f, state.overallProgress)
+        assertEquals(1.0f, state.overallProgress)
     }
 
     @Test
@@ -121,6 +123,8 @@ class GenerationViewModelTest {
             savedStateHandle = savedStateHandle,
             analyticsManager = fakeAnalyticsManager,
             scanRepository = fakeScanRepository,
+            gameRepository = FakeGameRepository(),
+            creditRepository = FakeCreditRepository(),
         )
         advanceUntilIdle()
 
@@ -134,6 +138,8 @@ class GenerationViewModelTest {
             savedStateHandle = savedStateHandle,
             analyticsManager = fakeAnalyticsManager,
             scanRepository = fakeScanRepository,
+            gameRepository = FakeGameRepository(),
+            creditRepository = FakeCreditRepository(),
         )
         advanceUntilIdle()
         val state = viewModel.uiState.first()
@@ -150,6 +156,8 @@ class GenerationViewModelTest {
             savedStateHandle = savedStateHandle,
             analyticsManager = fakeAnalyticsManager,
             scanRepository = fakeScanRepository,
+            gameRepository = FakeGameRepository(),
+            creditRepository = FakeCreditRepository(),
         )
         val job = launch { viewModel.events.toList(events) }
         advanceUntilIdle()
@@ -167,6 +175,8 @@ class GenerationViewModelTest {
             savedStateHandle = savedStateHandle,
             analyticsManager = fakeAnalyticsManager,
             scanRepository = fakeScanRepository,
+            gameRepository = FakeGameRepository(),
+            creditRepository = FakeCreditRepository(),
         )
         advanceUntilIdle()
 
@@ -180,6 +190,8 @@ class GenerationViewModelTest {
             savedStateHandle = savedStateHandle,
             analyticsManager = fakeAnalyticsManager,
             scanRepository = fakeScanRepository,
+            gameRepository = FakeGameRepository(),
+            creditRepository = FakeCreditRepository(),
         )
         advanceUntilIdle()
         val state = viewModel.uiState.first()
@@ -540,6 +552,8 @@ class GenerationViewModelTest {
             savedStateHandle = savedStateHandle,
             analyticsManager = fakeAnalyticsManager,
             scanRepository = fakeScanRepository,
+            gameRepository = FakeGameRepository(),
+            creditRepository = FakeCreditRepository(),
         )
         advanceUntilIdle()
 
@@ -1224,6 +1238,130 @@ class GenerationViewModelTest {
         assertEquals("First round content", state.rules?.firstRound?.content)
         assertEquals("Advanced content", state.rules?.advanced?.content)
     }
+
+    // =========================================================================
+    // Story 5.7: Save Rules Tests
+    // =========================================================================
+
+    @Test
+    fun `successful save navigates to rules with correct gameId`() = runTest {
+        val fakeGameRepository = FakeGameRepository()
+        val fakeCreditRepository = FakeCreditRepository()
+
+        val viewModel = createViewModelWithRepositories(
+            gameRepository = fakeGameRepository,
+            creditRepository = fakeCreditRepository
+        )
+        advanceUntilIdle()
+
+        // Should emit NavigateToRules event with the generated game ID
+        val events = mutableListOf<GenerationEvent>()
+        val job = launch {
+            viewModel.events.toList(events)
+        }
+
+        advanceUntilIdle()
+        job.cancel()
+
+        val navigateEvent = events.filterIsInstance<GenerationEvent.NavigateToRules>().firstOrNull()
+        assertNotNull(navigateEvent)
+        assertTrue(navigateEvent.gameId.isNotEmpty())
+    }
+
+    @Test
+    fun `successful save deducts credit`() = runTest {
+        val fakeGameRepository = FakeGameRepository()
+        val fakeCreditRepository = FakeCreditRepository()
+        fakeCreditRepository.deductResult = true
+
+        val viewModel = createViewModelWithRepositories(
+            gameRepository = fakeGameRepository,
+            creditRepository = fakeCreditRepository
+        )
+        advanceUntilIdle()
+
+        assertEquals(1, fakeCreditRepository.deductCallCount)
+    }
+
+    @Test
+    fun `save error sets error state and does not deduct credit`() = runTest {
+        val fakeGameRepository = FakeGameRepository()
+        fakeGameRepository.saveGameWithRulesResult = Result.Error("Database error")
+        val fakeCreditRepository = FakeCreditRepository()
+
+        val viewModel = createViewModelWithRepositories(
+            gameRepository = fakeGameRepository,
+            creditRepository = fakeCreditRepository
+        )
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.first()
+        assertNotNull(state.error)
+        assertEquals(0, fakeCreditRepository.deductCallCount)
+    }
+
+    @Test
+    fun `save error emits Error event`() = runTest {
+        val fakeGameRepository = FakeGameRepository()
+        fakeGameRepository.saveGameWithRulesResult = Result.Error("Database error")
+        val fakeCreditRepository = FakeCreditRepository()
+
+        val viewModel = createViewModelWithRepositories(
+            gameRepository = fakeGameRepository,
+            creditRepository = fakeCreditRepository
+        )
+
+        val events = mutableListOf<GenerationEvent>()
+        val job = launch {
+            viewModel.events.toList(events)
+        }
+
+        advanceUntilIdle()
+        job.cancel()
+
+        val errorEvent = events.filterIsInstance<GenerationEvent.Error>().firstOrNull()
+        assertNotNull(errorEvent)
+        assertTrue(errorEvent.message.contains("Database error"))
+    }
+
+    @Test
+    fun `credit deduction failure after save still navigates (defensive)`() = runTest {
+        val fakeGameRepository = FakeGameRepository()
+        val fakeCreditRepository = FakeCreditRepository()
+        fakeCreditRepository.deductResult = false // Balance already 0
+
+        val viewModel = createViewModelWithRepositories(
+            gameRepository = fakeGameRepository,
+            creditRepository = fakeCreditRepository
+        )
+
+        val events = mutableListOf<GenerationEvent>()
+        val job = launch {
+            viewModel.events.toList(events)
+        }
+
+        advanceUntilIdle()
+        job.cancel()
+
+        // Still navigates even if credit deduction fails
+        val navigateEvent = events.filterIsInstance<GenerationEvent.NavigateToRules>().firstOrNull()
+        assertNotNull(navigateEvent)
+    }
+
+    private fun createViewModelWithRepositories(
+        imageUri: String = "file:///test/image.jpg",
+        gameRepository: FakeGameRepository = FakeGameRepository(),
+        creditRepository: FakeCreditRepository = FakeCreditRepository()
+    ): GenerationViewModel {
+        val savedStateHandle = SavedStateHandle(mapOf("imageUri" to imageUri))
+        return GenerationViewModel(
+            savedStateHandle = savedStateHandle,
+            analyticsManager = fakeAnalyticsManager,
+            scanRepository = fakeScanRepository,
+            gameRepository = gameRepository,
+            creditRepository = creditRepository
+        )
+    }
 }
 
 /**
@@ -1300,5 +1438,70 @@ class FakeAnalyticsManager : AnalyticsManager {
         _trackedEvents.clear()
         _trackedScreenViews.clear()
         shouldThrowOnTrackEvent = false
+    }
+}
+
+/**
+ * Fake implementation of [com.rulebook.core.data.repository.GameRepository] for testing.
+ */
+class FakeGameRepository : com.rulebook.core.data.repository.GameRepository {
+
+    var saveGameWithRulesResult: Result<String> = Result.Success("test-game-id-123")
+    var saveGameWithRulesCallCount = 0
+    var lastSavedGame: com.rulebook.core.model.Game? = null
+    var lastSavedRules: Rules? = null
+    var lastSavedRawJson: String? = null
+
+    override suspend fun getGames(): Result<List<com.rulebook.core.model.Game>> {
+        return Result.Success(emptyList())
+    }
+
+    override suspend fun getGameById(id: String): Result<com.rulebook.core.model.Game> {
+        return Result.Error("Not implemented")
+    }
+
+    override suspend fun saveGame(game: com.rulebook.core.model.Game): Result<Unit> {
+        return Result.Success(Unit)
+    }
+
+    override suspend fun deleteGame(id: String): Result<Unit> {
+        return Result.Success(Unit)
+    }
+
+    override suspend fun saveGameWithRules(
+        game: com.rulebook.core.model.Game,
+        rules: Rules,
+        rawJson: String
+    ): Result<String> {
+        saveGameWithRulesCallCount++
+        lastSavedGame = game
+        lastSavedRules = rules
+        lastSavedRawJson = rawJson
+        return saveGameWithRulesResult
+    }
+}
+
+/**
+ * Fake implementation of [com.rulebook.core.data.repository.CreditRepository] for testing.
+ */
+class FakeCreditRepository : com.rulebook.core.data.repository.CreditRepository {
+
+    var deductResult = true
+    var deductCallCount = 0
+
+    override val creditBalance: kotlinx.coroutines.flow.Flow<Int> =
+        kotlinx.coroutines.flow.MutableStateFlow(3)
+
+    override suspend fun awardInitialCredits(amount: Int): Boolean {
+        return true
+    }
+
+    override suspend fun deductCredit(): Boolean {
+        deductCallCount++
+        return deductResult
+    }
+
+    override suspend fun hasCredits(): Boolean {
+        return true
     }
 }
