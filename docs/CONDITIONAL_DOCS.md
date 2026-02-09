@@ -56,3 +56,12 @@ This guide helps you find relevant documentation based on what you're working on
     - When modifying the reject/manual entry flow after AI identification
     - When implementing analytics for manual name submission (scan_manual_name_submitted)
     - When adding new text input components to the app
+
+- docs/features/rules-generation-api-integration.md
+  - Conditions:
+    - When implementing rules generation from identified game titles in the scan/generation pipeline
+    - When extending the rules generation API with new fields or response formats
+    - When troubleshooting rules display or section mapping issues
+    - When adding analytics tracking for generation events (scan_generation_complete, scan_failed)
+    - When working with the intelligent section mapper or RulesMapper patterns
+    - When implementing similar API response transformation patterns with positional fallback
