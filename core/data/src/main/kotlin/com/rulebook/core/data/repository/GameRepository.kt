@@ -44,6 +44,14 @@ interface GameRepository {
     suspend fun deleteGame(id: String): Result<Unit>
 
     /**
+     * Retrieves the rules for a specific game by its ID.
+     *
+     * @param gameId The unique identifier of the game.
+     * @return Result containing the rules or an error if not found.
+     */
+    suspend fun getRulesForGame(gameId: String): Result<Rules>
+
+    /**
      * Saves a game and its associated rules in a single atomic transaction.
      *
      * Generates a new UUID for both the game and rules, ensuring referential integrity.

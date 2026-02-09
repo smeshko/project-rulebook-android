@@ -6,6 +6,7 @@ import com.rulebook.core.database.GameDao
 import com.rulebook.core.database.RulesDao
 import com.rulebook.core.database.entity.GameEntity
 import com.rulebook.core.database.entity.RulesEntity
+import com.rulebook.core.database.mapper.toDomain
 import com.rulebook.core.model.Game
 import com.rulebook.core.model.Rules
 import kotlinx.coroutines.flow.first
@@ -42,6 +43,12 @@ class GameRepositoryImpl(
         if (entity != null) {
             gameDao.delete(entity)
         }
+    }
+
+    override suspend fun getRulesForGame(gameId: String): Result<Rules> = safeCall {
+        val entity = rulesDao.getByGameId(gameId).first()
+            ?: throw IllegalArgumentException("Rules for game with id $gameId not found")
+        entity.toDomain()
     }
 
     override suspend fun saveGameWithRules(

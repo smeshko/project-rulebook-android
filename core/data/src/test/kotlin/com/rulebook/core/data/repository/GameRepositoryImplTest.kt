@@ -152,6 +152,38 @@ class GameRepositoryImplTest {
         assertTrue(result is Result.Success)
     }
 
+    // ==================== getRulesForGame Tests ====================
+
+    @Test
+    fun `getRulesForGame returns rules when found`() = runTest {
+        val rulesEntity = RulesEntity(
+            id = "rules-1",
+            gameId = "game-1",
+            overview = """{"title":"Overview","content":"Test overview","items":null}""",
+            setup = """{"title":"Setup","content":"Test setup","items":null}""",
+            firstRound = """{"title":"First Round","content":"Test first round","items":null}""",
+            advanced = """{"title":"Advanced","content":"Test advanced","items":null}""",
+            rawJson = """{"overview":"test"}"""
+        )
+        fakeRulesDao.insertSync(rulesEntity)
+
+        val result = repository.getRulesForGame("game-1")
+
+        assertTrue(result is Result.Success)
+        val rules = (result as Result.Success).data
+        assertEquals("game-1", rules.gameId)
+        assertEquals("Test overview", rules.overview.content)
+        assertEquals("Test setup", rules.setup.content)
+    }
+
+    @Test
+    fun `getRulesForGame returns error when rules not found`() = runTest {
+        val result = repository.getRulesForGame("nonexistent")
+
+        assertTrue(result is Result.Error)
+        assertTrue((result as Result.Error).message.contains("not found"))
+    }
+
     // ==================== saveGameWithRules Tests ====================
 
     @Test
@@ -371,5 +403,10 @@ class FakeRulesDao : RulesDao {
     }
 
     // Test helper methods
+    fun insertSync(rules: RulesEntity) {
+        this.rules.removeIf { it.id == rules.id }
+        this.rules.add(rules)
+    }
+
     fun getRulesCount() = rules.size
 }
