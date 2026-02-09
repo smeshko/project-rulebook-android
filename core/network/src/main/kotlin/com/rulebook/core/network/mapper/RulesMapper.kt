@@ -3,6 +3,7 @@ package com.rulebook.core.network.mapper
 import com.rulebook.core.model.RuleSection
 import com.rulebook.core.model.Rules
 import com.rulebook.core.network.model.GenerateResponse
+import java.util.Locale
 
 /**
  * Maps a [GenerateResponse] from the network layer to a [Rules] domain model.
@@ -16,13 +17,14 @@ import com.rulebook.core.network.model.GenerateResponse
  * 3. Provide empty defaults for missing sections
  */
 fun GenerateResponse.toDomain(): Rules {
-    val sectionMap = rulesSections.associateBy { it.title.lowercase() }
+    val sectionMap = rulesSections.associateBy { it.title.lowercase(Locale.ROOT) }
 
     // Map sections by title with fallbacks, or use positional index
     val overview = sectionMap.findSection(
         keys = listOf("overview", "summary", "introduction"),
         fallbackIndex = 0,
-        allSections = rulesSections
+        allSections = rulesSections,
+        fallbackContent = rulesSummary.takeIf { it.isNotBlank() }
     )
 
     val setup = sectionMap.findSection(
@@ -58,7 +60,8 @@ fun GenerateResponse.toDomain(): Rules {
 private fun Map<String, com.rulebook.core.network.model.RulesSection>.findSection(
     keys: List<String>,
     fallbackIndex: Int,
-    allSections: List<com.rulebook.core.network.model.RulesSection>
+    allSections: List<com.rulebook.core.network.model.RulesSection>,
+    fallbackContent: String? = null
 ): RuleSection {
     // Try to find by any of the provided keys
     for (key in keys) {
@@ -81,10 +84,10 @@ private fun Map<String, com.rulebook.core.network.model.RulesSection>.findSectio
             items = null
         )
     } else {
-        // Provide empty default if section is missing
+        // Provide empty default if section is missing, using fallbackContent if available
         RuleSection(
             title = keys.first().replaceFirstChar { it.uppercase() },
-            content = "",
+            content = fallbackContent ?: "",
             items = null
         )
     }

@@ -310,12 +310,7 @@ class GenerationViewModel(
     private suspend fun generateRules(gameTitle: String, thumbnailUrl: String?) {
         val startTime = System.currentTimeMillis()
 
-        // Note: thumbnailUrl parameter is present for future API enhancement.
-        // Current implementation of ScanRepository.generateRules() only accepts gameTitle.
-        // Story acceptance criteria states "request includes game name and optional thumbnail",
-        // but the current repository method signature doesn't support it yet.
-        // This will be addressed when the API backend supports thumbnail URLs.
-        val result = scanRepository.generateRules(gameTitle)
+        val result = scanRepository.generateRules(gameTitle, thumbnailUrl)
 
         val durationMs = System.currentTimeMillis() - startTime
 

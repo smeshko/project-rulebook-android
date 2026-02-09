@@ -40,9 +40,9 @@ class ScanRepositoryImpl(
             }
         }
 
-    override suspend fun generateRules(gameTitle: String): Result<Rules> =
+    override suspend fun generateRules(gameTitle: String, thumbnailUrl: String?): Result<Rules> =
         safeCall {
-            val request = GenerateRequest(gameTitle = gameTitle)
+            val request = GenerateRequest(gameTitle = gameTitle, thumbnailUrl = thumbnailUrl)
             val response = api.generateRules(request)
             response.toDomain()
         }.let { result ->

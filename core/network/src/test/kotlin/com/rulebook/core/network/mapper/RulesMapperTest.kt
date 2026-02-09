@@ -62,7 +62,7 @@ class RulesMapperTest {
 
     @Test
     fun `toDomain uses fallback titles when sections are missing`() {
-        // Arrange - Empty sections list
+        // Arrange - Empty sections list, rulesSummary used as overview fallback
         val response = GenerateResponse(
             gameTitle = "Chess",
             rulesSummary = "The classic game",
@@ -75,7 +75,7 @@ class RulesMapperTest {
         // Assert
         assertEquals("Chess", rules.gameId)
         assertEquals("Overview", rules.overview.title)
-        assertEquals("", rules.overview.content)
+        assertEquals("The classic game", rules.overview.content)
         assertEquals("Setup", rules.setup.title)
         assertEquals("", rules.setup.content)
         assertEquals("First round", rules.firstRound.title)
@@ -164,5 +164,26 @@ class RulesMapperTest {
         assertEquals("Setup", rules.setup.title)
         assertEquals("First Round", rules.firstRound.title)
         assertEquals("Advanced", rules.advanced.title)
+    }
+
+    @Test
+    fun `toDomain uses rulesSummary as overview fallback when sections are empty`() {
+        // Arrange - No sections but rulesSummary is provided
+        val response = GenerateResponse(
+            gameTitle = "Chess",
+            rulesSummary = "A classic strategy game for two players",
+            rulesSections = emptyList()
+        )
+
+        // Act
+        val rules = response.toDomain()
+
+        // Assert - Overview should use rulesSummary as fallback content
+        assertEquals("Overview", rules.overview.title)
+        assertEquals("A classic strategy game for two players", rules.overview.content)
+        // Other sections still get empty defaults
+        assertEquals("", rules.setup.content)
+        assertEquals("", rules.firstRound.content)
+        assertEquals("", rules.advanced.content)
     }
 }

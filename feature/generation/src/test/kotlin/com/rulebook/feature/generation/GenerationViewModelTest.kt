@@ -1035,6 +1035,52 @@ class GenerationViewModelTest {
     }
 
     @Test
+    fun `rules generation on auto-proceed forwards thumbnailUrl to repository`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.95f, thumbnailUrl = "https://example.com/catan.jpg")
+        )
+
+        createViewModel()
+        advanceUntilIdle()
+
+        assertEquals("https://example.com/catan.jpg", fakeScanRepository.lastGenerateThumbnailUrl)
+    }
+
+    @Test
+    fun `rules generation on confirm forwards thumbnailUrl to repository`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = "https://example.com/catan.jpg")
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onConfirmGame()
+        advanceUntilIdle()
+
+        assertEquals("https://example.com/catan.jpg", fakeScanRepository.lastGenerateThumbnailUrl)
+    }
+
+    @Test
+    fun `rules generation on manual entry forwards thumbnailUrl from scan result`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = "https://example.com/catan.jpg")
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onRejectGame()
+        advanceUntilIdle()
+
+        viewModel.onManualGameNameChanged("Monopoly")
+        viewModel.onManualGameNameSubmitted()
+        advanceUntilIdle()
+
+        assertEquals("https://example.com/catan.jpg", fakeScanRepository.lastGenerateThumbnailUrl)
+    }
+
+    @Test
     fun `rules generation on confirm calls repository with correct game title`() = runTest {
         fakeScanRepository.analyzeResult = Result.Success(
             ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
@@ -1202,6 +1248,7 @@ class FakeScanRepository : ScanRepository {
     )
     var generateCallCount = 0
     var lastGenerateGameTitle: String? = null
+    var lastGenerateThumbnailUrl: String? = null
 
     override suspend fun analyzeImage(imageUri: String): Result<ScanResult> {
         analyzeCallCount++
@@ -1209,9 +1256,10 @@ class FakeScanRepository : ScanRepository {
         return analyzeResult
     }
 
-    override suspend fun generateRules(gameTitle: String): Result<Rules> {
+    override suspend fun generateRules(gameTitle: String, thumbnailUrl: String?): Result<Rules> {
         generateCallCount++
         lastGenerateGameTitle = gameTitle
+        lastGenerateThumbnailUrl = thumbnailUrl
         return generateResult
     }
 }
