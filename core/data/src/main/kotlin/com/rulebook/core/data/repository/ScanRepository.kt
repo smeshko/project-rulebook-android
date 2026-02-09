@@ -8,5 +8,7 @@ interface ScanRepository {
 
     suspend fun analyzeImage(imageUri: String): Result<ScanResult>
 
+    suspend fun analyzeImageFallback(imageUri: String): Result<ScanResult>
+
     suspend fun generateRules(gameTitle: String, thumbnailUrl: String? = null): Result<Rules>
 }

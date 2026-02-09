@@ -18,6 +18,7 @@ import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
 private const val MAX_IMAGE_DIMENSION = 1920
+private const val FALLBACK_CONFIDENCE_THRESHOLD = 0.15f
 
 class ScanRepositoryImpl(
     private val api: RulebookApi,
@@ -29,6 +30,22 @@ class ScanRepositoryImpl(
             val base64 = withContext(Dispatchers.IO) { compressAndEncode(imageUri) }
             val request = AnalyzeRequest(imageData = base64)
             val response = api.analyzeImage(request)
+            response.toDomain()
+        }.let { result ->
+            when (result) {
+                is Result.Success -> result
+                is Result.Error -> Result.Error(
+                    message = NetworkErrorMapper.mapToUserMessage(result.cause),
+                    cause = result.cause,
+                )
+            }
+        }
+
+    override suspend fun analyzeImageFallback(imageUri: String): Result<ScanResult> =
+        safeCall {
+            val base64 = withContext(Dispatchers.IO) { compressAndEncode(imageUri) }
+            val request = AnalyzeRequest(imageData = base64)
+            val response = api.analyzeImageFallback(request)
             response.toDomain()
         }.let { result ->
             when (result) {
