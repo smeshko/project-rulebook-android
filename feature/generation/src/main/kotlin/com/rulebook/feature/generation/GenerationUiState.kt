@@ -1,5 +1,6 @@
 package com.rulebook.feature.generation
 
+import com.rulebook.core.model.Rules
 import com.rulebook.core.model.ScanResult
 
 /**
@@ -16,6 +17,7 @@ import com.rulebook.core.model.ScanResult
  * @param scanResult The result from image analysis, null until analysis completes.
  * @param showManualEntry True when the manual game name entry UI should be displayed.
  * @param manualGameName The current text value of the manual game name input.
+ * @param rules The generated rules for the identified game, null until generation completes.
  */
 data class GenerationUiState(
     val currentPhase: ScanPhase = ScanPhase.PROCESSING_IMAGE,
@@ -28,4 +30,5 @@ data class GenerationUiState(
     val gameTitleDisplay: String? = null,
     val showManualEntry: Boolean = false,
     val manualGameName: String = "",
+    val rules: Rules? = null,
 )

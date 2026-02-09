@@ -124,4 +124,32 @@ interface AnalyticsManager {
             mapOf("game_name" to gameName)
         )
     }
+
+    /**
+     * Track when rules generation completes successfully (Story 5.6).
+     *
+     * @param gameName The name of the game for which rules were generated
+     * @param durationMs The time taken to generate rules in milliseconds
+     */
+    fun trackScanGenerationComplete(gameName: String, durationMs: Long) {
+        trackEvent(
+            "scan_generation_complete",
+            mapOf(
+                "game_name" to gameName,
+                "duration_ms" to durationMs.toString()
+            )
+        )
+    }
+
+    /**
+     * Track when rules generation or scan fails (Story 5.6).
+     *
+     * @param errorType A categorized error type (e.g., "network_error", "timeout", "unknown")
+     */
+    fun trackScanFailed(errorType: String) {
+        trackEvent(
+            "scan_failed",
+            mapOf("error_type" to errorType)
+        )
+    }
 }

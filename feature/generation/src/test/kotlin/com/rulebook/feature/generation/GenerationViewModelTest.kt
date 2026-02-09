@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.common.Result
 import com.rulebook.core.data.repository.ScanRepository
+import com.rulebook.core.model.RuleSection
+import com.rulebook.core.model.Rules
 import com.rulebook.core.model.ScanResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,13 +59,13 @@ class GenerationViewModelTest {
     // =========================================================================
 
     @Test
-    fun `successful analysis with high confidence auto-proceeds to GENERATING_RULES phase`() = runTest {
-        // Default fake returns 0.95 confidence (>= 0.80 threshold) → auto-proceed
+    fun `successful analysis with high confidence auto-proceeds to SAVING_RULES phase`() = runTest {
+        // Default fake returns 0.95 confidence (>= 0.80 threshold) → auto-proceed → generate rules → SAVING_RULES
         val viewModel = createViewModel()
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+        assertEquals(ScanPhase.SAVING_RULES, state.currentPhase)
     }
 
     @Test
@@ -76,13 +78,13 @@ class GenerationViewModelTest {
     }
 
     @Test
-    fun `successful analysis with high confidence sets progress to GENERATING_RULES start`() = runTest {
-        // Default fake returns 0.95 confidence → auto-proceed to GENERATING_RULES (0.60)
+    fun `successful analysis with high confidence sets progress to SAVING_RULES start`() = runTest {
+        // Default fake returns 0.95 confidence → auto-proceed → generate rules → SAVING_RULES (0.90)
         val viewModel = createViewModel()
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        assertEquals(0.60f, state.overallProgress)
+        assertEquals(0.90f, state.overallProgress)
     }
 
     @Test
@@ -244,11 +246,11 @@ class GenerationViewModelTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
 
-        // After successful analysis with high confidence, phase is GENERATING_RULES (60-90%)
-        viewModel.updateProgress(0.75f)
+        // After successful analysis with high confidence, phase is SAVING_RULES (90-100%)
+        viewModel.updateProgress(0.95f)
         val state = viewModel.uiState.first()
 
-        assertEquals(0.75f, state.overallProgress)
+        assertEquals(0.95f, state.overallProgress)
     }
 
     @Test
@@ -442,12 +444,12 @@ class GenerationViewModelTest {
 
     @Test
     fun `analyzeImage success with high confidence advances past IDENTIFYING_GAME`() = runTest {
-        // Default fake returns 0.95 confidence → auto-proceed to GENERATING_RULES
+        // Default fake returns 0.95 confidence → auto-proceed → generate rules → SAVING_RULES
         val viewModel = createViewModel()
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+        assertEquals(ScanPhase.SAVING_RULES, state.currentPhase)
     }
 
     @Test
@@ -569,7 +571,7 @@ class GenerationViewModelTest {
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+        assertEquals(ScanPhase.SAVING_RULES, state.currentPhase)
     }
 
     @Test
@@ -660,8 +662,8 @@ class GenerationViewModelTest {
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        // 0.80 >= 0.80 → auto-proceed
-        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+        // 0.80 >= 0.80 → auto-proceed → generate rules → SAVING_RULES
+        assertEquals(ScanPhase.SAVING_RULES, state.currentPhase)
         assertFalse(state.showConfirmation)
     }
 
@@ -688,7 +690,7 @@ class GenerationViewModelTest {
         val state = viewModel.uiState.first()
 
         assertFalse(state.showConfirmation)
-        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+        assertEquals(ScanPhase.SAVING_RULES, state.currentPhase)
     }
 
     @Test
@@ -713,7 +715,7 @@ class GenerationViewModelTest {
         val state = viewModel.uiState.first()
 
         assertFalse(state.showConfirmation)
-        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+        assertEquals(ScanPhase.SAVING_RULES, state.currentPhase)
     }
 
     // =========================================================================
@@ -738,7 +740,7 @@ class GenerationViewModelTest {
     }
 
     @Test
-    fun `onConfirmGame advances to GENERATING_RULES`() = runTest {
+    fun `onConfirmGame advances to SAVING_RULES`() = runTest {
         fakeScanRepository.analyzeResult = Result.Success(
             ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
         )
@@ -749,7 +751,7 @@ class GenerationViewModelTest {
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+        assertEquals(ScanPhase.SAVING_RULES, state.currentPhase)
     }
 
     @Test
@@ -863,7 +865,7 @@ class GenerationViewModelTest {
     }
 
     @Test
-    fun `onManualGameNameSubmitted with valid name advances to GENERATING_RULES`() = runTest {
+    fun `onManualGameNameSubmitted with valid name advances to SAVING_RULES`() = runTest {
         fakeScanRepository.analyzeResult = Result.Success(
             ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
         )
@@ -878,7 +880,7 @@ class GenerationViewModelTest {
         advanceUntilIdle()
         val state = viewModel.uiState.first()
 
-        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+        assertEquals(ScanPhase.SAVING_RULES, state.currentPhase)
     }
 
     @Test
@@ -978,6 +980,250 @@ class GenerationViewModelTest {
 
         assertEquals("Monopoly", state.gameTitleDisplay)
     }
+
+    // =========================================================================
+    // Rules Generation Tests (Story 5.6)
+    // =========================================================================
+
+    @Test
+    fun `rules generation on auto-proceed stores rules in state`() = runTest {
+        val expectedRules = Rules(
+            gameId = "Catan",
+            overview = RuleSection(title = "Overview", content = "Catan overview", items = null),
+            setup = RuleSection(title = "Setup", content = "Catan setup", items = null),
+            firstRound = RuleSection(title = "First Round", content = "Catan first round", items = null),
+            advanced = RuleSection(title = "Advanced", content = "Catan advanced", items = null)
+        )
+        fakeScanRepository.generateResult = Result.Success(expectedRules)
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.95f, thumbnailUrl = null)
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertNotNull(state.rules)
+        assertEquals("Catan", state.rules?.gameId)
+        assertEquals("Catan overview", state.rules?.overview?.content)
+    }
+
+    @Test
+    fun `rules generation on auto-proceed advances to SAVING_RULES`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.95f, thumbnailUrl = null)
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals(ScanPhase.SAVING_RULES, state.currentPhase)
+    }
+
+    @Test
+    fun `rules generation on auto-proceed calls repository with correct game title`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Ticket to Ride", confidence = 0.95f, thumbnailUrl = null)
+        )
+
+        createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(1, fakeScanRepository.generateCallCount)
+        assertEquals("Ticket to Ride", fakeScanRepository.lastGenerateGameTitle)
+    }
+
+    @Test
+    fun `rules generation on auto-proceed forwards thumbnailUrl to repository`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.95f, thumbnailUrl = "https://example.com/catan.jpg")
+        )
+
+        createViewModel()
+        advanceUntilIdle()
+
+        assertEquals("https://example.com/catan.jpg", fakeScanRepository.lastGenerateThumbnailUrl)
+    }
+
+    @Test
+    fun `rules generation on confirm forwards thumbnailUrl to repository`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = "https://example.com/catan.jpg")
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onConfirmGame()
+        advanceUntilIdle()
+
+        assertEquals("https://example.com/catan.jpg", fakeScanRepository.lastGenerateThumbnailUrl)
+    }
+
+    @Test
+    fun `rules generation on manual entry forwards thumbnailUrl from scan result`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = "https://example.com/catan.jpg")
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onRejectGame()
+        advanceUntilIdle()
+
+        viewModel.onManualGameNameChanged("Monopoly")
+        viewModel.onManualGameNameSubmitted()
+        advanceUntilIdle()
+
+        assertEquals("https://example.com/catan.jpg", fakeScanRepository.lastGenerateThumbnailUrl)
+    }
+
+    @Test
+    fun `rules generation on confirm calls repository with correct game title`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onConfirmGame()
+        advanceUntilIdle()
+
+        assertEquals(1, fakeScanRepository.generateCallCount)
+        assertEquals("Catan", fakeScanRepository.lastGenerateGameTitle)
+    }
+
+    @Test
+    fun `rules generation on manual entry calls repository with manual name`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.65f, thumbnailUrl = null)
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onRejectGame()
+        advanceUntilIdle()
+
+        viewModel.onManualGameNameChanged("Monopoly")
+        viewModel.onManualGameNameSubmitted()
+        advanceUntilIdle()
+
+        assertEquals(1, fakeScanRepository.generateCallCount)
+        assertEquals("Monopoly", fakeScanRepository.lastGenerateGameTitle)
+    }
+
+    @Test
+    fun `rules generation error sets error state`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.95f, thumbnailUrl = null)
+        )
+        fakeScanRepository.generateResult = Result.Error(
+            message = "The analysis took too long. Please try again."
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals("The analysis took too long. Please try again.", state.error)
+    }
+
+    @Test
+    fun `rules generation error emits Error event`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.95f, thumbnailUrl = null)
+        )
+        fakeScanRepository.generateResult = Result.Error(
+            message = "Server error. Please try again later."
+        )
+        val events = mutableListOf<GenerationEvent>()
+
+        val viewModel = createViewModel()
+        val job = launch { viewModel.events.toList(events) }
+        advanceUntilIdle()
+
+        assertTrue(events.any { it is GenerationEvent.Error })
+        val errorEvent = events.filterIsInstance<GenerationEvent.Error>().last()
+        assertEquals("Server error. Please try again later.", errorEvent.message)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `rules generation error does not advance phase past GENERATING_RULES`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.95f, thumbnailUrl = null)
+        )
+        fakeScanRepository.generateResult = Result.Error(message = "Server error.")
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertEquals(ScanPhase.GENERATING_RULES, state.currentPhase)
+    }
+
+    @Test
+    fun `rules generation tracks scan_generation_complete on success`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.95f, thumbnailUrl = null)
+        )
+
+        createViewModel()
+        advanceUntilIdle()
+
+        val event = fakeAnalyticsManager.trackedEvents.first { it.name == "scan_generation_complete" }
+        // The analytics tracks the original game title from scanResult (which is "Test Game" in the default fake)
+        // but the actual generateRules call uses "Catan" from the updated analyzeResult above
+        assertEquals("Catan", event.properties["game_name"])
+        assertNotNull(event.properties["duration_ms"])
+    }
+
+    @Test
+    fun `rules generation tracks scan_failed on error`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Catan", confidence = 0.95f, thumbnailUrl = null)
+        )
+        fakeScanRepository.generateResult = Result.Error(
+            message = "Server error.",
+            cause = java.net.SocketTimeoutException()
+        )
+
+        createViewModel()
+        advanceUntilIdle()
+
+        val event = fakeAnalyticsManager.trackedEvents.first { it.name == "scan_failed" }
+        assertEquals("timeout", event.properties["error_type"])
+    }
+
+    @Test
+    fun `rules generation stores rules with all sections`() = runTest {
+        val expectedRules = Rules(
+            gameId = "Pandemic",
+            overview = RuleSection(title = "Overview", content = "Overview content", items = null),
+            setup = RuleSection(title = "Setup", content = "Setup content", items = null),
+            firstRound = RuleSection(title = "First Round", content = "First round content", items = null),
+            advanced = RuleSection(title = "Advanced", content = "Advanced content", items = null)
+        )
+        fakeScanRepository.generateResult = Result.Success(expectedRules)
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Pandemic", confidence = 0.95f, thumbnailUrl = null)
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertNotNull(state.rules)
+        assertEquals("Overview content", state.rules?.overview?.content)
+        assertEquals("Setup content", state.rules?.setup?.content)
+        assertEquals("First round content", state.rules?.firstRound?.content)
+        assertEquals("Advanced content", state.rules?.advanced?.content)
+    }
 }
 
 /**
@@ -991,10 +1237,30 @@ class FakeScanRepository : ScanRepository {
     var analyzeCallCount = 0
     var lastAnalyzeUri: String? = null
 
+    var generateResult: Result<Rules> = Result.Success(
+        Rules(
+            gameId = "Test Game",
+            overview = RuleSection(title = "Overview", content = "Overview content", items = null),
+            setup = RuleSection(title = "Setup", content = "Setup content", items = null),
+            firstRound = RuleSection(title = "First Round", content = "First round content", items = null),
+            advanced = RuleSection(title = "Advanced", content = "Advanced content", items = null)
+        )
+    )
+    var generateCallCount = 0
+    var lastGenerateGameTitle: String? = null
+    var lastGenerateThumbnailUrl: String? = null
+
     override suspend fun analyzeImage(imageUri: String): Result<ScanResult> {
         analyzeCallCount++
         lastAnalyzeUri = imageUri
         return analyzeResult
+    }
+
+    override suspend fun generateRules(gameTitle: String, thumbnailUrl: String?): Result<Rules> {
+        generateCallCount++
+        lastGenerateGameTitle = gameTitle
+        lastGenerateThumbnailUrl = thumbnailUrl
+        return generateResult
     }
 }
 

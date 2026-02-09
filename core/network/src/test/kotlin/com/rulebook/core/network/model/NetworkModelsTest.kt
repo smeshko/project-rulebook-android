@@ -60,16 +60,29 @@ class NetworkModelsTest {
 
         val serialized = json.encodeToString(GenerateRequest.serializer(), request)
 
-        assertEquals("""{"game_title":"Catan","game_id":"game-123"}""", serialized)
+        assertEquals("""{"game_title":"Catan","game_id":"game-123","thumbnail_url":null}""", serialized)
     }
 
     @Test
-    fun `GenerateRequest handles null gameId`() {
+    fun `GenerateRequest handles null gameId and thumbnailUrl`() {
         val request = GenerateRequest(gameTitle = "Catan")
 
         val serialized = json.encodeToString(GenerateRequest.serializer(), request)
 
-        assertEquals("""{"game_title":"Catan","game_id":null}""", serialized)
+        assertEquals("""{"game_title":"Catan","game_id":null,"thumbnail_url":null}""", serialized)
+    }
+
+    @Test
+    fun `GenerateRequest serializes with thumbnailUrl when provided`() {
+        val request = GenerateRequest(
+            gameTitle = "Catan",
+            gameId = "game-123",
+            thumbnailUrl = "https://example.com/catan.jpg"
+        )
+
+        val serialized = json.encodeToString(GenerateRequest.serializer(), request)
+
+        assertEquals("""{"game_title":"Catan","game_id":"game-123","thumbnail_url":"https://example.com/catan.jpg"}""", serialized)
     }
 
     @Test
