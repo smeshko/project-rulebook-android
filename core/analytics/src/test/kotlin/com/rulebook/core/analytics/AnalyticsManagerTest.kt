@@ -126,4 +126,23 @@ class AnalyticsManagerTest {
         assertEquals("onboarding_skipped", analyticsManager.trackedEvents[0].name)
         assertEquals("2", analyticsManager.trackedEvents[0].properties["page"])
     }
+
+    @Test
+    fun `trackScanStarted fires scan_started event`() {
+        analyticsManager.trackScanStarted()
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("scan_started", analyticsManager.trackedEvents[0].name)
+        assertTrue(analyticsManager.trackedEvents[0].properties.isEmpty())
+    }
+
+    @Test
+    fun `trackScanCancelled fires scan_cancelled event with phase and progress`() {
+        analyticsManager.trackScanCancelled(phase = "ANALYZING", progress = 0.5f)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("scan_cancelled", analyticsManager.trackedEvents[0].name)
+        assertEquals("ANALYZING", analyticsManager.trackedEvents[0].properties["phase"])
+        assertEquals("0.5", analyticsManager.trackedEvents[0].properties["progress"])
+    }
 }
