@@ -103,8 +103,8 @@ class GenerationViewModel(
                             _uiState.update { it.copy(gameTitleDisplay = scanResult.gameTitle) }
                             _events.send(GenerationEvent.AutoProceeding(scanResult.gameTitle))
                             updatePhase(ScanPhase.GENERATING_RULES)
-                            // Subsequent phases (GENERATING_RULES, SAVING_RULES)
-                            // will be implemented in Stories 5.6-5.7.
+                            // Story 5.6: Generate rules for the identified game
+                            generateRules(scanResult.gameTitle, scanResult.thumbnailUrl)
                         } else {
                             // Low confidence: show confirmation screen
                             trackScanAnalysisComplete(confidence, autoProceeded = false)
@@ -195,12 +195,15 @@ class GenerationViewModel(
      * Clears the confirmation, tracks analytics, and advances to rules generation.
      */
     fun onConfirmGame() {
-        val confidence = _uiState.value.scanResult?.confidence ?: return
+        val scanResult = _uiState.value.scanResult ?: return
+        val confidence = scanResult.confidence
         _uiState.update { it.copy(showConfirmation = false) }
         trackScanConfirmed(confidence)
         updatePhase(ScanPhase.GENERATING_RULES)
-        // Subsequent phases (GENERATING_RULES, SAVING_RULES)
-        // will be implemented in Stories 5.6-5.7.
+        // Story 5.6: Generate rules for the confirmed game
+        viewModelScope.launch {
+            generateRules(scanResult.gameTitle, scanResult.thumbnailUrl)
+        }
     }
 
     /**
@@ -230,6 +233,7 @@ class GenerationViewModel(
         val name = _uiState.value.manualGameName.trim()
         if (name.isBlank()) return
 
+        val thumbnailUrl = _uiState.value.scanResult?.thumbnailUrl
         _uiState.update {
             it.copy(
                 showManualEntry = false,
@@ -238,6 +242,10 @@ class GenerationViewModel(
         }
         trackScanManualNameSubmitted(name)
         updatePhase(ScanPhase.GENERATING_RULES)
+        // Story 5.6: Generate rules for the manually entered game
+        viewModelScope.launch {
+            generateRules(name, thumbnailUrl)
+        }
     }
 
     private fun trackScanAnalysisComplete(confidence: Float, autoProceeded: Boolean) {
@@ -287,6 +295,94 @@ class GenerationViewModel(
             throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to track scan started analytics", e)
+        }
+    }
+
+    /**
+     * Generates rules for the identified game by calling the repository.
+     *
+     * Tracks generation start time, calls the API, handles success/error,
+     * updates state with the generated rules, and advances to SAVING_RULES phase.
+     *
+     * @param gameTitle The name of the game to generate rules for
+     * @param thumbnailUrl Optional thumbnail URL from the scan result
+     */
+    private suspend fun generateRules(gameTitle: String, thumbnailUrl: String?) {
+        val startTime = System.currentTimeMillis()
+
+        // Note: thumbnailUrl parameter is present for future API enhancement.
+        // Current implementation of ScanRepository.generateRules() only accepts gameTitle.
+        // Story acceptance criteria states "request includes game name and optional thumbnail",
+        // but the current repository method signature doesn't support it yet.
+        // This will be addressed when the API backend supports thumbnail URLs.
+        val result = scanRepository.generateRules(gameTitle)
+
+        val durationMs = System.currentTimeMillis() - startTime
+
+        when (result) {
+            is Result.Success -> {
+                val rules = result.data
+                _uiState.update { it.copy(rules = rules) }
+                trackScanGenerationComplete(gameTitle, durationMs)
+                updatePhase(ScanPhase.SAVING_RULES)
+                // Story 5.7: Save rules to local database
+                // will be implemented in the next story.
+            }
+            is Result.Error -> {
+                _uiState.update { it.copy(error = result.message) }
+                _events.send(GenerationEvent.Error(result.message))
+                trackScanFailed(categorizeError(result.cause))
+                // Do NOT advance phase on error
+            }
+        }
+    }
+
+    /**
+     * Categorizes an error throwable into a user-friendly error type string
+     * for analytics tracking.
+     */
+    private fun categorizeError(cause: Throwable?): String {
+        return when (cause) {
+            is java.net.SocketTimeoutException -> "timeout"
+            is java.net.UnknownHostException -> "no_internet"
+            else -> {
+                // Check for HttpException by class name to avoid direct dependency
+                if (cause?.javaClass?.simpleName == "HttpException") {
+                    // Attempt to extract status code via reflection
+                    try {
+                        val codeMethod = cause.javaClass.getMethod("code")
+                        val statusCode = codeMethod.invoke(cause) as? Int
+                        when (statusCode) {
+                            in 500..599 -> "server_error"
+                            else -> "request_failed"
+                        }
+                    } catch (e: Exception) {
+                        "request_failed"
+                    }
+                } else {
+                    "unknown"
+                }
+            }
+        }
+    }
+
+    private fun trackScanGenerationComplete(gameName: String, durationMs: Long) {
+        try {
+            analyticsManager.trackScanGenerationComplete(gameName, durationMs)
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to track scan generation complete analytics", e)
+        }
+    }
+
+    private fun trackScanFailed(errorType: String) {
+        try {
+            analyticsManager.trackScanFailed(errorType)
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to track scan failed analytics", e)
         }
     }
 

@@ -10,4 +10,5 @@ import kotlinx.serialization.Serializable
 data class GenerateRequest(
     @SerialName("game_title") val gameTitle: String,
     @SerialName("game_id") val gameId: String? = null,
+    @SerialName("thumbnail_url") val thumbnailUrl: String? = null,
 )

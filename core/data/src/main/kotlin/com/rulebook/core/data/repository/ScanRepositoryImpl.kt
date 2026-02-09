@@ -7,10 +7,12 @@ import android.util.Base64
 import com.rulebook.core.common.Result
 import com.rulebook.core.common.safeCall
 import com.rulebook.core.data.util.NetworkErrorMapper
+import com.rulebook.core.model.Rules
 import com.rulebook.core.model.ScanResult
 import com.rulebook.core.network.api.RulebookApi
 import com.rulebook.core.network.mapper.toDomain
 import com.rulebook.core.network.model.AnalyzeRequest
+import com.rulebook.core.network.model.GenerateRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -27,6 +29,21 @@ class ScanRepositoryImpl(
             val base64 = withContext(Dispatchers.IO) { compressAndEncode(imageUri) }
             val request = AnalyzeRequest(imageData = base64)
             val response = api.analyzeImage(request)
+            response.toDomain()
+        }.let { result ->
+            when (result) {
+                is Result.Success -> result
+                is Result.Error -> Result.Error(
+                    message = NetworkErrorMapper.mapToUserMessage(result.cause),
+                    cause = result.cause,
+                )
+            }
+        }
+
+    override suspend fun generateRules(gameTitle: String): Result<Rules> =
+        safeCall {
+            val request = GenerateRequest(gameTitle = gameTitle)
+            val response = api.generateRules(request)
             response.toDomain()
         }.let { result ->
             when (result) {
