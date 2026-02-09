@@ -261,6 +261,29 @@ class GameRepositoryImplTest {
 
         assertEquals(savedGame.id, savedRules.gameId)
     }
+
+    @Test
+    fun `saveGameWithRules returns error when rules insert fails`() = runTest {
+        fakeRulesDao.shouldThrowOnInsert = true
+        val game = com.rulebook.core.model.Game(
+            id = "",
+            title = "Test Game",
+            thumbnailUrl = null,
+            createdAt = 1000L,
+            lastAccessedAt = 2000L
+        )
+        val rules = com.rulebook.core.model.Rules(
+            gameId = "",
+            overview = com.rulebook.core.model.RuleSection("O", "o", null),
+            setup = com.rulebook.core.model.RuleSection("S", "s", null),
+            firstRound = com.rulebook.core.model.RuleSection("F", "f", null),
+            advanced = com.rulebook.core.model.RuleSection("A", "a", null)
+        )
+
+        val result = repository.saveGameWithRules(game, rules, "{}")
+
+        assertTrue(result is Result.Error)
+    }
 }
 
 /**
@@ -323,8 +346,10 @@ class FakeGameDao : GameDao {
  */
 class FakeRulesDao : RulesDao {
     private val rules = mutableListOf<RulesEntity>()
+    var shouldThrowOnInsert = false
 
     override suspend fun insert(rules: RulesEntity) {
+        if (shouldThrowOnInsert) throw RuntimeException("Simulated insert failure")
         this.rules.removeIf { it.id == rules.id }
         this.rules.add(rules)
     }

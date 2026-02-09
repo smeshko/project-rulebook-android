@@ -402,12 +402,16 @@ class GenerationViewModel(
             is Result.Success -> {
                 val gameId = saveResult.data
 
-                // Deduct credit
-                val creditDeducted = creditRepository.deductCredit()
-                if (!creditDeducted) {
-                    // Defensive: credit was already deducted at scan start (Story 5.1)
-                    // If balance is 0 here, log a warning but don't fail the operation
-                    Log.w(TAG, "Credit deduction returned false after save - balance may already be 0")
+                // Deduct credit — wrapped in try/catch so IO errors don't block navigation
+                try {
+                    val creditDeducted = creditRepository.deductCredit()
+                    if (!creditDeducted) {
+                        Log.w(TAG, "Credit deduction returned false after save - balance may already be 0")
+                    }
+                } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e(TAG, "Credit deduction failed after successful save", e)
                 }
 
                 // Update progress to 100%
