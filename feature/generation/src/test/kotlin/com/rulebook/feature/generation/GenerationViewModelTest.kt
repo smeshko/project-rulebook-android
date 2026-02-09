@@ -1348,6 +1348,40 @@ class GenerationViewModelTest {
         assertNotNull(navigateEvent)
     }
 
+    @Test
+    fun `confirm path sets gameTitleDisplay and navigates to rules after save`() = runTest {
+        // Low confidence → shows confirmation screen
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Low Conf Game", confidence = 0.50f, thumbnailUrl = null)
+        )
+        val fakeGameRepository = FakeGameRepository()
+        val fakeCreditRepository = FakeCreditRepository()
+
+        val viewModel = createViewModelWithRepositories(
+            gameRepository = fakeGameRepository,
+            creditRepository = fakeCreditRepository
+        )
+        advanceUntilIdle()
+
+        // Should be showing confirmation
+        val confirmState = viewModel.uiState.first()
+        assertTrue(confirmState.showConfirmation)
+
+        // User confirms the game
+        val events = mutableListOf<GenerationEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        viewModel.onConfirmGame()
+        advanceUntilIdle()
+        job.cancel()
+
+        // Verify gameTitleDisplay was set and navigation happened
+        val state = viewModel.uiState.first()
+        assertEquals("Low Conf Game", state.gameTitleDisplay)
+        val navigateEvent = events.filterIsInstance<GenerationEvent.NavigateToRules>().firstOrNull()
+        assertNotNull(navigateEvent)
+    }
+
     private fun createViewModelWithRepositories(
         imageUri: String = "file:///test/image.jpg",
         gameRepository: FakeGameRepository = FakeGameRepository(),

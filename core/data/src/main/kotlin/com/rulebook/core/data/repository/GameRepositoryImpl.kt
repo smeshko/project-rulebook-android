@@ -19,7 +19,8 @@ import java.util.UUID
  */
 class GameRepositoryImpl(
     private val gameDao: GameDao,
-    private val rulesDao: RulesDao
+    private val rulesDao: RulesDao,
+    private val transactionRunner: suspend (suspend () -> Unit) -> Unit
 ) : GameRepository {
 
     override suspend fun getGames(): Result<List<Game>> = safeCall {
@@ -55,10 +56,11 @@ class GameRepositoryImpl(
         val gameEntity = game.copy(id = generatedId).toEntity()
         val rulesEntity = rules.toEntity(generatedId, rawJson)
 
-        // Insert both entities (no explicit transaction needed for in-memory fake DAOs in tests)
-        // In real Room implementation, this would be wrapped in a transaction
-        gameDao.insert(gameEntity)
-        rulesDao.insert(rulesEntity)
+        // Insert both entities atomically — rollback both if either fails
+        transactionRunner {
+            gameDao.insert(gameEntity)
+            rulesDao.insert(rulesEntity)
+        }
 
         // Return the generated game ID
         generatedId

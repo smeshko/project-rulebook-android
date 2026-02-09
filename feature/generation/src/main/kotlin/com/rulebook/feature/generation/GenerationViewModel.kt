@@ -204,7 +204,7 @@ class GenerationViewModel(
     fun onConfirmGame() {
         val scanResult = _uiState.value.scanResult ?: return
         val confidence = scanResult.confidence
-        _uiState.update { it.copy(showConfirmation = false) }
+        _uiState.update { it.copy(showConfirmation = false, gameTitleDisplay = scanResult.gameTitle) }
         trackScanConfirmed(confidence)
         updatePhase(ScanPhase.GENERATING_RULES)
         // Story 5.6: Generate rules for the confirmed game
@@ -377,9 +377,25 @@ class GenerationViewModel(
             lastAccessedAt = currentTimeMillis
         )
 
-        // Store a simple JSON representation for rawJson field
-        // Future: Could use proper kotlinx.serialization if needed
-        val rawJson = """{"gameTitle":"$gameTitle","timestamp":$currentTimeMillis}"""
+        // Build a JSON representation of the rules for future re-parsing
+        // Uses simple escaping to avoid Android framework dependencies in tests
+        fun escapeJson(s: String) = s
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t")
+
+        val rawJson = buildString {
+            append("{")
+            append("\"gameTitle\":\"${escapeJson(gameTitle)}\",")
+            append("\"overview\":\"${escapeJson(rules.overview.content)}\",")
+            append("\"setup\":\"${escapeJson(rules.setup.content)}\",")
+            append("\"firstRound\":\"${escapeJson(rules.firstRound.content)}\",")
+            append("\"advanced\":\"${escapeJson(rules.advanced.content)}\",")
+            append("\"timestamp\":$currentTimeMillis")
+            append("}")
+        }
 
         // Save game and rules to database
         when (val saveResult = gameRepository.saveGameWithRules(game, rules, rawJson)) {

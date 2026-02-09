@@ -30,7 +30,11 @@ class GameRepositoryImplTest {
     fun setup() {
         fakeGameDao = FakeGameDao()
         fakeRulesDao = FakeRulesDao()
-        repository = GameRepositoryImpl(gameDao = fakeGameDao, rulesDao = fakeRulesDao)
+        repository = GameRepositoryImpl(
+            gameDao = fakeGameDao,
+            rulesDao = fakeRulesDao,
+            transactionRunner = { block -> block() }
+        )
     }
 
     // ==================== getGames Tests ====================
