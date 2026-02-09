@@ -99,6 +99,15 @@ class GenerationViewModelTest {
     }
 
     @Test
+    fun `initial state has showError set to false`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.showError)
+    }
+
+    @Test
     fun `successful analysis has no error`() = runTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
