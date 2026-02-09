@@ -201,7 +201,7 @@ class GenerationViewModel(
         trackScanConfirmed(confidence)
         updatePhase(ScanPhase.GENERATING_RULES)
         // Story 5.6: Generate rules for the confirmed game
-        viewModelScope.launch {
+        generationJob = viewModelScope.launch {
             generateRules(scanResult.gameTitle, scanResult.thumbnailUrl)
         }
     }
@@ -243,7 +243,7 @@ class GenerationViewModel(
         trackScanManualNameSubmitted(name)
         updatePhase(ScanPhase.GENERATING_RULES)
         // Story 5.6: Generate rules for the manually entered game
-        viewModelScope.launch {
+        generationJob = viewModelScope.launch {
             generateRules(name, thumbnailUrl)
         }
     }
