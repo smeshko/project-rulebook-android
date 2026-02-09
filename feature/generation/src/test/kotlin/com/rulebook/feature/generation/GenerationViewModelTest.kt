@@ -1349,6 +1349,30 @@ class GenerationViewModelTest {
     }
 
     @Test
+    fun `credit deduction exception after save still navigates`() = runTest {
+        val fakeGameRepository = FakeGameRepository()
+        val fakeCreditRepository = FakeCreditRepository()
+        fakeCreditRepository.shouldThrowOnDeduct = true // Simulate DataStore IO error
+
+        val viewModel = createViewModelWithRepositories(
+            gameRepository = fakeGameRepository,
+            creditRepository = fakeCreditRepository
+        )
+
+        val events = mutableListOf<GenerationEvent>()
+        val job = launch {
+            viewModel.events.toList(events)
+        }
+
+        advanceUntilIdle()
+        job.cancel()
+
+        // Still navigates even if credit deduction throws
+        val navigateEvent = events.filterIsInstance<GenerationEvent.NavigateToRules>().firstOrNull()
+        assertNotNull(navigateEvent)
+    }
+
+    @Test
     fun `confirm path sets gameTitleDisplay and navigates to rules after save`() = runTest {
         // Low confidence → shows confirmation screen
         fakeScanRepository.analyzeResult = Result.Success(
@@ -1522,6 +1546,7 @@ class FakeCreditRepository : com.rulebook.core.data.repository.CreditRepository 
 
     var deductResult = true
     var deductCallCount = 0
+    var shouldThrowOnDeduct = false
 
     override val creditBalance: kotlinx.coroutines.flow.Flow<Int> =
         kotlinx.coroutines.flow.MutableStateFlow(3)
@@ -1532,6 +1557,7 @@ class FakeCreditRepository : com.rulebook.core.data.repository.CreditRepository 
 
     override suspend fun deductCredit(): Boolean {
         deductCallCount++
+        if (shouldThrowOnDeduct) throw RuntimeException("Simulated DataStore IO error")
         return deductResult
     }
 
