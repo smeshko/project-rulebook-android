@@ -245,12 +245,9 @@ class GenerationViewModel(
 
         viewModelScope.launch {
             try {
-                analyticsManager.trackEvent(
-                    "scan_cancelled",
-                    mapOf(
-                        "phase" to _uiState.value.currentPhase.name,
-                        "progress" to _uiState.value.overallProgress.toString()
-                    )
+                analyticsManager.trackScanCancelled(
+                    phase = _uiState.value.currentPhase.name,
+                    progress = _uiState.value.overallProgress
                 )
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
                 throw e
@@ -386,7 +383,7 @@ class GenerationViewModel(
 
     private fun trackScanStarted() {
         try {
-            analyticsManager.trackEvent("scan_started")
+            analyticsManager.trackScanStarted()
         } catch (e: kotlin.coroutines.cancellation.CancellationException) {
             throw e
         } catch (e: Exception) {
