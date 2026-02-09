@@ -120,6 +120,7 @@ class GenerationViewModelTest {
 
         assertTrue(state.showError)
         assertNotNull(state.error)
+        assertEquals("no_internet", state.errorType)
     }
 
     @Test
@@ -139,7 +140,13 @@ class GenerationViewModelTest {
         eventJob.cancel()
 
         assertFalse(viewModel.uiState.first().showError)
+        assertNull(viewModel.uiState.first().errorType)
         assertTrue(events.any { it is GenerationEvent.RetryFromCamera })
+
+        // Verify analytics tracks the correct error type (not "unknown")
+        val retryEvent = fakeAnalyticsManager.trackedEvents.firstOrNull { it.name == "scan_retry_from_error" }
+        assertNotNull(retryEvent)
+        assertEquals("no_internet", retryEvent.properties["error_type"])
     }
 
     @Test
@@ -153,7 +160,13 @@ class GenerationViewModelTest {
 
         val state = viewModel.uiState.first()
         assertFalse(state.showError)
+        assertNull(state.errorType)
         assertTrue(state.showManualEntry)
+
+        // Verify analytics tracks the correct error type (not "unknown")
+        val manualEntryEvent = fakeAnalyticsManager.trackedEvents.firstOrNull { it.name == "scan_manual_entry_from_error" }
+        assertNotNull(manualEntryEvent)
+        assertEquals("no_internet", manualEntryEvent.properties["error_type"])
     }
 
     @Test

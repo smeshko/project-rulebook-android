@@ -173,7 +173,13 @@ class GenerationViewModel(
                         } else {
                             // Story 5.9: Primary failed and fallback not attempted (non-retryable error)
                             // Show error screen instead of navigating back
-                            _uiState.update { it.copy(error = finalResult.message, showError = true) }
+                            _uiState.update {
+                                it.copy(
+                                    error = finalResult.message,
+                                    showError = true,
+                                    errorType = categorizeError(finalResult.cause)
+                                )
+                            }
                         }
                     }
                 }
@@ -183,7 +189,7 @@ class GenerationViewModel(
                 // Story 5.9: Generic exception shows error screen
                 Log.e(TAG, "Generation failed", e)
                 val message = "Something went wrong. Please try again."
-                _uiState.update { it.copy(error = message, showError = true) }
+                _uiState.update { it.copy(error = message, showError = true, errorType = categorizeError(e)) }
             }
         }
     }
@@ -314,9 +320,10 @@ class GenerationViewModel(
      * Clears error state and emits RetryFromCamera event to navigate back to camera.
      */
     fun onRetry() {
-        _uiState.update { it.copy(showError = false, error = null) }
+        val errorType = _uiState.value.errorType ?: "unknown"
+        _uiState.update { it.copy(showError = false, error = null, errorType = null) }
         viewModelScope.launch {
-            trackScanRetryFromError(_uiState.value.error ?: "unknown")
+            trackScanRetryFromError(errorType)
             _events.send(GenerationEvent.RetryFromCamera)
         }
     }
@@ -326,9 +333,10 @@ class GenerationViewModel(
      * Clears error state and shows manual entry UI.
      */
     fun onErrorManualEntry() {
-        _uiState.update { it.copy(showError = false, error = null, showManualEntry = true) }
+        val errorType = _uiState.value.errorType ?: "unknown"
+        _uiState.update { it.copy(showError = false, error = null, errorType = null, showManualEntry = true) }
         viewModelScope.launch {
-            trackScanManualEntryFromError(_uiState.value.error ?: "unknown")
+            trackScanManualEntryFromError(errorType)
         }
     }
 
@@ -409,8 +417,9 @@ class GenerationViewModel(
             }
             is Result.Error -> {
                 // Story 5.9: Rules generation error shows error screen
-                _uiState.update { it.copy(error = result.message, showError = true) }
-                trackScanFailed(categorizeError(result.cause))
+                val errType = categorizeError(result.cause)
+                _uiState.update { it.copy(error = result.message, showError = true, errorType = errType) }
+                trackScanFailed(errType)
                 // Do NOT advance phase on error
             }
         }
@@ -431,14 +440,14 @@ class GenerationViewModel(
         val rules = currentState.rules ?: run {
             // Story 5.9: Save validation error shows error screen
             Log.e(TAG, "saveRulesAndNavigate called but rules is null")
-            _uiState.update { it.copy(error = "No rules to save", showError = true) }
+            _uiState.update { it.copy(error = "No rules to save", showError = true, errorType = "save_validation") }
             return
         }
 
         val gameTitle = currentState.gameTitleDisplay ?: run {
             // Story 5.9: Save validation error shows error screen
             Log.e(TAG, "saveRulesAndNavigate called but gameTitleDisplay is null")
-            _uiState.update { it.copy(error = "No game title available", showError = true) }
+            _uiState.update { it.copy(error = "No game title available", showError = true, errorType = "save_validation") }
             return
         }
 
@@ -500,7 +509,7 @@ class GenerationViewModel(
             is Result.Error -> {
                 // Story 5.9: Save error shows error screen
                 Log.e(TAG, "Failed to save game and rules", saveResult.cause)
-                _uiState.update { it.copy(error = saveResult.message, showError = true) }
+                _uiState.update { it.copy(error = saveResult.message, showError = true, errorType = categorizeError(saveResult.cause)) }
             }
         }
     }
