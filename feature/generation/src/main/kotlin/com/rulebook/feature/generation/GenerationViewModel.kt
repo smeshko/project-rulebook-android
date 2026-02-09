@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val TAG = "GenerationViewModel"
+private const val FALLBACK_CONFIDENCE_THRESHOLD = 0.15f
 
 /**
  * ViewModel for the Generation/Progress screen.
@@ -81,7 +82,7 @@ class GenerationViewModel(
      *
      * Executes image processing and analysis, advancing through scan phases.
      * On success, stores the [ScanResult] and advances to IDENTIFYING_GAME.
-     * On error, sets error state and emits an error event.
+     * On error, attempts fallback AI model if appropriate, or shows manual entry.
      */
     private fun startGeneration() {
         generationJob = viewModelScope.launch {
@@ -91,14 +92,56 @@ class GenerationViewModel(
                 // Phase 1: Processing Image
                 updatePhase(ScanPhase.PROCESSING_IMAGE)
 
-                // Phase 2: Analyzing Image
+                // Phase 2: Analyzing Image (Primary Model)
                 updatePhase(ScanPhase.ANALYZING_IMAGE)
                 val imageUri = _uiState.value.imageUri
-                val result = scanRepository.analyzeImage(imageUri)
+                val primaryResult = scanRepository.analyzeImage(imageUri)
 
-                when (result) {
+                // Story 5.8: Check if fallback is needed
+                val shouldFallback = when (primaryResult) {
+                    is Result.Success -> primaryResult.data.confidence < FALLBACK_CONFIDENCE_THRESHOLD
+                    is Result.Error -> isRetryableError(primaryResult.cause)
+                }
+
+                val finalResult = if (shouldFallback) {
+                    // Track fallback trigger details
+                    val primaryErrorType = if (primaryResult is Result.Error) categorizeError(primaryResult.cause) else null
+                    val primaryConfidence = if (primaryResult is Result.Success) primaryResult.data.confidence else null
+
+                    // Update UI to show fallback in progress
+                    _uiState.update {
+                        it.copy(
+                            isFallbackInProgress = true,
+                            fallbackMessage = "Trying alternative recognition..."
+                        )
+                    }
+
+                    // Attempt fallback model
+                    val fallbackResult = scanRepository.analyzeImageFallback(imageUri)
+
+                    // Clear fallback UI state
+                    _uiState.update {
+                        it.copy(
+                            isFallbackInProgress = false,
+                            fallbackMessage = null
+                        )
+                    }
+
+                    // Track fallback result
+                    trackScanFallbackUsed(
+                        primaryErrorType = primaryErrorType ?: "low_confidence",
+                        primaryConfidence = primaryConfidence,
+                        fallbackResult = if (fallbackResult is Result.Success) "success" else "failure"
+                    )
+
+                    fallbackResult
+                } else {
+                    primaryResult
+                }
+
+                when (finalResult) {
                     is Result.Success -> {
-                        val scanResult = result.data
+                        val scanResult = finalResult.data
                         _uiState.update { it.copy(scanResult = scanResult) }
                         updatePhase(ScanPhase.IDENTIFYING_GAME)
 
@@ -119,8 +162,19 @@ class GenerationViewModel(
                         }
                     }
                     is Result.Error -> {
-                        _uiState.update { it.copy(error = result.message) }
-                        _events.send(GenerationEvent.Error(result.message))
+                        // Story 5.8: On complete failure after fallback, offer manual entry
+                        if (shouldFallback) {
+                            // Both primary and fallback failed
+                            trackScanFallbackFailed(
+                                primaryErrorType = if (primaryResult is Result.Error) categorizeError(primaryResult.cause) else "low_confidence",
+                                fallbackErrorType = categorizeError(finalResult.cause)
+                            )
+                            _uiState.update { it.copy(showManualEntry = true) }
+                        } else {
+                            // Primary failed and fallback not attempted (non-retryable error)
+                            _uiState.update { it.copy(error = finalResult.message) }
+                            _events.send(GenerationEvent.Error(finalResult.message))
+                        }
                     }
                 }
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
@@ -429,6 +483,42 @@ class GenerationViewModel(
     }
 
     /**
+     * Determines if an error is retryable and should trigger fallback.
+     * Story 5.8: Fallback should be attempted for:
+     * - Timeout errors (retryable server issue)
+     * - Server errors (5xx)
+     * - Rate limiting (429)
+     *
+     * Fallback should NOT be attempted for:
+     * - No internet (UnknownHostException) - fallback will also fail
+     * - Client errors (4xx except 429) - indicates request problem, not model problem
+     */
+    private fun isRetryableError(cause: Throwable?): Boolean {
+        return when (cause) {
+            is java.net.SocketTimeoutException -> true
+            is java.net.UnknownHostException -> false
+            else -> {
+                // Check for HttpException by class name to avoid direct dependency
+                if (cause?.javaClass?.simpleName == "HttpException") {
+                    try {
+                        val codeMethod = cause.javaClass.getMethod("code")
+                        val statusCode = codeMethod.invoke(cause) as? Int
+                        when (statusCode) {
+                            429 -> true // Too many requests - retry with fallback
+                            in 500..599 -> true // Server error - retry with fallback
+                            else -> false // Client error (4xx) - don't retry
+                        }
+                    } catch (e: Exception) {
+                        false
+                    }
+                } else {
+                    false
+                }
+            }
+        }
+    }
+
+    /**
      * Categorizes an error throwable into a user-friendly error type string
      * for analytics tracking.
      */
@@ -474,6 +564,39 @@ class GenerationViewModel(
             throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to track scan failed analytics", e)
+        }
+    }
+
+    private fun trackScanFallbackUsed(primaryErrorType: String, primaryConfidence: Float?, fallbackResult: String) {
+        try {
+            val properties = mutableMapOf(
+                "primary_error_type" to primaryErrorType,
+                "fallback_result" to fallbackResult
+            )
+            if (primaryConfidence != null) {
+                properties["primary_confidence"] = primaryConfidence.toString()
+            }
+            analyticsManager.trackEvent("scan_fallback_used", properties)
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to track scan fallback used analytics", e)
+        }
+    }
+
+    private fun trackScanFallbackFailed(primaryErrorType: String, fallbackErrorType: String) {
+        try {
+            analyticsManager.trackEvent(
+                "scan_fallback_failed",
+                mapOf(
+                    "primary_error_type" to primaryErrorType,
+                    "fallback_error_type" to fallbackErrorType
+                )
+            )
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to track scan fallback failed analytics", e)
         }
     }
 
