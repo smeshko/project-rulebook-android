@@ -150,7 +150,13 @@ fun RulebookNavHost(
             popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
             GenerationScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToRules = { gameId ->
+                    navController.navigate(Route.Rules.createRoute(gameId)) {
+                        // Clear Generation from back stack so back from Rules goes to Library
+                        popUpTo(Route.Library.route)
+                    }
+                }
             )
         }
 
