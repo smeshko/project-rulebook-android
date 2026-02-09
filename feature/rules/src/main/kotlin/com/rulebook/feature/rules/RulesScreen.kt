@@ -214,7 +214,7 @@ private fun RulesSuccessState(
         // Overview section
         item {
             CollapsibleRuleSection(
-                title = rules.overview.title,
+                title = rules.overview.title.ifBlank { "Overview" },
                 content = rules.overview.content,
                 items = rules.overview.items,
                 accentColor = RulebookTheme.colors.orange,
@@ -228,7 +228,7 @@ private fun RulesSuccessState(
         // Setup section
         item {
             CollapsibleRuleSection(
-                title = rules.setup.title,
+                title = rules.setup.title.ifBlank { "Setup" },
                 content = rules.setup.content,
                 items = rules.setup.items,
                 accentColor = RulebookTheme.colors.blue,
@@ -242,7 +242,7 @@ private fun RulesSuccessState(
         // First Round section
         item {
             CollapsibleRuleSection(
-                title = rules.firstRound.title,
+                title = rules.firstRound.title.ifBlank { "First Round" },
                 content = rules.firstRound.content,
                 items = rules.firstRound.items,
                 accentColor = RulebookTheme.colors.yellow,
@@ -256,7 +256,7 @@ private fun RulesSuccessState(
         // Advanced section
         item {
             CollapsibleRuleSection(
-                title = rules.advanced.title,
+                title = rules.advanced.title.ifBlank { "Advanced" },
                 content = rules.advanced.content,
                 items = rules.advanced.items,
                 accentColor = RulebookTheme.colors.purple,
