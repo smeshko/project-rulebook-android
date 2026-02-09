@@ -173,13 +173,15 @@ class GenerationViewModel(
                         } else {
                             // Story 5.9: Primary failed and fallback not attempted (non-retryable error)
                             // Show error screen instead of navigating back
+                            val errType = categorizeError(finalResult.cause)
                             _uiState.update {
                                 it.copy(
                                     error = finalResult.message,
                                     showError = true,
-                                    errorType = categorizeError(finalResult.cause)
+                                    errorType = errType
                                 )
                             }
+                            trackScanFailed(errType)
                         }
                     }
                 }
@@ -188,8 +190,10 @@ class GenerationViewModel(
             } catch (e: Exception) {
                 // Story 5.9: Generic exception shows error screen
                 Log.e(TAG, "Generation failed", e)
+                val errType = categorizeError(e)
                 val message = "Something went wrong. Please try again."
-                _uiState.update { it.copy(error = message, showError = true, errorType = categorizeError(e)) }
+                _uiState.update { it.copy(error = message, showError = true, errorType = errType) }
+                trackScanFailed(errType)
             }
         }
     }
