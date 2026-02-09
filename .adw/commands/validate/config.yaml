@@ -6,23 +6,9 @@
 enabled: true
 timeout_seconds: 1200
 
-# pre_hook: null  # Shell command before phase
-# post_hook: null  # Shell command after phase
+# input_files:  # Variable → file mappings for templates
+#   prd: docs/prd.md
+#   architecture: docs/architecture.md
 
-input_files:
-  docs: docs/README.md
-  getting-started: docs/development/getting-started.md
-
-# === Validate Phase Settings ===
-# enable_evidence: true  # Run evidence validator
-enable_review: true
-enable_tests: true
-# test_command: null  # Custom test command (auto-detect)
-test_timeout_seconds: 600
-# review_prompt: null  # Path to custom review prompt
-# review_focus: ["security", "error_handling", "edge_cases"]  # Code review focus areas
-max_iterations: 2
-# max_fix_attempts_per_issue: 2  # Max attempts per issue
-# stall_threshold: 2  # Iterations before stall
-triage_mode: auto
-# auto_dismiss_info: true  # Auto-dismiss info-level issues
+llm:
+  model: opus

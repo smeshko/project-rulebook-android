@@ -6,9 +6,14 @@
 enabled: true
 timeout_seconds: 900
 
-# pre_hook: null  # Shell command before phase
-# post_hook: null  # Shell command after phase
+# input_files:  # Variable → file mappings for templates
+#   prd: docs/prd.md
+#   architecture: docs/architecture.md
 
-input_files:
-  docs: docs/README.md
-  getting-started: docs/development/getting-started.md
+llm:
+  model: haiku
+
+# === Document Phase Settings ===
+# doc_mappings:  # Source-to-docs directory mappings
+#   - source_pattern: "src/**/*.py"
+#     docs_dir: docs/api
