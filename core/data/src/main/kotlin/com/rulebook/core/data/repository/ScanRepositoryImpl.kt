@@ -18,7 +18,6 @@ import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
 private const val MAX_IMAGE_DIMENSION = 1920
-private const val FALLBACK_CONFIDENCE_THRESHOLD = 0.15f
 
 class ScanRepositoryImpl(
     private val api: RulebookApi,

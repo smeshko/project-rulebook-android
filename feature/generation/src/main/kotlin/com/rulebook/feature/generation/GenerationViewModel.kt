@@ -484,35 +484,33 @@ class GenerationViewModel(
 
     /**
      * Determines if an error is retryable and should trigger fallback.
-     * Story 5.8: Fallback should be attempted for:
-     * - Timeout errors (retryable server issue)
-     * - Server errors (5xx)
-     * - Rate limiting (429)
-     *
-     * Fallback should NOT be attempted for:
+     * Story 5.8: Fallback should NOT be attempted for:
      * - No internet (UnknownHostException) - fallback will also fail
      * - Client errors (4xx except 429) - indicates request problem, not model problem
+     *
+     * All other errors default to retryable (fallback attempted).
      */
     private fun isRetryableError(cause: Throwable?): Boolean {
+        if (cause == null) return false // No cause info — cannot determine retryability
         return when (cause) {
-            is java.net.SocketTimeoutException -> true
-            is java.net.UnknownHostException -> false
+            is java.net.UnknownHostException -> false // No internet — fallback will also fail
             else -> {
                 // Check for HttpException by class name to avoid direct dependency
-                if (cause?.javaClass?.simpleName == "HttpException") {
+                if (cause.javaClass.simpleName == "HttpException") {
                     try {
                         val codeMethod = cause.javaClass.getMethod("code")
                         val statusCode = codeMethod.invoke(cause) as? Int
                         when (statusCode) {
                             429 -> true // Too many requests - retry with fallback
                             in 500..599 -> true // Server error - retry with fallback
-                            else -> false // Client error (4xx) - don't retry
+                            in 400..499 -> false // Client error (4xx) - don't retry
+                            else -> true // Unknown status - try fallback
                         }
                     } catch (e: Exception) {
-                        false
+                        true // Reflection failed - try fallback as safe default
                     }
                 } else {
-                    false
+                    true // Other error types (IOException, SSL, etc.) - try fallback
                 }
             }
         }
