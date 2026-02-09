@@ -17,6 +17,13 @@ sealed class GenerationEvent {
     data object Cancelled : GenerationEvent()
 
     /**
+     * Event indicating the user chose to retry from the error screen.
+     * The UI should navigate back to the camera screen to take a new photo.
+     * Story 5.9: Retry failed recognition.
+     */
+    data object RetryFromCamera : GenerationEvent()
+
+    /**
      * Event indicating an error occurred during the scan.
      * The UI should show an error state or navigate to retry.
      *

@@ -51,8 +51,13 @@ fun GenerationScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is GenerationEvent.Cancelled -> onNavigateBack()
+                is GenerationEvent.RetryFromCamera -> {
+                    // Story 5.9: User chose to retry from error screen
+                    onNavigateBack()
+                }
                 is GenerationEvent.Error -> {
-                    // Error handling will be expanded in Story 5.9
+                    // Story 5.9: Error events replaced with in-screen error state
+                    // This branch kept for backward compatibility during migration
                     onNavigateBack()
                 }
                 is GenerationEvent.AutoProceeding -> {

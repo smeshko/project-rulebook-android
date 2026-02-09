@@ -171,19 +171,19 @@ class GenerationViewModel(
                             )
                             _uiState.update { it.copy(showManualEntry = true) }
                         } else {
-                            // Primary failed and fallback not attempted (non-retryable error)
-                            _uiState.update { it.copy(error = finalResult.message) }
-                            _events.send(GenerationEvent.Error(finalResult.message))
+                            // Story 5.9: Primary failed and fallback not attempted (non-retryable error)
+                            // Show error screen instead of navigating back
+                            _uiState.update { it.copy(error = finalResult.message, showError = true) }
                         }
                     }
                 }
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
                 throw e // Respect coroutine cancellation
             } catch (e: Exception) {
+                // Story 5.9: Generic exception shows error screen
                 Log.e(TAG, "Generation failed", e)
                 val message = "Something went wrong. Please try again."
-                _uiState.update { it.copy(error = message) }
-                _events.send(GenerationEvent.Error(message))
+                _uiState.update { it.copy(error = message, showError = true) }
             }
         }
     }
@@ -309,6 +309,29 @@ class GenerationViewModel(
         }
     }
 
+    /**
+     * Story 5.9: Called when the user chooses to retry from the error screen.
+     * Clears error state and emits RetryFromCamera event to navigate back to camera.
+     */
+    fun onRetry() {
+        _uiState.update { it.copy(showError = false, error = null) }
+        viewModelScope.launch {
+            trackScanRetryFromError(_uiState.value.error ?: "unknown")
+            _events.send(GenerationEvent.RetryFromCamera)
+        }
+    }
+
+    /**
+     * Story 5.9: Called when the user chooses manual entry from the error screen.
+     * Clears error state and shows manual entry UI.
+     */
+    fun onErrorManualEntry() {
+        _uiState.update { it.copy(showError = false, error = null, showManualEntry = true) }
+        viewModelScope.launch {
+            trackScanManualEntryFromError(_uiState.value.error ?: "unknown")
+        }
+    }
+
     private fun trackScanAnalysisComplete(confidence: Float, autoProceeded: Boolean) {
         try {
             analyticsManager.trackScanAnalysisComplete(confidence, autoProceeded)
@@ -385,8 +408,8 @@ class GenerationViewModel(
                 saveRulesAndNavigate()
             }
             is Result.Error -> {
-                _uiState.update { it.copy(error = result.message) }
-                _events.send(GenerationEvent.Error(result.message))
+                // Story 5.9: Rules generation error shows error screen
+                _uiState.update { it.copy(error = result.message, showError = true) }
                 trackScanFailed(categorizeError(result.cause))
                 // Do NOT advance phase on error
             }
@@ -406,16 +429,16 @@ class GenerationViewModel(
     private suspend fun saveRulesAndNavigate() {
         val currentState = _uiState.value
         val rules = currentState.rules ?: run {
+            // Story 5.9: Save validation error shows error screen
             Log.e(TAG, "saveRulesAndNavigate called but rules is null")
-            _uiState.update { it.copy(error = "No rules to save") }
-            _events.send(GenerationEvent.Error("No rules to save"))
+            _uiState.update { it.copy(error = "No rules to save", showError = true) }
             return
         }
 
         val gameTitle = currentState.gameTitleDisplay ?: run {
+            // Story 5.9: Save validation error shows error screen
             Log.e(TAG, "saveRulesAndNavigate called but gameTitleDisplay is null")
-            _uiState.update { it.copy(error = "No game title available") }
-            _events.send(GenerationEvent.Error("No game title available"))
+            _uiState.update { it.copy(error = "No game title available", showError = true) }
             return
         }
 
@@ -475,9 +498,9 @@ class GenerationViewModel(
                 _events.send(GenerationEvent.NavigateToRules(gameId))
             }
             is Result.Error -> {
+                // Story 5.9: Save error shows error screen
                 Log.e(TAG, "Failed to save game and rules", saveResult.cause)
-                _uiState.update { it.copy(error = saveResult.message) }
-                _events.send(GenerationEvent.Error(saveResult.message))
+                _uiState.update { it.copy(error = saveResult.message, showError = true) }
             }
         }
     }
@@ -582,6 +605,26 @@ class GenerationViewModel(
             throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to track scan fallback failed analytics", e)
+        }
+    }
+
+    private fun trackScanRetryFromError(errorType: String) {
+        try {
+            analyticsManager.trackScanRetryFromError(errorType)
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to track scan retry from error analytics", e)
+        }
+    }
+
+    private fun trackScanManualEntryFromError(errorType: String) {
+        try {
+            analyticsManager.trackScanManualEntryFromError(errorType)
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to track scan manual entry from error analytics", e)
         }
     }
 

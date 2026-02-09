@@ -186,4 +186,28 @@ interface AnalyticsManager {
             )
         )
     }
+
+    /**
+     * Track when user chooses to retry from the error screen (Story 5.9).
+     *
+     * @param errorType The error type that triggered the error screen
+     */
+    fun trackScanRetryFromError(errorType: String) {
+        trackEvent(
+            "scan_retry_from_error",
+            mapOf("error_type" to errorType)
+        )
+    }
+
+    /**
+     * Track when user chooses manual entry from the error screen (Story 5.9).
+     *
+     * @param errorType The error type that triggered the error screen
+     */
+    fun trackScanManualEntryFromError(errorType: String) {
+        trackEvent(
+            "scan_manual_entry_from_error",
+            mapOf("error_type" to errorType)
+        )
+    }
 }
