@@ -17,6 +17,7 @@ import com.rulebook.feature.camera.CameraScreen
 import com.rulebook.feature.generation.GenerationScreen
 import com.rulebook.feature.library.LibraryScreen
 import com.rulebook.feature.onboarding.OnboardingScreen
+import com.rulebook.feature.rules.RulesScreen
 import com.rulebook.feature.settings.SettingsScreen
 
 /**
@@ -197,7 +198,10 @@ fun RulebookNavHost(
             popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) { backStackEntry ->
             val gameId = backStackEntry.arguments?.getString(RulebookNavArgs.GAME_ID) ?: ""
-            RulesPlaceholder(gameId = gameId)
+            RulesScreen(
+                gameId = gameId,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

@@ -190,6 +190,10 @@ private class FakeGameRepository(
         return Result.Success(Unit)
     }
 
+    override suspend fun getRulesForGame(gameId: String): Result<com.rulebook.core.model.Rules> {
+        return Result.Error("Not implemented")
+    }
+
     override suspend fun saveGameWithRules(
         game: Game,
         rules: com.rulebook.core.model.Rules,

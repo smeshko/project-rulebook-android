@@ -5,7 +5,8 @@ import com.rulebook.core.common.safeCall
 import com.rulebook.core.database.GameDao
 import com.rulebook.core.database.RulesDao
 import com.rulebook.core.database.entity.GameEntity
-import com.rulebook.core.database.entity.RulesEntity
+import com.rulebook.core.database.mapper.toDomain
+import com.rulebook.core.database.mapper.toEntity
 import com.rulebook.core.model.Game
 import com.rulebook.core.model.Rules
 import kotlinx.coroutines.flow.first
@@ -44,6 +45,12 @@ class GameRepositoryImpl(
         }
     }
 
+    override suspend fun getRulesForGame(gameId: String): Result<Rules> = safeCall {
+        val entity = rulesDao.getByGameId(gameId).first()
+            ?: throw IllegalArgumentException("Rules for game with id $gameId not found")
+        entity.toDomain()
+    }
+
     override suspend fun saveGameWithRules(
         game: Game,
         rules: Rules,
@@ -54,7 +61,8 @@ class GameRepositoryImpl(
 
         // Create entities with the generated ID
         val gameEntity = game.copy(id = generatedId).toEntity()
-        val rulesEntity = rules.toEntity(generatedId, rawJson)
+        val rulesEntity = rules.copy(gameId = generatedId)
+            .toEntity(id = UUID.randomUUID().toString(), rawJson = rawJson)
 
         // Insert both entities atomically — rollback both if either fails
         transactionRunner {
@@ -91,18 +99,3 @@ private fun GameEntity.toDomain(): Game = Game(
     lastAccessedAt = lastAccessedAt
 )
 
-/**
- * Converts a Rules domain model to a RulesEntity for database storage.
- *
- * @param gameId The ID of the associated game (foreign key).
- * @param rawJson The raw JSON representation of the rules.
- */
-private fun Rules.toEntity(gameId: String, rawJson: String): RulesEntity = RulesEntity(
-    id = UUID.randomUUID().toString(),
-    gameId = gameId,
-    overview = overview.content,
-    setup = setup.content,
-    firstRound = firstRound.content,
-    advanced = advanced.content,
-    rawJson = rawJson
-)

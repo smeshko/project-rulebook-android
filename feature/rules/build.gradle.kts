@@ -8,4 +8,9 @@ android {
 
 dependencies {
     implementation(project(":core:data"))
+    implementation(libs.coil.compose)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.koin.test)
 }
