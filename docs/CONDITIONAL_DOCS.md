@@ -92,3 +92,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When implementing user-friendly error messages with NetworkErrorMapper
     - When adding analytics for error recovery actions (retry, manual entry from error)
     - When understanding rendering priority chains in conditional UI state management
+
+- docs/features/scan-analytics-events.md
+  - Conditions:
+    - When implementing scan funnel tracking or analytics events
+    - When modifying the scan/generation pipeline to track user behavior
+    - When adding analytics to confidence-based decision points
+    - When tracking error recovery paths (retry, fallback, manual entry)
+    - When aligning Android and iOS analytics event names and properties

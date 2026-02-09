@@ -57,6 +57,14 @@ interface AnalyticsManager {
     }
 
     /**
+     * Track when scan is started (photo captured/selected).
+     * This is a convenience method that fires the "scan_started" event.
+     */
+    fun trackScanStarted() {
+        trackEvent("scan_started")
+    }
+
+    /**
      * Track when a scan credit check is performed (Story 5.1).
      * This is a convenience method that fires the "scan_credit_check" event.
      *
@@ -208,6 +216,23 @@ interface AnalyticsManager {
         trackEvent(
             "scan_manual_entry_from_error",
             mapOf("error_type" to errorType)
+        )
+    }
+
+    /**
+     * Track when user cancels the scan flow.
+     * This is a convenience method that fires the "scan_cancelled" event.
+     *
+     * @param phase The current phase when cancelled (e.g., "ANALYZING", "GENERATING")
+     * @param progress The current progress (0.0-1.0)
+     */
+    fun trackScanCancelled(phase: String, progress: Float) {
+        trackEvent(
+            "scan_cancelled",
+            mapOf(
+                "phase" to phase,
+                "progress" to progress.toString()
+            )
         )
     }
 }
