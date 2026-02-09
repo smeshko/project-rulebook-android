@@ -74,3 +74,12 @@ This guide helps you find relevant documentation based on what you're working on
     - When working with GameRepository or extending game persistence functionality
     - When troubleshooting game save failures or understanding back stack navigation after save
     - When implementing defensive error handling for critical state-changing operations
+
+- docs/features/fallback-ai-model-handling.md
+  - Conditions:
+    - When implementing fallback/retry logic for API calls or model predictions
+    - When handling low-confidence results that need secondary validation
+    - When categorizing errors to determine if a failure is retryable
+    - When adding multi-model strategies to improve reliability
+    - When tracking analytics for fallback attempts and failures
+    - When implementing graceful degradation instead of error states

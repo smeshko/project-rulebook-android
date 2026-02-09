@@ -22,6 +22,16 @@ interface RulebookApi {
     suspend fun analyzeImage(@Body request: AnalyzeRequest): AnalyzeResponse
 
     /**
+     * Analyzes an image using a fallback AI model.
+     * Triggered when primary model fails or returns very low confidence.
+     *
+     * @param request The analyze request containing image data.
+     * @return The analysis response with game identification from fallback model.
+     */
+    @POST("analyze/fallback")
+    suspend fun analyzeImageFallback(@Body request: AnalyzeRequest): AnalyzeResponse
+
+    /**
      * Generates rules for a given game.
      *
      * @param request The generate request with game information.

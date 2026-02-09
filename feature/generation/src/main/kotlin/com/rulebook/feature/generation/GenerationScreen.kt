@@ -133,10 +133,12 @@ internal fun GenerationScreenContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Phase indicator with progress
+                // Story 5.8: Show fallback message when fallback is in progress
+                val currentMessage = uiState.fallbackMessage ?: uiState.currentPhase.message
                 ProgressPhaseIndicator(
                     phases = buildPhaseItems(uiState.currentPhase),
                     overallProgress = uiState.overallProgress,
-                    currentMessage = uiState.currentPhase.message
+                    currentMessage = currentMessage
                 )
             }
 

@@ -152,4 +152,38 @@ interface AnalyticsManager {
             mapOf("error_type" to errorType)
         )
     }
+
+    /**
+     * Track when fallback AI model is used after primary model fails or returns low confidence (Story 5.8).
+     *
+     * @param primaryErrorType The error type from primary model ("low_confidence", "timeout", "server_error", etc.)
+     * @param primaryConfidence The confidence level from primary model, if applicable (null if error)
+     * @param fallbackResult The result of fallback attempt ("success" or "failure")
+     */
+    fun trackScanFallbackUsed(primaryErrorType: String, primaryConfidence: Float?, fallbackResult: String) {
+        val properties = mutableMapOf(
+            "primary_error_type" to primaryErrorType,
+            "fallback_result" to fallbackResult
+        )
+        if (primaryConfidence != null) {
+            properties["primary_confidence"] = primaryConfidence.toString()
+        }
+        trackEvent("scan_fallback_used", properties)
+    }
+
+    /**
+     * Track when both primary and fallback AI models fail (Story 5.8).
+     *
+     * @param primaryErrorType The error type from primary model
+     * @param fallbackErrorType The error type from fallback model
+     */
+    fun trackScanFallbackFailed(primaryErrorType: String, fallbackErrorType: String) {
+        trackEvent(
+            "scan_fallback_failed",
+            mapOf(
+                "primary_error_type" to primaryErrorType,
+                "fallback_error_type" to fallbackErrorType
+            )
+        )
+    }
 }

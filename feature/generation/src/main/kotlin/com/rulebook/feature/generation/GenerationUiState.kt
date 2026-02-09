@@ -18,6 +18,8 @@ import com.rulebook.core.model.ScanResult
  * @param showManualEntry True when the manual game name entry UI should be displayed.
  * @param manualGameName The current text value of the manual game name input.
  * @param rules The generated rules for the identified game, null until generation completes.
+ * @param isFallbackInProgress True when the fallback AI model is being tried.
+ * @param fallbackMessage Message to display during fallback attempt, null otherwise.
  */
 data class GenerationUiState(
     val currentPhase: ScanPhase = ScanPhase.PROCESSING_IMAGE,
@@ -31,4 +33,6 @@ data class GenerationUiState(
     val showManualEntry: Boolean = false,
     val manualGameName: String = "",
     val rules: Rules? = null,
+    val isFallbackInProgress: Boolean = false,
+    val fallbackMessage: String? = null,
 )

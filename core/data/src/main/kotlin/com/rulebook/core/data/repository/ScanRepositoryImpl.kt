@@ -40,6 +40,22 @@ class ScanRepositoryImpl(
             }
         }
 
+    override suspend fun analyzeImageFallback(imageUri: String): Result<ScanResult> =
+        safeCall {
+            val base64 = withContext(Dispatchers.IO) { compressAndEncode(imageUri) }
+            val request = AnalyzeRequest(imageData = base64)
+            val response = api.analyzeImageFallback(request)
+            response.toDomain()
+        }.let { result ->
+            when (result) {
+                is Result.Success -> result
+                is Result.Error -> Result.Error(
+                    message = NetworkErrorMapper.mapToUserMessage(result.cause),
+                    cause = result.cause,
+                )
+            }
+        }
+
     override suspend fun generateRules(gameTitle: String, thumbnailUrl: String?): Result<Rules> =
         safeCall {
             val request = GenerateRequest(gameTitle = gameTitle, thumbnailUrl = thumbnailUrl)
