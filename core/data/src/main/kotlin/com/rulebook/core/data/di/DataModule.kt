@@ -14,7 +14,7 @@ import com.rulebook.core.datastore.RulebookPreferences
 import org.koin.dsl.module
 
 val dataModule = module {
-    single<GameRepository> { GameRepositoryImpl() }
+    single<GameRepository> { GameRepositoryImpl(gameDao = get(), rulesDao = get()) }
     single<OnboardingPreferencesSource> { get<RulebookPreferences>() }
     single<OnboardingRepository> { OnboardingRepositoryImpl(get()) }
     single<CreditPreferencesSource> { get<RulebookPreferences>() }
