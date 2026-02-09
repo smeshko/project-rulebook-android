@@ -147,6 +147,116 @@ class GameRepositoryImplTest {
         val result = repository.deleteGame("nonexistent")
         assertTrue(result is Result.Success)
     }
+
+    // ==================== saveGameWithRules Tests ====================
+
+    @Test
+    fun `saveGameWithRules creates both game and rules entities`() = runTest {
+        val game = com.rulebook.core.model.Game(
+            id = "", // will be generated
+            title = "Catan",
+            thumbnailUrl = "http://example.com/catan.jpg",
+            createdAt = 1000L,
+            lastAccessedAt = 2000L
+        )
+        val rules = com.rulebook.core.model.Rules(
+            gameId = "", // will be set to generated game ID
+            overview = com.rulebook.core.model.RuleSection(
+                title = "Overview",
+                content = "Test overview",
+                items = null
+            ),
+            setup = com.rulebook.core.model.RuleSection(
+                title = "Setup",
+                content = "Test setup",
+                items = null
+            ),
+            firstRound = com.rulebook.core.model.RuleSection(
+                title = "First Round",
+                content = "Test first round",
+                items = null
+            ),
+            advanced = com.rulebook.core.model.RuleSection(
+                title = "Advanced",
+                content = "Test advanced",
+                items = null
+            )
+        )
+        val rawJson = """{"overview":"test"}"""
+
+        val result = repository.saveGameWithRules(game, rules, rawJson)
+
+        assertTrue(result is Result.Success)
+        val gameId = (result as Result.Success).data
+
+        // Verify game was created
+        assertEquals(1, fakeGameDao.getGamesCount())
+        val savedGame = fakeGameDao.getAll().first()[0]
+        assertEquals(gameId, savedGame.id)
+        assertEquals("Catan", savedGame.title)
+
+        // Verify rules were created
+        assertEquals(1, fakeRulesDao.getRulesCount())
+        val savedRules = fakeRulesDao.getByGameId(gameId).first()!!
+        assertEquals(gameId, savedRules.gameId)
+        assertEquals("Test overview", savedRules.overview)
+        assertEquals(rawJson, savedRules.rawJson)
+    }
+
+    @Test
+    fun `saveGameWithRules returns generated UUID as game ID`() = runTest {
+        val game = com.rulebook.core.model.Game(
+            id = "",
+            title = "Catan",
+            thumbnailUrl = null,
+            createdAt = 1000L,
+            lastAccessedAt = 2000L
+        )
+        val rules = com.rulebook.core.model.Rules(
+            gameId = "",
+            overview = com.rulebook.core.model.RuleSection("O", "o", null),
+            setup = com.rulebook.core.model.RuleSection("S", "s", null),
+            firstRound = com.rulebook.core.model.RuleSection("F", "f", null),
+            advanced = com.rulebook.core.model.RuleSection("A", "a", null)
+        )
+
+        val result = repository.saveGameWithRules(game, rules, "{}")
+
+        assertTrue(result is Result.Success)
+        val gameId = (result as Result.Success).data
+
+        // UUID should be non-empty and follow UUID format (basic check)
+        assertTrue(gameId.isNotEmpty())
+        assertTrue(gameId.contains("-"))
+    }
+
+    @Test
+    fun `saveGameWithRules uses same ID for game and rules foreign key`() = runTest {
+        val game = com.rulebook.core.model.Game(
+            id = "",
+            title = "Test Game",
+            thumbnailUrl = null,
+            createdAt = 1000L,
+            lastAccessedAt = 2000L
+        )
+        val rules = com.rulebook.core.model.Rules(
+            gameId = "",
+            overview = com.rulebook.core.model.RuleSection("O", "o", null),
+            setup = com.rulebook.core.model.RuleSection("S", "s", null),
+            firstRound = com.rulebook.core.model.RuleSection("F", "f", null),
+            advanced = com.rulebook.core.model.RuleSection("A", "a", null)
+        )
+
+        val result = repository.saveGameWithRules(game, rules, "{}")
+
+        assertTrue(result is Result.Success)
+        val gameId = (result as Result.Success).data
+
+        val savedGame = fakeGameDao.getById(gameId).first()!!
+        val savedRules = fakeRulesDao.getByGameId(gameId).first()!!
+
+        assertEquals(savedGame.id, savedRules.gameId)
+    }
 }
 
 /**

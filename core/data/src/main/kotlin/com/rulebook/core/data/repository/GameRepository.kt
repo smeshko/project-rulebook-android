@@ -2,6 +2,7 @@ package com.rulebook.core.data.repository
 
 import com.rulebook.core.common.Result
 import com.rulebook.core.model.Game
+import com.rulebook.core.model.Rules
 
 /**
  * Repository interface for game data operations.
@@ -41,4 +42,17 @@ interface GameRepository {
      * @return Result indicating success or failure.
      */
     suspend fun deleteGame(id: String): Result<Unit>
+
+    /**
+     * Saves a game and its associated rules in a single atomic transaction.
+     *
+     * Generates a new UUID for both the game and rules, ensuring referential integrity.
+     * If either insert fails, the entire transaction is rolled back.
+     *
+     * @param game The game to save (id will be overwritten with generated UUID).
+     * @param rules The rules to save (gameId will be overwritten with generated UUID).
+     * @param rawJson The raw JSON representation of the rules for future re-parsing.
+     * @return Result containing the generated game ID on success, or an error.
+     */
+    suspend fun saveGameWithRules(game: Game, rules: Rules, rawJson: String): Result<String>
 }
