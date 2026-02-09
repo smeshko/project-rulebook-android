@@ -1420,6 +1420,206 @@ class GenerationViewModelTest {
             creditRepository = creditRepository
         )
     }
+
+    // =========================================================================
+    // Story 5.8: Fallback AI Model Tests
+    // =========================================================================
+
+    @Test
+    fun `fallback triggered on primary very low confidence`() = runTest {
+        // Primary returns very low confidence (0.10 < 0.15 threshold) → fallback triggered
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Obscure Game", confidence = 0.10f, thumbnailUrl = null)
+        )
+        fakeScanRepository.analyzeFallbackResult = Result.Success(
+            ScanResult(gameTitle = "Fallback Success", confidence = 0.85f, thumbnailUrl = null)
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        // Verify fallback was called
+        assertEquals(1, fakeScanRepository.analyzeCallCount)
+        assertEquals(1, fakeScanRepository.analyzeFallbackCallCount)
+
+        // Verify final state uses fallback result
+        val state = viewModel.uiState.first()
+        assertEquals("Fallback Success", state.scanResult?.gameTitle)
+    }
+
+    @Test
+    fun `fallback triggered on primary timeout error`() = runTest {
+        // Primary returns timeout error → fallback triggered
+        fakeScanRepository.analyzeResult = Result.Error(
+            message = "Timeout",
+            cause = java.net.SocketTimeoutException("Read timed out")
+        )
+        fakeScanRepository.analyzeFallbackResult = Result.Success(
+            ScanResult(gameTitle = "Fallback Success", confidence = 0.85f, thumbnailUrl = null)
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        // Verify fallback was called
+        assertEquals(1, fakeScanRepository.analyzeCallCount)
+        assertEquals(1, fakeScanRepository.analyzeFallbackCallCount)
+
+        // Verify fallback result succeeded
+        val state = viewModel.uiState.first()
+        assertEquals("Fallback Success", state.scanResult?.gameTitle)
+    }
+
+    @Test
+    fun `fallback NOT triggered on no internet error`() = runTest {
+        // Primary returns no internet error → fallback NOT triggered (will also fail)
+        fakeScanRepository.analyzeResult = Result.Error(
+            message = "No internet",
+            cause = java.net.UnknownHostException("api.example.com")
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        // Verify fallback was NOT called
+        assertEquals(1, fakeScanRepository.analyzeCallCount)
+        assertEquals(0, fakeScanRepository.analyzeFallbackCallCount)
+
+        // Verify error state
+        val state = viewModel.uiState.first()
+        assertNotNull(state.error)
+    }
+
+    @Test
+    fun `fallback NOT triggered on high confidence primary success`() = runTest {
+        // Primary returns high confidence (>= 0.80 threshold) → no fallback needed
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Popular Game", confidence = 0.95f, thumbnailUrl = null)
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        // Verify fallback was NOT called
+        assertEquals(1, fakeScanRepository.analyzeCallCount)
+        assertEquals(0, fakeScanRepository.analyzeFallbackCallCount)
+
+        // Verify primary result was used
+        val state = viewModel.uiState.first()
+        assertEquals("Popular Game", state.scanResult?.gameTitle)
+    }
+
+    @Test
+    fun `fallback success continues normal confidence flow`() = runTest {
+        // Primary fails, fallback succeeds with high confidence → auto-proceed
+        fakeScanRepository.analyzeResult = Result.Error("Primary failed", cause = java.net.SocketTimeoutException())
+        fakeScanRepository.analyzeFallbackResult = Result.Success(
+            ScanResult(gameTitle = "Fallback High Conf", confidence = 0.90f, thumbnailUrl = null)
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        // Verify reached SAVING_RULES phase (auto-proceeded due to high confidence)
+        val state = viewModel.uiState.first()
+        assertEquals(ScanPhase.SAVING_RULES, state.currentPhase)
+        assertEquals("Fallback High Conf", state.gameTitleDisplay)
+    }
+
+    @Test
+    fun `fallback failure shows manual entry`() = runTest {
+        // Primary fails, fallback also fails → show manual entry (not error event)
+        fakeScanRepository.analyzeResult = Result.Error("Primary failed", cause = java.net.SocketTimeoutException())
+        fakeScanRepository.analyzeFallbackResult = Result.Error("Fallback failed", cause = Exception("Unknown error"))
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        // Verify showManualEntry is true (not error state)
+        val state = viewModel.uiState.first()
+        assertTrue(state.showManualEntry)
+        assertNull(state.error)
+    }
+
+    @Test
+    fun `fallback updates UI state during attempt`() = runTest {
+        // Capture state changes during fallback
+        fakeScanRepository.analyzeResult = Result.Error("Primary failed", cause = java.net.SocketTimeoutException())
+        fakeScanRepository.analyzeFallbackResult = Result.Success(
+            ScanResult(gameTitle = "Fallback Success", confidence = 0.85f, thumbnailUrl = null)
+        )
+
+        val viewModel = createViewModel()
+        val states = mutableListOf<GenerationUiState>()
+        val job = launch {
+            viewModel.uiState.collect { states.add(it) }
+        }
+
+        advanceUntilIdle()
+        job.cancel()
+
+        // Verify fallback UI state was set during attempt
+        val fallbackActiveState = states.firstOrNull { it.isFallbackInProgress }
+        assertNotNull(fallbackActiveState)
+        assertEquals("Trying alternative recognition...", fallbackActiveState.fallbackMessage)
+
+        // Verify fallback UI state was cleared after completion
+        val finalState = states.last()
+        assertFalse(finalState.isFallbackInProgress)
+        assertNull(finalState.fallbackMessage)
+    }
+
+    @Test
+    fun `fallback tracks scan_fallback_used analytics on success`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Error("Primary timeout", cause = java.net.SocketTimeoutException())
+        fakeScanRepository.analyzeFallbackResult = Result.Success(
+            ScanResult(gameTitle = "Fallback Success", confidence = 0.85f, thumbnailUrl = null)
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        // Verify scan_fallback_used event was tracked
+        val fallbackUsedEvent = fakeAnalyticsManager.trackedEvents.firstOrNull { it.name == "scan_fallback_used" }
+        assertNotNull(fallbackUsedEvent)
+        assertEquals("timeout", fallbackUsedEvent.properties["primary_error_type"])
+        assertEquals("success", fallbackUsedEvent.properties["fallback_result"])
+    }
+
+    @Test
+    fun `fallback tracks scan_fallback_used analytics on low confidence trigger`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Success(
+            ScanResult(gameTitle = "Obscure Game", confidence = 0.10f, thumbnailUrl = null)
+        )
+        fakeScanRepository.analyzeFallbackResult = Result.Success(
+            ScanResult(gameTitle = "Fallback Success", confidence = 0.85f, thumbnailUrl = null)
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        // Verify scan_fallback_used event was tracked with confidence
+        val fallbackUsedEvent = fakeAnalyticsManager.trackedEvents.firstOrNull { it.name == "scan_fallback_used" }
+        assertNotNull(fallbackUsedEvent)
+        assertEquals("low_confidence", fallbackUsedEvent.properties["primary_error_type"])
+        assertEquals("0.1", fallbackUsedEvent.properties["primary_confidence"])
+        assertEquals("success", fallbackUsedEvent.properties["fallback_result"])
+    }
+
+    @Test
+    fun `fallback tracks scan_fallback_failed analytics when both fail`() = runTest {
+        fakeScanRepository.analyzeResult = Result.Error("Primary timeout", cause = java.net.SocketTimeoutException())
+        fakeScanRepository.analyzeFallbackResult = Result.Error("Fallback failed", cause = Exception("Server error"))
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        // Verify scan_fallback_failed event was tracked
+        val fallbackFailedEvent = fakeAnalyticsManager.trackedEvents.firstOrNull { it.name == "scan_fallback_failed" }
+        assertNotNull(fallbackFailedEvent)
+        assertEquals("timeout", fallbackFailedEvent.properties["primary_error_type"])
+        assertEquals("unknown", fallbackFailedEvent.properties["fallback_error_type"])
+    }
 }
 
 /**
@@ -1432,6 +1632,12 @@ class FakeScanRepository : ScanRepository {
     )
     var analyzeCallCount = 0
     var lastAnalyzeUri: String? = null
+
+    var analyzeFallbackResult: Result<ScanResult> = Result.Success(
+        ScanResult(gameTitle = "Fallback Game", confidence = 0.85f, thumbnailUrl = null)
+    )
+    var analyzeFallbackCallCount = 0
+    var lastAnalyzeFallbackUri: String? = null
 
     var generateResult: Result<Rules> = Result.Success(
         Rules(
@@ -1450,6 +1656,12 @@ class FakeScanRepository : ScanRepository {
         analyzeCallCount++
         lastAnalyzeUri = imageUri
         return analyzeResult
+    }
+
+    override suspend fun analyzeImageFallback(imageUri: String): Result<ScanResult> {
+        analyzeFallbackCallCount++
+        lastAnalyzeFallbackUri = imageUri
+        return analyzeFallbackResult
     }
 
     override suspend fun generateRules(gameTitle: String, thumbnailUrl: String?): Result<Rules> {
