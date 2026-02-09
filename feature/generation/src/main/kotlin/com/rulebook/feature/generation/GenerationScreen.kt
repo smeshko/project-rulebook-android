@@ -24,6 +24,7 @@ import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.feature.generation.components.ConfirmationContent
+import com.rulebook.feature.generation.components.ErrorContent
 import com.rulebook.feature.generation.components.ManualEntryContent
 import org.koin.androidx.compose.koinViewModel
 
@@ -51,8 +52,13 @@ fun GenerationScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is GenerationEvent.Cancelled -> onNavigateBack()
+                is GenerationEvent.RetryFromCamera -> {
+                    // Story 5.9: User chose to retry from error screen
+                    onNavigateBack()
+                }
                 is GenerationEvent.Error -> {
-                    // Error handling will be expanded in Story 5.9
+                    // Story 5.9: Error events replaced with in-screen error state
+                    // This branch kept for backward compatibility during migration
                     onNavigateBack()
                 }
                 is GenerationEvent.AutoProceeding -> {
@@ -72,6 +78,8 @@ fun GenerationScreen(
         onRejectGame = viewModel::onRejectGame,
         onManualGameNameChanged = viewModel::onManualGameNameChanged,
         onManualGameNameSubmitted = viewModel::onManualGameNameSubmitted,
+        onRetry = viewModel::onRetry,
+        onErrorManualEntry = viewModel::onErrorManualEntry,
         modifier = modifier
     )
 }
@@ -80,8 +88,11 @@ fun GenerationScreen(
  * Stateless content composable for the generation screen.
  * Separated from the stateful [GenerationScreen] for preview and testing.
  *
- * Conditionally renders the confirmation screen when the confidence is below
- * the auto-proceed threshold, or the progress phase indicator otherwise.
+ * Story 5.9: Rendering priority (highest to lowest):
+ * 1. Error screen (showError)
+ * 2. Manual entry (showManualEntry)
+ * 3. Confirmation screen (showConfirmation)
+ * 4. Progress indicator (default)
  */
 @Composable
 internal fun GenerationScreenContent(
@@ -91,9 +102,19 @@ internal fun GenerationScreenContent(
     onRejectGame: () -> Unit = {},
     onManualGameNameChanged: (String) -> Unit = {},
     onManualGameNameSubmitted: () -> Unit = {},
+    onRetry: () -> Unit = {},
+    onErrorManualEntry: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    if (uiState.showManualEntry) {
+    // Story 5.9: Error screen has highest priority
+    if (uiState.showError) {
+        ErrorContent(
+            errorMessage = uiState.error ?: "Something went wrong. Please try again.",
+            onRetry = onRetry,
+            onManualEntry = onErrorManualEntry,
+            modifier = modifier
+        )
+    } else if (uiState.showManualEntry) {
         ManualEntryContent(
             gameName = uiState.manualGameName,
             onGameNameChanged = onManualGameNameChanged,

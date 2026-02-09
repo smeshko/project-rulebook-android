@@ -20,6 +20,8 @@ import com.rulebook.core.model.ScanResult
  * @param rules The generated rules for the identified game, null until generation completes.
  * @param isFallbackInProgress True when the fallback AI model is being tried.
  * @param fallbackMessage Message to display during fallback attempt, null otherwise.
+ * @param showError True when the error screen should be displayed.
+ * @param errorType Categorized error type for analytics (e.g., "no_internet", "server_error").
  */
 data class GenerationUiState(
     val currentPhase: ScanPhase = ScanPhase.PROCESSING_IMAGE,
@@ -35,4 +37,6 @@ data class GenerationUiState(
     val rules: Rules? = null,
     val isFallbackInProgress: Boolean = false,
     val fallbackMessage: String? = null,
+    val showError: Boolean = false,
+    val errorType: String? = null,
 )

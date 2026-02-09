@@ -99,6 +99,118 @@ class GenerationViewModelTest {
     }
 
     @Test
+    fun `initial state has showError set to false`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.showError)
+    }
+
+    // =========================================================================
+    // Story 5.9: Error Screen Tests
+    // =========================================================================
+
+    @Test
+    fun `non-retryable error shows error screen instead of navigating back`() = runTest {
+        fakeScanRepository.shouldReturnNoInternetError = true
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.showError)
+        assertNotNull(state.error)
+        assertEquals("no_internet", state.errorType)
+    }
+
+    @Test
+    fun `onRetry clears error state and emits RetryFromCamera event`() = runTest {
+        fakeScanRepository.shouldReturnNoInternetError = true
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        // Collect events
+        val events = mutableListOf<GenerationEvent>()
+        val eventJob = launch {
+            viewModel.events.toList(events)
+        }
+
+        viewModel.onRetry()
+        advanceUntilIdle()
+        eventJob.cancel()
+
+        assertFalse(viewModel.uiState.first().showError)
+        assertNull(viewModel.uiState.first().errorType)
+        assertTrue(events.any { it is GenerationEvent.RetryFromCamera })
+
+        // Verify analytics tracks the correct error type (not "unknown")
+        val retryEvent = fakeAnalyticsManager.trackedEvents.firstOrNull { it.name == "scan_retry_from_error" }
+        assertNotNull(retryEvent)
+        assertEquals("no_internet", retryEvent.properties["error_type"])
+    }
+
+    @Test
+    fun `onErrorManualEntry clears error state and shows manual entry`() = runTest {
+        fakeScanRepository.shouldReturnNoInternetError = true
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onErrorManualEntry()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.first()
+        assertFalse(state.showError)
+        assertNull(state.errorType)
+        assertTrue(state.showManualEntry)
+
+        // Verify analytics tracks the correct error type (not "unknown")
+        val manualEntryEvent = fakeAnalyticsManager.trackedEvents.firstOrNull { it.name == "scan_manual_entry_from_error" }
+        assertNotNull(manualEntryEvent)
+        assertEquals("no_internet", manualEntryEvent.properties["error_type"])
+    }
+
+    @Test
+    fun `rules generation error shows error screen in Story 5_9`() = runTest {
+        fakeScanRepository.shouldFailRulesGeneration = true
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.showError)
+        assertNotNull(state.error)
+    }
+
+    @Test
+    fun `save error shows error screen in Story 5_9`() = runTest {
+        val fakeGameRepo = FakeGameRepository()
+        fakeGameRepo.shouldFailSave = true
+        val savedStateHandle = SavedStateHandle(mapOf("imageUri" to "file:///test/image.jpg"))
+        val viewModel = GenerationViewModel(
+            savedStateHandle = savedStateHandle,
+            analyticsManager = fakeAnalyticsManager,
+            scanRepository = fakeScanRepository,
+            gameRepository = fakeGameRepo,
+            creditRepository = FakeCreditRepository(),
+        )
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.showError)
+        assertNotNull(state.error)
+    }
+
+    @Test
+    fun `generic exception shows error screen with friendly message`() = runTest {
+        fakeScanRepository.shouldThrowGenericException = true
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.showError)
+        assertEquals("Something went wrong. Please try again.", state.error)
+    }
+
+    @Test
     fun `successful analysis has no error`() = runTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -487,21 +599,19 @@ class GenerationViewModelTest {
     }
 
     @Test
-    fun `analyzeImage error emits Error event`() = runTest {
+    fun `analyzeImage error shows error screen`() = runTest {
         fakeScanRepository.analyzeResult = Result.Error(
-            message = "No internet connection. Please check your network."
+            message = "No internet connection. Please check your network.",
+            cause = java.net.UnknownHostException("api.example.com")
         )
-        val events = mutableListOf<GenerationEvent>()
 
         val viewModel = createViewModel()
-        val job = launch { viewModel.events.toList(events) }
         advanceUntilIdle()
+        val state = viewModel.uiState.first()
 
-        assertTrue(events.any { it is GenerationEvent.Error })
-        val errorEvent = events.filterIsInstance<GenerationEvent.Error>().first()
-        assertEquals("No internet connection. Please check your network.", errorEvent.message)
-
-        job.cancel()
+        // Story 5.9: Non-retryable error shows error screen
+        assertTrue(state.showError)
+        assertEquals("No internet connection. Please check your network.", state.error)
     }
 
     @Test
@@ -1149,24 +1259,20 @@ class GenerationViewModelTest {
     }
 
     @Test
-    fun `rules generation error emits Error event`() = runTest {
+    fun `rules generation error shows error screen`() = runTest {
         fakeScanRepository.analyzeResult = Result.Success(
             ScanResult(gameTitle = "Catan", confidence = 0.95f, thumbnailUrl = null)
         )
         fakeScanRepository.generateResult = Result.Error(
             message = "Server error. Please try again later."
         )
-        val events = mutableListOf<GenerationEvent>()
 
         val viewModel = createViewModel()
-        val job = launch { viewModel.events.toList(events) }
         advanceUntilIdle()
+        val state = viewModel.uiState.first()
 
-        assertTrue(events.any { it is GenerationEvent.Error })
-        val errorEvent = events.filterIsInstance<GenerationEvent.Error>().last()
-        assertEquals("Server error. Please try again later.", errorEvent.message)
-
-        job.cancel()
+        assertTrue(state.showError)
+        assertEquals("Server error. Please try again later.", state.error)
     }
 
     @Test
@@ -1303,7 +1409,7 @@ class GenerationViewModelTest {
     }
 
     @Test
-    fun `save error emits Error event`() = runTest {
+    fun `save error shows error screen`() = runTest {
         val fakeGameRepository = FakeGameRepository()
         fakeGameRepository.saveGameWithRulesResult = Result.Error("Database error")
         val fakeCreditRepository = FakeCreditRepository()
@@ -1313,17 +1419,12 @@ class GenerationViewModelTest {
             creditRepository = fakeCreditRepository
         )
 
-        val events = mutableListOf<GenerationEvent>()
-        val job = launch {
-            viewModel.events.toList(events)
-        }
-
         advanceUntilIdle()
-        job.cancel()
+        val state = viewModel.uiState.first()
 
-        val errorEvent = events.filterIsInstance<GenerationEvent.Error>().firstOrNull()
-        assertNotNull(errorEvent)
-        assertTrue(errorEvent.message.contains("Database error"))
+        // Story 5.9: Save error shows error screen
+        assertTrue(state.showError)
+        assertTrue(state.error?.contains("Database error") ?: false)
     }
 
     @Test
@@ -1649,9 +1750,20 @@ class FakeScanRepository : ScanRepository {
     var lastGenerateGameTitle: String? = null
     var lastGenerateThumbnailUrl: String? = null
 
+    // Story 5.9: Error test flags
+    var shouldReturnNoInternetError = false
+    var shouldFailRulesGeneration = false
+    var shouldThrowGenericException = false
+
     override suspend fun analyzeImage(imageUri: String): Result<ScanResult> {
         analyzeCallCount++
         lastAnalyzeUri = imageUri
+        if (shouldReturnNoInternetError) {
+            return Result.Error("No internet connection", cause = java.net.UnknownHostException("api.example.com"))
+        }
+        if (shouldThrowGenericException) {
+            throw RuntimeException("Simulated exception")
+        }
         return analyzeResult
     }
 
@@ -1665,6 +1777,9 @@ class FakeScanRepository : ScanRepository {
         generateCallCount++
         lastGenerateGameTitle = gameTitle
         lastGenerateThumbnailUrl = thumbnailUrl
+        if (shouldFailRulesGeneration) {
+            return Result.Error("Failed to generate rules", cause = Exception("AI service error"))
+        }
         return generateResult
     }
 }
@@ -1719,6 +1834,9 @@ class FakeGameRepository : com.rulebook.core.data.repository.GameRepository {
     var lastSavedRules: Rules? = null
     var lastSavedRawJson: String? = null
 
+    // Story 5.9: Error test flag
+    var shouldFailSave = false
+
     override suspend fun getGames(): Result<List<com.rulebook.core.model.Game>> {
         return Result.Success(emptyList())
     }
@@ -1744,6 +1862,9 @@ class FakeGameRepository : com.rulebook.core.data.repository.GameRepository {
         lastSavedGame = game
         lastSavedRules = rules
         lastSavedRawJson = rawJson
+        if (shouldFailSave) {
+            return Result.Error("Database save failed", cause = Exception("SQLite error"))
+        }
         return saveGameWithRulesResult
     }
 }
