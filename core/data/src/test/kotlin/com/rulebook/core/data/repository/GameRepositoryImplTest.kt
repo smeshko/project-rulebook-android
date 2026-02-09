@@ -235,7 +235,10 @@ class GameRepositoryImplTest {
         assertEquals(1, fakeRulesDao.getRulesCount())
         val savedRules = fakeRulesDao.getByGameId(gameId).first()!!
         assertEquals(gameId, savedRules.gameId)
-        assertEquals("Test overview", savedRules.overview)
+        // Rules are stored as JSON with title, content, and items preserved
+        assertTrue(savedRules.overview.contains("\"title\""))
+        assertTrue(savedRules.overview.contains("\"content\""))
+        assertTrue(savedRules.overview.contains("Test overview"))
         assertEquals(rawJson, savedRules.rawJson)
     }
 
