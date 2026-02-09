@@ -83,3 +83,12 @@ This guide helps you find relevant documentation based on what you're working on
     - When adding multi-model strategies to improve reliability
     - When tracking analytics for fallback attempts and failures
     - When implementing graceful degradation instead of error states
+
+- docs/features/retry-failed-recognition.md
+  - Conditions:
+    - When implementing error screens or recovery UIs for failed operations
+    - When adding retry functionality after errors in the scan/generation pipeline
+    - When working with in-screen error states vs navigation-based error handling
+    - When implementing user-friendly error messages with NetworkErrorMapper
+    - When adding analytics for error recovery actions (retry, manual entry from error)
+    - When understanding rendering priority chains in conditional UI state management
