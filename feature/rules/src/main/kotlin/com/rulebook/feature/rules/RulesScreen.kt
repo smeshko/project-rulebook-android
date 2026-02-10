@@ -221,7 +221,8 @@ private fun RulesSuccessState(
                 isExpanded = expandedSections["overview"] ?: false,
                 onToggle = {
                     expandedSections["overview"] = !(expandedSections["overview"] ?: false)
-                }
+                },
+                winCondition = rules.overview.winCondition
             )
         }
 
@@ -348,7 +349,8 @@ private fun RulesScreenSuccessLightPreview() {
         overview = RuleSection(
             title = "Overview",
             content = "Catan is a multiplayer board game about settling an island.",
-            items = null
+            items = null,
+            winCondition = "Be the first player to collect 10 victory points."
         ),
         setup = RuleSection(
             title = "Setup",
@@ -401,7 +403,8 @@ private fun RulesScreenSuccessDarkPreview() {
         overview = RuleSection(
             title = "Overview",
             content = "Catan is a multiplayer board game about settling an island.",
-            items = null
+            items = null,
+            winCondition = "Be the first player to collect 10 victory points."
         ),
         setup = RuleSection(
             title = "Setup",
