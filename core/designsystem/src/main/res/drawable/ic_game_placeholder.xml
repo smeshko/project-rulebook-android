@@ -1,0 +1,27 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Board game placeholder icon - dice and game board silhouette -->
+    <!-- Brutalist aesthetic with simple geometric shapes -->
+    <path
+        android:fillColor="#8E8E93"
+        android:pathData="M3,3h18v18h-18z"
+        android:strokeWidth="2"
+        android:strokeColor="#8E8E93"/>
+    <!-- Grid pattern representing game board -->
+    <path
+        android:strokeColor="#8E8E93"
+        android:strokeWidth="1"
+        android:pathData="M3,9h18M3,15h18M9,3v18M15,3v18"/>
+    <!-- Simplified die in center -->
+    <path
+        android:fillColor="#8E8E93"
+        android:pathData="M10.5,10.5h3v3h-3z"/>
+    <circle
+        android:fillColor="#FFFFFF"
+        android:cx="12"
+        android:cy="12"
+        android:radius="0.8"/>
+</vector>
