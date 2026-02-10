@@ -151,6 +151,41 @@ class LibraryViewModelTest {
         assertEquals("Network error", viewModel.uiState.value.error)
         assertFalse(viewModel.uiState.value.isRefreshing)
     }
+
+    // ==================== Offline Scenario Tests ====================
+
+    @Test
+    fun `loadGames succeeds with locally stored games simulating offline`() = runTest(testDispatcher) {
+        // Simulate offline scenario: repository returns locally stored games
+        val localGames = listOf(
+            Game(
+                id = "game-1",
+                title = "Catan",
+                thumbnailUrl = "http://example.com/catan.jpg",
+                createdAt = 1000L,
+                lastAccessedAt = 2000L
+            ),
+            Game(
+                id = "game-2",
+                title = "Ticket to Ride",
+                thumbnailUrl = null,
+                createdAt = 1500L,
+                lastAccessedAt = 2500L
+            )
+        )
+        val repository = FakeGameRepository(games = localGames)
+
+        val viewModel = LibraryViewModel(repository)
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertFalse(state.isEmpty)
+        assertFalse(state.isLoading)
+        assertEquals(2, state.games.size)
+        assertEquals("Catan", state.games[0].title)
+        assertEquals("Ticket to Ride", state.games[1].title)
+        assertNull(state.error)
+    }
 }
 
 /**
