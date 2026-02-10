@@ -258,7 +258,8 @@ private fun RulesSuccessState(
                 isExpanded = expandedSections["firstRound"] ?: false,
                 onToggle = {
                     expandedSections["firstRound"] = !(expandedSections["firstRound"] ?: false)
-                }
+                },
+                useNumberedSteps = true
             )
         }
 
