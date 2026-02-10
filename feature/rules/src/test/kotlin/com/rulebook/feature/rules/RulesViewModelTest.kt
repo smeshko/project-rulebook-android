@@ -136,6 +136,54 @@ class RulesViewModelTest {
         assertNull(state.rules?.firstRound?.winCondition)
         assertNull(state.rules?.advanced?.winCondition)
     }
+
+    @Test
+    fun `toggleSetupItem adds index to setupCheckedItems`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(testRules)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        viewModel.toggleSetupItem(0)
+
+        val state = viewModel.uiState.value
+        assertTrue(state.setupCheckedItems.contains(0))
+    }
+
+    @Test
+    fun `toggleSetupItem removes index from setupCheckedItems when already present`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(testRules)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        viewModel.toggleSetupItem(0)
+        viewModel.toggleSetupItem(0)
+
+        val state = viewModel.uiState.value
+        assertFalse(state.setupCheckedItems.contains(0))
+    }
+
+    @Test
+    fun `toggleSetupItem handles multiple indices correctly`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(testRules)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        viewModel.toggleSetupItem(0)
+        viewModel.toggleSetupItem(2)
+        viewModel.toggleSetupItem(1)
+
+        val state = viewModel.uiState.value
+        assertTrue(state.setupCheckedItems.contains(0))
+        assertTrue(state.setupCheckedItems.contains(1))
+        assertTrue(state.setupCheckedItems.contains(2))
+        assertEquals(3, state.setupCheckedItems.size)
+    }
 }
 
 /**

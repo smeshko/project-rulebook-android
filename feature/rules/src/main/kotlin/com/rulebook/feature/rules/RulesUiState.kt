@@ -12,12 +12,14 @@ import com.rulebook.core.model.Rules
  * @param rules The rules for the game (null if not loaded yet).
  * @param isLoading Whether data loading is in progress.
  * @param error Optional error message if loading failed.
+ * @param setupCheckedItems Set of indices for checked setup items (session-local state).
  */
 data class RulesUiState(
     val game: Game? = null,
     val rules: Rules? = null,
     val isLoading: Boolean = true,
-    val error: String? = null
+    val error: String? = null,
+    val setupCheckedItems: Set<Int> = emptySet()
 ) {
     /**
      * Whether the screen has successfully loaded all data.

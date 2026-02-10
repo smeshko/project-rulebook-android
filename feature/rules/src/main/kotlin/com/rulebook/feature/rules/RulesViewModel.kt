@@ -40,6 +40,23 @@ class RulesViewModel(
         loadRules()
     }
 
+    /**
+     * Toggles the checked state of a setup item.
+     * If the index is already checked, it will be unchecked, and vice versa.
+     *
+     * @param index The index of the setup item to toggle.
+     */
+    fun toggleSetupItem(index: Int) {
+        _uiState.update { currentState ->
+            val newCheckedItems = if (index in currentState.setupCheckedItems) {
+                currentState.setupCheckedItems - index
+            } else {
+                currentState.setupCheckedItems + index
+            }
+            currentState.copy(setupCheckedItems = newCheckedItems)
+        }
+    }
+
     private fun loadRules() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }

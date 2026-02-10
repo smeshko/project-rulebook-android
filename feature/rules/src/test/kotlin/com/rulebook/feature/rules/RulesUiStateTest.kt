@@ -95,4 +95,11 @@ class RulesUiStateTest {
 
         assertFalse(state.isSuccess)
     }
+
+    @Test
+    fun `setupCheckedItems defaults to empty set`() {
+        val state = RulesUiState()
+
+        assertTrue(state.setupCheckedItems.isEmpty())
+    }
 }
