@@ -37,10 +37,10 @@ class RulesViewModelTest {
 
     private val testRules = Rules(
         gameId = "game-1",
-        overview = RuleSection("Overview", "Test overview", null),
-        setup = RuleSection("Setup", "Test setup", null),
-        firstRound = RuleSection("First Round", "Test first round", null),
-        advanced = RuleSection("Advanced", "Test advanced", null)
+        overview = RuleSection("Overview", "Test overview", null, "Win by having the most points"),
+        setup = RuleSection("Setup", "Test setup", null, null),
+        firstRound = RuleSection("First Round", "Test first round", null, null),
+        advanced = RuleSection("Advanced", "Test advanced", null, null)
     )
 
     @Before
@@ -119,6 +119,22 @@ class RulesViewModelTest {
         assertFalse(state.isLoading)
         assertTrue(state.isSuccess)
         assertNull(state.error)
+    }
+
+    @Test
+    fun `loads overview win condition correctly`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(testRules)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        val state = viewModel.uiState.value
+        assertTrue(state.isSuccess)
+        assertEquals("Win by having the most points", state.rules?.overview?.winCondition)
+        assertNull(state.rules?.setup?.winCondition)
+        assertNull(state.rules?.firstRound?.winCondition)
+        assertNull(state.rules?.advanced?.winCondition)
     }
 }
 

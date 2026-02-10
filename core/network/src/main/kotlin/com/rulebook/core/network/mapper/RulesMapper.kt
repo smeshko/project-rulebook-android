@@ -56,6 +56,7 @@ fun GenerateResponse.toDomain(): Rules {
 
 /**
  * Helper function to find a section by multiple possible keys or fall back to positional index.
+ * For overview sections (fallbackIndex == 0), attempts to extract win condition from content.
  */
 private fun Map<String, com.rulebook.core.network.model.RulesSection>.findSection(
     keys: List<String>,
@@ -63,14 +64,22 @@ private fun Map<String, com.rulebook.core.network.model.RulesSection>.findSectio
     allSections: List<com.rulebook.core.network.model.RulesSection>,
     fallbackContent: String? = null
 ): RuleSection {
+    val isOverview = fallbackIndex == 0
+
     // Try to find by any of the provided keys
     for (key in keys) {
         val section = this[key]
         if (section != null) {
+            val (content, winCondition) = if (isOverview) {
+                extractWinCondition(section.content)
+            } else {
+                section.content to null
+            }
             return RuleSection(
                 title = section.title,
-                content = section.content,
-                items = null
+                content = content,
+                items = null,
+                winCondition = winCondition
             )
         }
     }
@@ -78,17 +87,68 @@ private fun Map<String, com.rulebook.core.network.model.RulesSection>.findSectio
     // Fall back to positional index
     return if (fallbackIndex < allSections.size) {
         val section = allSections[fallbackIndex]
+        val (content, winCondition) = if (isOverview) {
+            extractWinCondition(section.content)
+        } else {
+            section.content to null
+        }
         RuleSection(
             title = section.title,
-            content = section.content,
-            items = null
+            content = content,
+            items = null,
+            winCondition = winCondition
         )
     } else {
         // Provide empty default if section is missing, using fallbackContent if available
+        val (content, winCondition) = if (isOverview && fallbackContent != null) {
+            extractWinCondition(fallbackContent)
+        } else {
+            (fallbackContent ?: "") to null
+        }
         RuleSection(
             title = keys.first().replaceFirstChar { it.uppercase() },
-            content = fallbackContent ?: "",
-            items = null
+            content = content,
+            items = null,
+            winCondition = winCondition
         )
     }
+}
+
+/**
+ * Extracts win condition from content by scanning for common win condition patterns.
+ * Returns a pair of (remaining content, extracted win condition or null).
+ *
+ * Patterns searched (case-insensitive):
+ * - "win by"
+ * - "wins" (with preceding context)
+ * - "win condition"
+ * - "goal is to"
+ * - "objective is"
+ */
+private fun extractWinCondition(content: String): Pair<String, String?> {
+    val patterns = listOf(
+        Regex("(?i)\\b(win by .+?)([.!])", RegexOption.DOT_MATCHES_ALL),
+        Regex("(?i)((?:the |a )?player (?:who |that ).+?wins? .+?)([.!])", RegexOption.DOT_MATCHES_ALL),
+        Regex("(?i)(win condition:? .+?)([.!])", RegexOption.DOT_MATCHES_ALL),
+        Regex("(?i)\\b((?:your |the )?goal is to .+?)([.!])", RegexOption.DOT_MATCHES_ALL),
+        Regex("(?i)\\b((?:your |the )?objective is .+?)([.!])", RegexOption.DOT_MATCHES_ALL)
+    )
+
+    for (pattern in patterns) {
+        val match = pattern.find(content)
+        if (match != null) {
+            val winConditionText = match.groupValues[1].trim() + match.groupValues[2]
+            val prefix = content.substring(0, match.range.first).trim()
+            val suffix = content.substring(match.range.last + 1).trim()
+            val remainingContent = if (prefix.isNotEmpty() && suffix.isNotEmpty()) {
+                "$prefix $suffix"
+            } else {
+                prefix + suffix
+            }
+            return remainingContent.trim() to winConditionText
+        }
+    }
+
+    // No pattern found, return original content with null win condition
+    return content to null
 }

@@ -22,10 +22,10 @@ class RulesUiStateTest {
 
     private val testRules = Rules(
         gameId = "game-1",
-        overview = RuleSection("Overview", "Test overview", null),
-        setup = RuleSection("Setup", "Test setup", null),
-        firstRound = RuleSection("First Round", "Test first round", null),
-        advanced = RuleSection("Advanced", "Test advanced", null)
+        overview = RuleSection("Overview", "Test overview", null, "Win by having the most points"),
+        setup = RuleSection("Setup", "Test setup", null, null),
+        firstRound = RuleSection("First Round", "Test first round", null, null),
+        advanced = RuleSection("Advanced", "Test advanced", null, null)
     )
 
     @Test

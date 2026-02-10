@@ -100,3 +100,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When adding analytics to confidence-based decision points
     - When tracking error recovery paths (retry, fallback, manual entry)
     - When aligning Android and iOS analytics event names and properties
+
+- docs/features/win-condition-display-pattern.md
+  - Conditions:
+    - When displaying win conditions in the rules overview or other sections
+    - When implementing the WinConditionCallout brutalist UI component
+    - When extending win condition extraction to other rule sections (Setup, First Round, Advanced)
+    - When implementing heuristic parsing for unstructured game rule content
+    - When preserving backward compatibility for cached rules without win conditions

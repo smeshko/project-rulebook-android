@@ -22,19 +22,22 @@ private val json = Json {
 private data class RuleSectionDto(
     val title: String,
     val content: String,
-    val items: List<String>? = null
+    val items: List<String>? = null,
+    val winCondition: String? = null
 )
 
 private fun RuleSection.toDto(): RuleSectionDto = RuleSectionDto(
     title = title,
     content = content,
-    items = items
+    items = items,
+    winCondition = winCondition
 )
 
 private fun RuleSectionDto.toDomain(): RuleSection = RuleSection(
     title = title,
     content = content,
-    items = items
+    items = items,
+    winCondition = winCondition
 )
 
 private fun String.toRuleSection(): RuleSection {

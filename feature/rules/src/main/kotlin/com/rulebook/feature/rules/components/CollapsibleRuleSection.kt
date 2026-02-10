@@ -42,6 +42,7 @@ import com.rulebook.core.designsystem.theme.RulebookTheme
  * - Section title with brutalist styling
  * - Expand/collapse animation with chevron rotation
  * - Content area with text and optional bulleted list
+ * - Optional win condition callout (displayed between content and items)
  *
  * @param title The section title (e.g., "Overview", "Setup").
  * @param content The main text content of the section.
@@ -49,6 +50,7 @@ import com.rulebook.core.designsystem.theme.RulebookTheme
  * @param accentColor The color for the left accent bar (section-specific).
  * @param isExpanded Whether the section is currently expanded.
  * @param onToggle Callback when the section header is clicked.
+ * @param winCondition Optional win condition text to display in a callout.
  * @param modifier Modifier to be applied to the card.
  */
 @Composable
@@ -59,6 +61,7 @@ fun CollapsibleRuleSection(
     accentColor: Color,
     isExpanded: Boolean,
     onToggle: () -> Unit,
+    winCondition: String? = null,
     modifier: Modifier = Modifier
 ) {
     val chevronRotation by animateFloatAsState(
@@ -123,6 +126,12 @@ fun CollapsibleRuleSection(
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
+                    // Optional win condition callout
+                    if (winCondition != null) {
+                        Spacer(modifier = Modifier.height(RulebookTheme.spacing.sm))
+                        WinConditionCallout(winCondition = winCondition)
+                    }
+
                     // Optional bulleted list
                     if (items != null && items.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(RulebookTheme.spacing.sm))
@@ -162,7 +171,8 @@ private fun CollapsibleRuleSectionCollapsedLightPreview() {
             items = null,
             accentColor = RulebookTheme.colors.orange,
             isExpanded = false,
-            onToggle = {}
+            onToggle = {},
+            winCondition = "Be the first player to collect 10 victory points."
         )
     }
 }
@@ -197,6 +207,46 @@ private fun CollapsibleRuleSectionExpandedDarkPreview() {
             accentColor = RulebookTheme.colors.yellow,
             isExpanded = true,
             onToggle = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Expanded with Win Condition - Light")
+@Composable
+private fun CollapsibleRuleSectionWithWinConditionLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        CollapsibleRuleSection(
+            title = "Overview",
+            content = "Catan is a strategy game where players build settlements and cities on a hexagonal board.",
+            items = listOf(
+                "Trade resources with other players",
+                "Build roads, settlements, and cities",
+                "Collect resource cards on each turn"
+            ),
+            accentColor = RulebookTheme.colors.orange,
+            isExpanded = true,
+            onToggle = {},
+            winCondition = "Be the first player to reach 10 victory points."
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Expanded with Win Condition - Dark")
+@Composable
+private fun CollapsibleRuleSectionWithWinConditionDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        CollapsibleRuleSection(
+            title = "Overview",
+            content = "Catan is a strategy game where players build settlements and cities on a hexagonal board.",
+            items = listOf(
+                "Trade resources with other players",
+                "Build roads, settlements, and cities",
+                "Collect resource cards on each turn"
+            ),
+            accentColor = RulebookTheme.colors.orange,
+            isExpanded = true,
+            onToggle = {},
+            winCondition = "Be the first player to reach 10 victory points."
         )
     }
 }

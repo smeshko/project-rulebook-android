@@ -186,4 +186,221 @@ class RulesMapperTest {
         assertEquals("", rules.firstRound.content)
         assertEquals("", rules.advanced.content)
     }
+
+    @Test
+    fun `toDomain extracts winCondition from overview content with 'win by' pattern`() {
+        // Arrange - Overview with explicit win condition using "win by"
+        val response = GenerateResponse(
+            gameTitle = "Catan",
+            rulesSummary = "A trading game",
+            rulesSections = listOf(
+                RulesSection(
+                    title = "Overview",
+                    content = "Catan is a game about building settlements and cities. Win by being the first player to reach 10 victory points."
+                ),
+                RulesSection(title = "Setup", content = "Setup instructions"),
+                RulesSection(title = "First Round", content = "First round instructions"),
+                RulesSection(title = "Advanced", content = "Advanced rules")
+            )
+        )
+
+        // Act
+        val rules = response.toDomain()
+
+        // Assert
+        assertEquals("Catan is a game about building settlements and cities.", rules.overview.content)
+        assertEquals("Win by being the first player to reach 10 victory points.", rules.overview.winCondition)
+    }
+
+    @Test
+    fun `toDomain extracts winCondition from overview content with 'wins' pattern`() {
+        // Arrange - Overview with win condition using "player who wins"
+        val response = GenerateResponse(
+            gameTitle = "Risk",
+            rulesSummary = "A strategy game",
+            rulesSections = listOf(
+                RulesSection(
+                    title = "Overview",
+                    content = "Risk is a strategy game of conquest. The player who eliminates all opponents wins the game."
+                ),
+                RulesSection(title = "Setup", content = "Setup"),
+                RulesSection(title = "First Round", content = "First"),
+                RulesSection(title = "Advanced", content = "Advanced")
+            )
+        )
+
+        // Act
+        val rules = response.toDomain()
+
+        // Assert
+        assertEquals("Risk is a strategy game of conquest.", rules.overview.content)
+        assertEquals("The player who eliminates all opponents wins the game.", rules.overview.winCondition)
+    }
+
+    @Test
+    fun `toDomain extracts winCondition with 'win condition' pattern`() {
+        // Arrange
+        val response = GenerateResponse(
+            gameTitle = "Pandemic",
+            rulesSummary = "A cooperative game",
+            rulesSections = listOf(
+                RulesSection(
+                    title = "Overview",
+                    content = "Pandemic is a cooperative game where players work together to stop diseases. Win condition: Cure all four diseases before running out of time."
+                ),
+                RulesSection(title = "Setup", content = "Setup"),
+                RulesSection(title = "First Round", content = "First"),
+                RulesSection(title = "Advanced", content = "Advanced")
+            )
+        )
+
+        // Act
+        val rules = response.toDomain()
+
+        // Assert
+        assertEquals("Pandemic is a cooperative game where players work together to stop diseases.", rules.overview.content)
+        assertEquals("Win condition: Cure all four diseases before running out of time.", rules.overview.winCondition)
+    }
+
+    @Test
+    fun `toDomain extracts winCondition with 'goal is to' pattern`() {
+        // Arrange
+        val response = GenerateResponse(
+            gameTitle = "Ticket to Ride",
+            rulesSummary = "A train game",
+            rulesSections = listOf(
+                RulesSection(
+                    title = "Overview",
+                    content = "Ticket to Ride is a railway-themed board game. Your goal is to score the most points by completing routes on the map."
+                ),
+                RulesSection(title = "Setup", content = "Setup"),
+                RulesSection(title = "First Round", content = "First"),
+                RulesSection(title = "Advanced", content = "Advanced")
+            )
+        )
+
+        // Act
+        val rules = response.toDomain()
+
+        // Assert
+        assertEquals("Ticket to Ride is a railway-themed board game.", rules.overview.content)
+        assertEquals("Your goal is to score the most points by completing routes on the map.", rules.overview.winCondition)
+    }
+
+    @Test
+    fun `toDomain extracts winCondition with 'objective is' pattern`() {
+        // Arrange
+        val response = GenerateResponse(
+            gameTitle = "Azul",
+            rulesSummary = "A tile-laying game",
+            rulesSections = listOf(
+                RulesSection(
+                    title = "Overview",
+                    content = "Azul is a beautiful tile-laying game. The objective is to create the most beautiful wall decoration and score the most points."
+                ),
+                RulesSection(title = "Setup", content = "Setup"),
+                RulesSection(title = "First Round", content = "First"),
+                RulesSection(title = "Advanced", content = "Advanced")
+            )
+        )
+
+        // Act
+        val rules = response.toDomain()
+
+        // Assert
+        assertEquals("Azul is a beautiful tile-laying game.", rules.overview.content)
+        assertEquals("The objective is to create the most beautiful wall decoration and score the most points.", rules.overview.winCondition)
+    }
+
+    @Test
+    fun `toDomain leaves winCondition null when no pattern found`() {
+        // Arrange - Overview without any win condition patterns
+        val response = GenerateResponse(
+            gameTitle = "Chess",
+            rulesSummary = "A strategy game",
+            rulesSections = listOf(
+                RulesSection(
+                    title = "Overview",
+                    content = "Chess is a classic strategy game for two players on an 8x8 board."
+                ),
+                RulesSection(title = "Setup", content = "Setup"),
+                RulesSection(title = "First Round", content = "First"),
+                RulesSection(title = "Advanced", content = "Advanced")
+            )
+        )
+
+        // Act
+        val rules = response.toDomain()
+
+        // Assert - No extraction, full content remains, winCondition is null
+        assertEquals("Chess is a classic strategy game for two players on an 8x8 board.", rules.overview.content)
+        assertEquals(null, rules.overview.winCondition)
+    }
+
+    @Test
+    fun `toDomain does not extract winCondition from non-overview sections`() {
+        // Arrange - Setup section with win-related text should not extract
+        val response = GenerateResponse(
+            gameTitle = "Game",
+            rulesSummary = "A game",
+            rulesSections = listOf(
+                RulesSection(title = "Overview", content = "This is the overview."),
+                RulesSection(
+                    title = "Setup",
+                    content = "Place the board. The player who sets up fastest wins bragging rights."
+                ),
+                RulesSection(title = "First Round", content = "First"),
+                RulesSection(title = "Advanced", content = "Advanced")
+            )
+        )
+
+        // Act
+        val rules = response.toDomain()
+
+        // Assert - Setup winCondition should be null (only overview extracts)
+        assertEquals(null, rules.setup.winCondition)
+        assertEquals("Place the board. The player who sets up fastest wins bragging rights.", rules.setup.content)
+    }
+
+    @Test
+    fun `toDomain preserves space between sentences when win condition is extracted mid-paragraph`() {
+        // Arrange - Win condition in the middle of content
+        val response = GenerateResponse(
+            gameTitle = "Splendor",
+            rulesSummary = "A gem game",
+            rulesSections = listOf(
+                RulesSection(
+                    title = "Overview",
+                    content = "Splendor is a gem trading game. Win by being the first to reach 15 prestige points. Players take turns collecting gems."
+                ),
+                RulesSection(title = "Setup", content = "Setup"),
+                RulesSection(title = "First Round", content = "First"),
+                RulesSection(title = "Advanced", content = "Advanced")
+            )
+        )
+
+        // Act
+        val rules = response.toDomain()
+
+        // Assert - Remaining content should have proper space between sentences
+        assertEquals("Win by being the first to reach 15 prestige points.", rules.overview.winCondition)
+        assertEquals("Splendor is a gem trading game. Players take turns collecting gems.", rules.overview.content)
+    }
+
+    @Test
+    fun `toDomain extracts winCondition from rulesSummary fallback when no sections exist`() {
+        // Arrange - No sections, rulesSummary contains win condition
+        val response = GenerateResponse(
+            gameTitle = "Chess",
+            rulesSummary = "Chess is a two-player strategy game. Your goal is to checkmate the opponent's king.",
+            rulesSections = emptyList()
+        )
+
+        // Act
+        val rules = response.toDomain()
+
+        // Assert - Win condition should be extracted from rulesSummary fallback
+        assertEquals("Chess is a two-player strategy game.", rules.overview.content)
+        assertEquals("Your goal is to checkmate the opponent's king.", rules.overview.winCondition)
+    }
 }
