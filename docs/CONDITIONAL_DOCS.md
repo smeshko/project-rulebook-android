@@ -142,3 +142,12 @@ This guide helps you find relevant documentation based on what you're working on
     - When synchronizing multiple animations (shadow, rotation, visibility) to feel coordinated
     - When adding animation effects to existing CollapsibleRuleSection or similar components
     - When integrating design system tokens with animated component properties
+
+- docs/features/share-rules-functionality.md
+  - Conditions:
+    - When implementing share functionality for the rules screen or other content
+    - When working with Android Intent.ACTION_SEND and system share sheets in Jetpack Compose
+    - When formatting game rules or similar domain content for text sharing
+    - When handling ActivityNotFoundException for missing share target apps
+    - When implementing state-aware UI buttons that show/hide based on data load state
+    - When creating pure formatter utilities for shareable content
