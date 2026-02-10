@@ -254,6 +254,60 @@ class RulesViewModelTest {
         assertEquals("Content only, empty items list", state.rules?.advanced?.content)
         assertTrue(state.rules?.advanced?.items?.isEmpty() == true)
     }
+
+    @Test
+    fun `shareRules invokes callback with formatted text when data is loaded`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(testRules)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        var capturedText: String? = null
+        viewModel.shareRules { text ->
+            capturedText = text
+        }
+
+        // Verify callback was invoked with non-empty text
+        assertTrue(capturedText != null)
+        assertTrue(capturedText!!.isNotEmpty())
+        assertTrue(capturedText!!.contains("Test Game"))
+        assertTrue(capturedText!!.contains("Test overview"))
+        assertTrue(capturedText!!.contains("Shared from Rulebook"))
+    }
+
+    @Test
+    fun `shareRules does not invoke callback when data is not loaded`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Error("Game not found")
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        var callbackInvoked = false
+        viewModel.shareRules {
+            callbackInvoked = true
+        }
+
+        // Verify callback was NOT invoked
+        assertFalse(callbackInvoked)
+    }
+
+    @Test
+    fun `shareRules does not invoke callback when only game is loaded but rules are not`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Error("Rules not found")
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        var callbackInvoked = false
+        viewModel.shareRules {
+            callbackInvoked = true
+        }
+
+        // Verify callback was NOT invoked (both game and rules must be loaded)
+        assertFalse(callbackInvoked)
+    }
 }
 
 /**

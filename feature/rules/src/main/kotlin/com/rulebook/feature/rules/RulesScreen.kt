@@ -1,5 +1,7 @@
 package com.rulebook.feature.rules
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -60,12 +67,28 @@ fun RulesScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     RulesScreenContent(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onRetry = viewModel::retry,
         onSetupItemToggle = viewModel::toggleSetupItem,
+        onShareClick = {
+            viewModel.shareRules { formattedText ->
+                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, uiState.game?.title ?: "Game Rules")
+                    putExtra(Intent.EXTRA_TEXT, formattedText)
+                }
+                val shareIntent = Intent.createChooser(sendIntent, null)
+                try {
+                    context.startActivity(shareIntent)
+                } catch (_: ActivityNotFoundException) {
+                    // No app available to handle sharing — silently ignore
+                }
+            }
+        },
         modifier = modifier
     )
 }
@@ -76,12 +99,23 @@ internal fun RulesScreenContent(
     onNavigateBack: () -> Unit,
     onRetry: () -> Unit,
     onSetupItemToggle: (Int) -> Unit,
+    onShareClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         RulebookHeaderBar(
             title = uiState.game?.title ?: "Rules",
-            onBackClick = onNavigateBack
+            onBackClick = onNavigateBack,
+            actions = {
+                if (uiState.isSuccess) {
+                    IconButton(onClick = onShareClick) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Share rules"
+                        )
+                    }
+                }
+            }
         )
 
         when {
@@ -296,7 +330,8 @@ private fun RulesScreenLoadingLightPreview() {
             uiState = RulesUiState(isLoading = true),
             onNavigateBack = {},
             onRetry = {},
-            onSetupItemToggle = {}
+            onSetupItemToggle = {},
+            onShareClick = {}
         )
     }
 }
@@ -309,7 +344,8 @@ private fun RulesScreenLoadingDarkPreview() {
             uiState = RulesUiState(isLoading = true),
             onNavigateBack = {},
             onRetry = {},
-            onSetupItemToggle = {}
+            onSetupItemToggle = {},
+            onShareClick = {}
         )
     }
 }
@@ -325,7 +361,8 @@ private fun RulesScreenErrorLightPreview() {
             ),
             onNavigateBack = {},
             onRetry = {},
-            onSetupItemToggle = {}
+            onSetupItemToggle = {},
+            onShareClick = {}
         )
     }
 }
@@ -341,7 +378,8 @@ private fun RulesScreenErrorDarkPreview() {
             ),
             onNavigateBack = {},
             onRetry = {},
-            onSetupItemToggle = {}
+            onSetupItemToggle = {},
+            onShareClick = {}
         )
     }
 }
@@ -401,7 +439,8 @@ private fun RulesScreenSuccessLightPreview() {
             ),
             onNavigateBack = {},
             onRetry = {},
-            onSetupItemToggle = {}
+            onSetupItemToggle = {},
+            onShareClick = {}
         )
     }
 }
@@ -461,7 +500,8 @@ private fun RulesScreenSuccessDarkPreview() {
             ),
             onNavigateBack = {},
             onRetry = {},
-            onSetupItemToggle = {}
+            onSetupItemToggle = {},
+            onShareClick = {}
         )
     }
 }
