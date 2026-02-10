@@ -1,6 +1,7 @@
 package com.rulebook.feature.rules.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -32,6 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rulebook.core.designsystem.component.RulebookCard
+import com.rulebook.core.designsystem.theme.BrutalistShadowOffset
+import com.rulebook.core.designsystem.theme.BrutalistShadowOffsetMedium
 import com.rulebook.core.designsystem.theme.RulebookTheme
 
 /**
@@ -75,8 +78,14 @@ fun CollapsibleRuleSection(
         label = "Chevron rotation"
     )
 
+    val shadowOffset by animateDpAsState(
+        targetValue = if (isExpanded) BrutalistShadowOffsetMedium else BrutalistShadowOffset,
+        label = "Shadow offset"
+    )
+
     RulebookCard(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
+        shadowOffset = shadowOffset
     ) {
         Column {
             // Header row with accent bar, title, and chevron
@@ -195,6 +204,22 @@ fun CollapsibleRuleSection(
 @Composable
 private fun CollapsibleRuleSectionCollapsedLightPreview() {
     RulebookTheme(darkTheme = false) {
+        CollapsibleRuleSection(
+            title = "Overview",
+            content = "This is the game overview section with important rules.",
+            items = null,
+            accentColor = RulebookTheme.colors.orange,
+            isExpanded = false,
+            onToggle = {},
+            winCondition = "Be the first player to collect 10 victory points."
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Collapsed - Dark")
+@Composable
+private fun CollapsibleRuleSectionCollapsedDarkPreview() {
+    RulebookTheme(darkTheme = true) {
         CollapsibleRuleSection(
             title = "Overview",
             content = "This is the game overview section with important rules.",
