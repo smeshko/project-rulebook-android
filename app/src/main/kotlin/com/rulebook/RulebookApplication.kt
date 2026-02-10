@@ -1,6 +1,9 @@
 package com.rulebook
 
 import android.app.Application
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
 import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.di.appModules
 import org.koin.android.ext.android.inject
@@ -9,10 +12,11 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 
-class RulebookApplication : Application() {
+class RulebookApplication : Application(), SingletonImageLoader.Factory {
 
     // Eagerly initialize analytics to ensure TelemetryDeck is configured on app start
     private val analyticsManager: AnalyticsManager by inject()
+    private val imageLoader: ImageLoader by inject()
 
     override fun onCreate() {
         super.onCreate()
@@ -27,4 +31,6 @@ class RulebookApplication : Application() {
         // This ensures TelemetryDeck is ready before any other components need it
         analyticsManager.trackEvent("app_launched")
     }
+
+    override fun newImageLoader(context: PlatformContext): ImageLoader = imageLoader
 }

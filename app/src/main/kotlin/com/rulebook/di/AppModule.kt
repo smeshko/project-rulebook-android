@@ -38,6 +38,7 @@ val appModules = listOf(
     dataStoreModule,
     analyticsModule,
     dataModule,
+    coilModule,
     // Feature modules
     libraryModule,
     cameraModule,
