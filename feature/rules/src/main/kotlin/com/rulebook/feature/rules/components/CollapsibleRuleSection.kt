@@ -216,6 +216,22 @@ private fun CollapsibleRuleSectionCollapsedLightPreview() {
     }
 }
 
+@Preview(showBackground = true, name = "Collapsed - Dark")
+@Composable
+private fun CollapsibleRuleSectionCollapsedDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        CollapsibleRuleSection(
+            title = "Overview",
+            content = "This is the game overview section with important rules.",
+            items = null,
+            accentColor = RulebookTheme.colors.orange,
+            isExpanded = false,
+            onToggle = {},
+            winCondition = "Be the first player to collect 10 victory points."
+        )
+    }
+}
+
 @Preview(showBackground = true, name = "Expanded - Light")
 @Composable
 private fun CollapsibleRuleSectionExpandedLightPreview() {
