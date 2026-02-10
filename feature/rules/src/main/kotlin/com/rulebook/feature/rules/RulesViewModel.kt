@@ -57,6 +57,24 @@ class RulesViewModel(
         }
     }
 
+    /**
+     * Formats the current game and rules data for sharing.
+     * Only produces share text when both game and rules are successfully loaded.
+     *
+     * @param onShareText Callback invoked with the formatted text when data is available.
+     */
+    fun shareRules(onShareText: (String) -> Unit) {
+        val currentState = uiState.value
+        if (currentState.isSuccess) {
+            val game = currentState.game
+            val rules = currentState.rules
+            if (game != null && rules != null) {
+                val formattedText = RulesShareFormatter.formatForSharing(game, rules)
+                onShareText(formattedText)
+            }
+        }
+    }
+
     private fun loadRules() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
