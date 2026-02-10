@@ -100,11 +100,16 @@ private fun Map<String, com.rulebook.core.network.model.RulesSection>.findSectio
         )
     } else {
         // Provide empty default if section is missing, using fallbackContent if available
+        val (content, winCondition) = if (isOverview && fallbackContent != null) {
+            extractWinCondition(fallbackContent)
+        } else {
+            (fallbackContent ?: "") to null
+        }
         RuleSection(
             title = keys.first().replaceFirstChar { it.uppercase() },
-            content = fallbackContent ?: "",
+            content = content,
             items = null,
-            winCondition = null
+            winCondition = winCondition
         )
     }
 }
@@ -133,8 +138,13 @@ private fun extractWinCondition(content: String): Pair<String, String?> {
         val match = pattern.find(content)
         if (match != null) {
             val winConditionText = match.groupValues[1].trim() + match.groupValues[2]
-            val remainingContent = content.substring(0, match.range.first).trim() +
-                                  content.substring(match.range.last + 1).trim()
+            val prefix = content.substring(0, match.range.first).trim()
+            val suffix = content.substring(match.range.last + 1).trim()
+            val remainingContent = if (prefix.isNotEmpty() && suffix.isNotEmpty()) {
+                "$prefix $suffix"
+            } else {
+                prefix + suffix
+            }
             return remainingContent.trim() to winConditionText
         }
     }

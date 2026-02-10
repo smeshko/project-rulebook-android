@@ -361,4 +361,46 @@ class RulesMapperTest {
         assertEquals(null, rules.setup.winCondition)
         assertEquals("Place the board. The player who sets up fastest wins bragging rights.", rules.setup.content)
     }
+
+    @Test
+    fun `toDomain preserves space between sentences when win condition is extracted mid-paragraph`() {
+        // Arrange - Win condition in the middle of content
+        val response = GenerateResponse(
+            gameTitle = "Splendor",
+            rulesSummary = "A gem game",
+            rulesSections = listOf(
+                RulesSection(
+                    title = "Overview",
+                    content = "Splendor is a gem trading game. Win by being the first to reach 15 prestige points. Players take turns collecting gems."
+                ),
+                RulesSection(title = "Setup", content = "Setup"),
+                RulesSection(title = "First Round", content = "First"),
+                RulesSection(title = "Advanced", content = "Advanced")
+            )
+        )
+
+        // Act
+        val rules = response.toDomain()
+
+        // Assert - Remaining content should have proper space between sentences
+        assertEquals("Win by being the first to reach 15 prestige points.", rules.overview.winCondition)
+        assertEquals("Splendor is a gem trading game. Players take turns collecting gems.", rules.overview.content)
+    }
+
+    @Test
+    fun `toDomain extracts winCondition from rulesSummary fallback when no sections exist`() {
+        // Arrange - No sections, rulesSummary contains win condition
+        val response = GenerateResponse(
+            gameTitle = "Chess",
+            rulesSummary = "Chess is a two-player strategy game. Your goal is to checkmate the opponent's king.",
+            rulesSections = emptyList()
+        )
+
+        // Act
+        val rules = response.toDomain()
+
+        // Assert - Win condition should be extracted from rulesSummary fallback
+        assertEquals("Chess is a two-player strategy game.", rules.overview.content)
+        assertEquals("Your goal is to checkmate the opponent's king.", rules.overview.winCondition)
+    }
 }
