@@ -65,6 +65,7 @@ fun RulesScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onRetry = viewModel::retry,
+        onSetupItemToggle = viewModel::toggleSetupItem,
         modifier = modifier
     )
 }
@@ -74,6 +75,7 @@ internal fun RulesScreenContent(
     uiState: RulesUiState,
     onNavigateBack: () -> Unit,
     onRetry: () -> Unit,
+    onSetupItemToggle: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -90,7 +92,9 @@ internal fun RulesScreenContent(
             )
             uiState.isSuccess -> RulesSuccessState(
                 game = uiState.game!!,
-                rules = uiState.rules!!
+                rules = uiState.rules!!,
+                setupCheckedItems = uiState.setupCheckedItems,
+                onSetupItemToggle = onSetupItemToggle
             )
         }
     }
@@ -170,6 +174,8 @@ private fun RulesErrorState(
 private fun RulesSuccessState(
     game: Game,
     rules: Rules,
+    setupCheckedItems: Set<Int>,
+    onSetupItemToggle: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Track which sections are expanded (default: first section expanded)
@@ -236,7 +242,9 @@ private fun RulesSuccessState(
                 isExpanded = expandedSections["setup"] ?: false,
                 onToggle = {
                     expandedSections["setup"] = !(expandedSections["setup"] ?: false)
-                }
+                },
+                checkedItems = setupCheckedItems,
+                onItemToggle = onSetupItemToggle
             )
         }
 
@@ -286,7 +294,8 @@ private fun RulesScreenLoadingLightPreview() {
         RulesScreenContent(
             uiState = RulesUiState(isLoading = true),
             onNavigateBack = {},
-            onRetry = {}
+            onRetry = {},
+            onSetupItemToggle = {}
         )
     }
 }
@@ -298,7 +307,8 @@ private fun RulesScreenLoadingDarkPreview() {
         RulesScreenContent(
             uiState = RulesUiState(isLoading = true),
             onNavigateBack = {},
-            onRetry = {}
+            onRetry = {},
+            onSetupItemToggle = {}
         )
     }
 }
@@ -313,7 +323,8 @@ private fun RulesScreenErrorLightPreview() {
                 error = "Failed to load rules. Please check your connection."
             ),
             onNavigateBack = {},
-            onRetry = {}
+            onRetry = {},
+            onSetupItemToggle = {}
         )
     }
 }
@@ -328,7 +339,8 @@ private fun RulesScreenErrorDarkPreview() {
                 error = "Failed to load rules. Please check your connection."
             ),
             onNavigateBack = {},
-            onRetry = {}
+            onRetry = {},
+            onSetupItemToggle = {}
         )
     }
 }
@@ -379,10 +391,12 @@ private fun RulesScreenSuccessLightPreview() {
                 game = testGame,
                 rules = testRules,
                 isLoading = false,
-                error = null
+                error = null,
+                setupCheckedItems = setOf(0, 2)
             ),
             onNavigateBack = {},
-            onRetry = {}
+            onRetry = {},
+            onSetupItemToggle = {}
         )
     }
 }
@@ -433,10 +447,12 @@ private fun RulesScreenSuccessDarkPreview() {
                 game = testGame,
                 rules = testRules,
                 isLoading = false,
-                error = null
+                error = null,
+                setupCheckedItems = setOf(1)
             ),
             onNavigateBack = {},
-            onRetry = {}
+            onRetry = {},
+            onSetupItemToggle = {}
         )
     }
 }

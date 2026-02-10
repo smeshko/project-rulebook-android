@@ -108,3 +108,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When extending win condition extraction to other rule sections (Setup, First Round, Advanced)
     - When implementing heuristic parsing for unstructured game rule content
     - When preserving backward compatibility for cached rules without win conditions
+
+- docs/features/setup-checklist-interactive-tracking.md
+  - Conditions:
+    - When implementing interactive checklists for rule sections (Setup, First Round, Advanced)
+    - When working with Material 3 Checkbox component styling and custom colors in Jetpack Compose
+    - When implementing session-local state tracking that persists through UI recomposition but resets on navigation
+    - When extending CollapsibleRuleSection to new sections or adding user-interactive elements
+    - When implementing strikethrough text decoration and reduced opacity visual feedback in Compose
