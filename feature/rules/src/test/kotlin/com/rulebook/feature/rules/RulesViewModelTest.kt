@@ -40,7 +40,8 @@ class RulesViewModelTest {
         overview = RuleSection("Overview", "Test overview", null, "Win by having the most points"),
         setup = RuleSection("Setup", "Test setup", null, null),
         firstRound = RuleSection("First Round", "Test first round", null, null),
-        advanced = RuleSection("Advanced", "Test advanced", null, null)
+        advanced = RuleSection("Advanced Rules", "Test advanced with edge cases",
+            listOf("Tiebreaker: highest score wins", "Optional rule: skip turns allowed"), null)
     )
 
     @Before
@@ -183,6 +184,75 @@ class RulesViewModelTest {
         assertTrue(state.setupCheckedItems.contains(1))
         assertTrue(state.setupCheckedItems.contains(2))
         assertEquals(3, state.setupCheckedItems.size)
+    }
+
+    @Test
+    fun `advanced section title defaults to Advanced Rules when blank`() = runTest {
+        val rulesWithBlankAdvancedTitle = testRules.copy(
+            advanced = RuleSection("", "Test advanced content", null, null)
+        )
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(rulesWithBlankAdvancedTitle)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        val state = viewModel.uiState.value
+        assertTrue(state.isSuccess)
+        // The RulesScreen UI should display "Advanced Rules" as the fallback title
+        assertEquals("", state.rules?.advanced?.title)
+    }
+
+    @Test
+    fun `advanced section loads with content and items correctly`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(testRules)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        val state = viewModel.uiState.value
+        assertTrue(state.isSuccess)
+        assertEquals("Advanced Rules", state.rules?.advanced?.title)
+        assertEquals("Test advanced with edge cases", state.rules?.advanced?.content)
+        assertEquals(2, state.rules?.advanced?.items?.size)
+        assertEquals("Tiebreaker: highest score wins", state.rules?.advanced?.items?.get(0))
+    }
+
+    @Test
+    fun `advanced section handles null items gracefully`() = runTest {
+        val rulesWithNullAdvancedItems = testRules.copy(
+            advanced = RuleSection("Advanced Rules", "Content only, no items", null, null)
+        )
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(rulesWithNullAdvancedItems)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        val state = viewModel.uiState.value
+        assertTrue(state.isSuccess)
+        assertEquals("Advanced Rules", state.rules?.advanced?.title)
+        assertEquals("Content only, no items", state.rules?.advanced?.content)
+        assertNull(state.rules?.advanced?.items)
+    }
+
+    @Test
+    fun `advanced section handles empty items list gracefully`() = runTest {
+        val rulesWithEmptyAdvancedItems = testRules.copy(
+            advanced = RuleSection("Advanced Rules", "Content only, empty items list", emptyList(), null)
+        )
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(rulesWithEmptyAdvancedItems)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        val state = viewModel.uiState.value
+        assertTrue(state.isSuccess)
+        assertEquals("Advanced Rules", state.rules?.advanced?.title)
+        assertEquals("Content only, empty items list", state.rules?.advanced?.content)
+        assertTrue(state.rules?.advanced?.items?.isEmpty() == true)
     }
 }
 
