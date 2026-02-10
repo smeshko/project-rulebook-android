@@ -41,16 +41,18 @@ import com.rulebook.core.designsystem.theme.RulebookTheme
  * - Colored accent bar on the left edge
  * - Section title with brutalist styling
  * - Expand/collapse animation with chevron rotation
- * - Content area with text and optional bulleted list
+ * - Content area with text and optional bulleted list OR checklist
  * - Optional win condition callout (displayed between content and items)
  *
  * @param title The section title (e.g., "Overview", "Setup").
  * @param content The main text content of the section.
- * @param items Optional list of items to display as bullets below the content.
+ * @param items Optional list of items to display as bullets or checklist below the content.
  * @param accentColor The color for the left accent bar (section-specific).
  * @param isExpanded Whether the section is currently expanded.
  * @param onToggle Callback when the section header is clicked.
  * @param winCondition Optional win condition text to display in a callout.
+ * @param checkedItems Optional set of checked item indices (enables checklist mode when not null).
+ * @param onItemToggle Optional callback when a checklist item is toggled (required if checkedItems is not null).
  * @param modifier Modifier to be applied to the card.
  */
 @Composable
@@ -62,6 +64,8 @@ fun CollapsibleRuleSection(
     isExpanded: Boolean,
     onToggle: () -> Unit,
     winCondition: String? = null,
+    checkedItems: Set<Int>? = null,
+    onItemToggle: ((Int) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val chevronRotation by animateFloatAsState(
@@ -132,22 +136,37 @@ fun CollapsibleRuleSection(
                         WinConditionCallout(winCondition = winCondition)
                     }
 
-                    // Optional bulleted list
+                    // Optional bulleted list OR checklist
                     if (items != null && items.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(RulebookTheme.spacing.sm))
-                        items.forEach { item ->
-                            Row(
-                                modifier = Modifier.padding(vertical = RulebookTheme.spacing.xs)
-                            ) {
-                                Text(
-                                    text = "• ",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text(
+
+                        // Checklist mode when checkedItems is not null
+                        if (checkedItems != null && onItemToggle != null) {
+                            items.forEachIndexed { index, item ->
+                                SetupChecklistItem(
+                                    stepNumber = index + 1,
                                     text = item,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.weight(1f)
+                                    isChecked = index in checkedItems,
+                                    onToggle = { onItemToggle(index) },
+                                    modifier = Modifier.padding(vertical = RulebookTheme.spacing.xs)
                                 )
+                            }
+                        } else {
+                            // Bullet point mode (backward compatible)
+                            items.forEach { item ->
+                                Row(
+                                    modifier = Modifier.padding(vertical = RulebookTheme.spacing.xs)
+                                ) {
+                                    Text(
+                                        text = "• ",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = item,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
                             }
                         }
                     }
@@ -247,6 +266,48 @@ private fun CollapsibleRuleSectionWithWinConditionDarkPreview() {
             isExpanded = true,
             onToggle = {},
             winCondition = "Be the first player to reach 10 victory points."
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Expanded with Checklist - Light")
+@Composable
+private fun CollapsibleRuleSectionWithChecklistLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        CollapsibleRuleSection(
+            title = "Setup",
+            content = "Follow these steps to set up the game:",
+            items = listOf(
+                "Shuffle the terrain hexes and arrange them randomly",
+                "Place number tokens on each hex",
+                "Deal two settlements and two roads to each player"
+            ),
+            accentColor = RulebookTheme.colors.blue,
+            isExpanded = true,
+            onToggle = {},
+            checkedItems = setOf(0, 2),
+            onItemToggle = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Expanded with Checklist - Dark")
+@Composable
+private fun CollapsibleRuleSectionWithChecklistDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        CollapsibleRuleSection(
+            title = "Setup",
+            content = "Follow these steps to set up the game:",
+            items = listOf(
+                "Shuffle the terrain hexes and arrange them randomly",
+                "Place number tokens on each hex",
+                "Deal two settlements and two roads to each player"
+            ),
+            accentColor = RulebookTheme.colors.blue,
+            isExpanded = true,
+            onToggle = {},
+            checkedItems = setOf(1),
+            onItemToggle = {}
         )
     }
 }
