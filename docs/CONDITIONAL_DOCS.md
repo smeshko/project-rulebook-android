@@ -125,3 +125,12 @@ This guide helps you find relevant documentation based on what you're working on
     - When displaying ordered, sequential procedures that users follow step-by-step
     - When implementing tutorial or onboarding flows with clear sequential ordering
     - When extending CollapsibleRuleSection rendering modes for new section types
+
+- docs/features/advanced-rules-section.md
+  - Conditions:
+    - When implementing the Advanced Rules section or extending it with new features
+    - When working with default bullet point rendering mode in CollapsibleRuleSection
+    - When implementing edge case rules or detailed reference content in rules sections
+    - When understanding why Advanced section uses bullets instead of checklist or numbered steps
+    - When adding future sub-section support for nested content within rule sections
+    - When implementing similar reference-style sections that are not sequential or interactive
