@@ -364,3 +364,60 @@ private fun CollapsibleRuleSectionWithNumberedStepsDarkPreview() {
         )
     }
 }
+
+@Preview(showBackground = true, name = "Advanced Section - Expanded with Items - Light")
+@Composable
+private fun CollapsibleRuleSectionAdvancedExpandedLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        CollapsibleRuleSection(
+            title = "Advanced Rules",
+            content = "These advanced rules cover edge cases and optional variants for experienced players. Reference these situations as they come up during gameplay.",
+            items = listOf(
+                "If two players tie, the player who went first loses the tiebreaker",
+                "Trading is not allowed during the first two rounds",
+                "A player may skip their turn voluntarily",
+                "Resources stolen by the robber cannot be traded in the same turn",
+                "Development cards purchased on a turn cannot be played until the next turn"
+            ),
+            accentColor = RulebookTheme.colors.purple,
+            isExpanded = true,
+            onToggle = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Advanced Section - Expanded with Items - Dark")
+@Composable
+private fun CollapsibleRuleSectionAdvancedExpandedDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        CollapsibleRuleSection(
+            title = "Advanced Rules",
+            content = "These advanced rules cover edge cases and optional variants for experienced players. Reference these situations as they come up during gameplay.",
+            items = listOf(
+                "If two players tie, the player who went first loses the tiebreaker",
+                "Trading is not allowed during the first two rounds",
+                "A player may skip their turn voluntarily",
+                "Resources stolen by the robber cannot be traded in the same turn",
+                "Development cards purchased on a turn cannot be played until the next turn"
+            ),
+            accentColor = RulebookTheme.colors.purple,
+            isExpanded = true,
+            onToggle = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Advanced Section - Content Only - Light")
+@Composable
+private fun CollapsibleRuleSectionAdvancedContentOnlyLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        CollapsibleRuleSection(
+            title = "Advanced Rules",
+            content = "For this game, all standard rules apply. There are no special edge cases or advanced rules to be aware of. Play proceeds normally according to the overview and setup instructions.",
+            items = null,
+            accentColor = RulebookTheme.colors.purple,
+            isExpanded = true,
+            onToggle = {}
+        )
+    }
+}
