@@ -1,5 +1,6 @@
 package com.rulebook.feature.rules
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -81,7 +82,11 @@ fun RulesScreen(
                     putExtra(Intent.EXTRA_TEXT, formattedText)
                 }
                 val shareIntent = Intent.createChooser(sendIntent, null)
-                context.startActivity(shareIntent)
+                try {
+                    context.startActivity(shareIntent)
+                } catch (_: ActivityNotFoundException) {
+                    // No app available to handle sharing — silently ignore
+                }
             }
         },
         modifier = modifier

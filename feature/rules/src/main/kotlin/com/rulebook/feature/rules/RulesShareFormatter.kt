@@ -10,6 +10,8 @@ import com.rulebook.core.model.Rules
  */
 object RulesShareFormatter {
 
+    private val NUMBERED_ITEM_REGEX = Regex("^\\d+\\..*")
+
     /**
      * Formats a game and its rules into a plain text string suitable for sharing.
      *
@@ -62,7 +64,7 @@ object RulesShareFormatter {
         if (!items.isNullOrEmpty()) {
             items.forEach { item ->
                 // Check if item already starts with a number or marker
-                val formattedItem = if (item.trimStart().matches(Regex("^\\d+\\..*"))) {
+                val formattedItem = if (item.trimStart().matches(NUMBERED_ITEM_REGEX)) {
                     // Already numbered, use as-is
                     item
                 } else {
