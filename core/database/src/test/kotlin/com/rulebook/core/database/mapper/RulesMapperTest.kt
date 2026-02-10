@@ -177,4 +177,96 @@ class RulesMapperTest {
 
         assertEquals(emptyList<String>(), domain.overview.items)
     }
+
+    @Test
+    fun `Rules section with winCondition serializes correctly`() {
+        val sectionWithWinCondition = RuleSection(
+            title = "Overview",
+            content = "Game overview content",
+            items = listOf("Item 1", "Item 2"),
+            winCondition = "Be the first player to collect 10 victory points"
+        )
+        val rules = Rules(
+            gameId = "game-test",
+            overview = sectionWithWinCondition,
+            setup = setupSection,
+            firstRound = firstRoundSection,
+            advanced = advancedSection
+        )
+
+        val entity = rules.toEntity(id = "rules-win-test")
+        val domain = entity.toDomain()
+
+        assertEquals("Be the first player to collect 10 victory points", domain.overview.winCondition)
+        assertEquals("Game overview content", domain.overview.content)
+        assertEquals(listOf("Item 1", "Item 2"), domain.overview.items)
+    }
+
+    @Test
+    fun `Rules section with null winCondition serializes correctly`() {
+        val sectionWithoutWinCondition = RuleSection(
+            title = "Setup",
+            content = "Setup content",
+            items = null,
+            winCondition = null
+        )
+        val rules = Rules(
+            gameId = "game-test",
+            overview = sectionWithoutWinCondition,
+            setup = sectionWithoutWinCondition,
+            firstRound = sectionWithoutWinCondition,
+            advanced = sectionWithoutWinCondition
+        )
+
+        val entity = rules.toEntity(id = "rules-no-win-test")
+        val domain = entity.toDomain()
+
+        assertEquals(null, domain.overview.winCondition)
+        assertEquals(null, domain.setup.winCondition)
+    }
+
+    @Test
+    fun `round trip conversion preserves winCondition`() {
+        val overviewWithWinCondition = RuleSection(
+            title = "Overview",
+            content = "Game content",
+            items = listOf("Item"),
+            winCondition = "Win by having the most points"
+        )
+        val original = Rules(
+            gameId = "game-789",
+            overview = overviewWithWinCondition,
+            setup = setupSection,
+            firstRound = firstRoundSection,
+            advanced = advancedSection
+        )
+
+        val roundTrip = original.toEntity(id = "rules-roundtrip-win", rawJson = "{}").toDomain()
+
+        assertEquals(original.overview.winCondition, roundTrip.overview.winCondition)
+        assertEquals("Win by having the most points", roundTrip.overview.winCondition)
+    }
+
+    @Test
+    fun `backward compatibility - old data without winCondition deserializes with null`() {
+        // Simulate old JSON without winCondition field
+        val oldJsonSection = """{"title":"Overview","content":"Old content","items":["Item 1"]}"""
+        val entity = RulesEntity(
+            id = "rules-old",
+            gameId = "game-old",
+            overview = oldJsonSection,
+            setup = """{"title":"Setup","content":"Setup"}""",
+            firstRound = """{"title":"First Round","content":"First"}""",
+            advanced = """{"title":"Advanced","content":"Advanced"}""",
+            rawJson = "{}"
+        )
+
+        val domain = entity.toDomain()
+
+        // Should deserialize successfully with null winCondition (ignoreUnknownKeys handles missing field)
+        assertEquals("Overview", domain.overview.title)
+        assertEquals("Old content", domain.overview.content)
+        assertEquals(listOf("Item 1"), domain.overview.items)
+        assertEquals(null, domain.overview.winCondition)
+    }
 }
