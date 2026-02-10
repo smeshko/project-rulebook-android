@@ -143,6 +143,15 @@ This guide helps you find relevant documentation based on what you're working on
     - When adding animation effects to existing CollapsibleRuleSection or similar components
     - When integrating design system tokens with animated component properties
 
+- docs/features/offline-rules-access.md
+  - Conditions:
+    - When implementing offline data access for cached rules and game content
+    - When configuring Coil ImageLoader with disk cache for offline thumbnail display
+    - When handling placeholder images for uncached content
+    - When building offline-first features with Room database as source of truth
+    - When verifying no network dependencies exist in read-only data flows
+    - When implementing explicit disk/memory caching strategies for image loading
+
 - docs/features/share-rules-functionality.md
   - Conditions:
     - When implementing share functionality for the rules screen or other content

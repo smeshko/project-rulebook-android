@@ -308,6 +308,50 @@ class RulesViewModelTest {
         // Verify callback was NOT invoked (both game and rules must be loaded)
         assertFalse(callbackInvoked)
     }
+
+    // ==================== Offline Scenario Tests ====================
+
+    @Test
+    fun `loadRules succeeds when FakeGameRepository returns cached data simulating offline`() = runTest {
+        // Simulate offline scenario: repository returns data from local cache
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(testRules)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        val state = viewModel.uiState.value
+        assertTrue(state.isSuccess)
+        assertFalse(state.isLoading)
+        assertEquals(testGame, state.game)
+        assertEquals(testRules, state.rules)
+        assertNull(state.error)
+    }
+
+    @Test
+    fun `rules display all four sections when loaded from fake repository`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(testRules)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        val state = viewModel.uiState.value
+        assertTrue(state.isSuccess)
+
+        // Verify all four sections are present
+        assertEquals("Overview", state.rules?.overview?.title)
+        assertEquals("Test overview", state.rules?.overview?.content)
+
+        assertEquals("Setup", state.rules?.setup?.title)
+        assertEquals("Test setup", state.rules?.setup?.content)
+
+        assertEquals("First Round", state.rules?.firstRound?.title)
+        assertEquals("Test first round", state.rules?.firstRound?.content)
+
+        assertEquals("Advanced Rules", state.rules?.advanced?.title)
+        assertEquals("Test advanced with edge cases", state.rules?.advanced?.content)
+    }
 }
 
 /**

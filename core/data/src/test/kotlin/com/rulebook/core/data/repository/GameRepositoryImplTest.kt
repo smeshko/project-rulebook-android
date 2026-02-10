@@ -319,6 +319,54 @@ class GameRepositoryImplTest {
 
         assertTrue(result is Result.Error)
     }
+
+    // ==================== Offline Scenario Tests ====================
+
+    @Test
+    fun `getGameById returns data from DAO without any network interaction`() = runTest {
+        val entity = GameEntity(
+            id = "offline-game-1",
+            title = "Offline Game",
+            thumbnailUrl = "http://example.com/offline.jpg",
+            createdAt = 1000L,
+            lastAccessedAt = 2000L
+        )
+        fakeGameDao.insertSync(entity)
+
+        // Verify read from DAO succeeds (simulating offline scenario)
+        val result = repository.getGameById("offline-game-1")
+
+        assertTrue(result is Result.Success)
+        val game = (result as Result.Success).data
+        assertEquals("offline-game-1", game.id)
+        assertEquals("Offline Game", game.title)
+        assertEquals("http://example.com/offline.jpg", game.thumbnailUrl)
+    }
+
+    @Test
+    fun `getRulesForGame returns data from DAO without any network interaction`() = runTest {
+        val rulesEntity = RulesEntity(
+            id = "offline-rules-1",
+            gameId = "offline-game-1",
+            overview = """{"title":"Offline Overview","content":"Offline content","items":null}""",
+            setup = """{"title":"Offline Setup","content":"Offline setup content","items":null}""",
+            firstRound = """{"title":"Offline First Round","content":"Offline first round content","items":null}""",
+            advanced = """{"title":"Offline Advanced","content":"Offline advanced content","items":null}""",
+            rawJson = """{"overview":"offline test"}"""
+        )
+        fakeRulesDao.insertSync(rulesEntity)
+
+        // Verify read from DAO succeeds (simulating offline scenario)
+        val result = repository.getRulesForGame("offline-game-1")
+
+        assertTrue(result is Result.Success)
+        val rules = (result as Result.Success).data
+        assertEquals("offline-game-1", rules.gameId)
+        assertEquals("Offline content", rules.overview.content)
+        assertEquals("Offline setup content", rules.setup.content)
+        assertEquals("Offline first round content", rules.firstRound.content)
+        assertEquals("Offline advanced content", rules.advanced.content)
+    }
 }
 
 /**
