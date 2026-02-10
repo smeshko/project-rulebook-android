@@ -134,3 +134,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When understanding why Advanced section uses bullets instead of checklist or numbered steps
     - When adding future sub-section support for nested content within rule sections
     - When implementing similar reference-style sections that are not sequential or interactive
+
+- docs/features/collapsible-section-shadow-animation.md
+  - Conditions:
+    - When implementing smooth state-driven animations using `animateDpAsState`
+    - When animating shadow offset or other Dp properties in response to state changes
+    - When synchronizing multiple animations (shadow, rotation, visibility) to feel coordinated
+    - When adding animation effects to existing CollapsibleRuleSection or similar components
+    - When integrating design system tokens with animated component properties
