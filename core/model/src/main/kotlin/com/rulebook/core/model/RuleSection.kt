@@ -8,5 +8,6 @@ package com.rulebook.core.model
 data class RuleSection(
     val title: String,
     val content: String,
-    val items: List<String>? = null
+    val items: List<String>? = null,
+    val winCondition: String? = null
 )

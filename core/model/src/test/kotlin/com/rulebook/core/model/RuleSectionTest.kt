@@ -85,4 +85,48 @@ class RuleSectionTest {
         assertEquals(original.items, updated.items)
         assertNotEquals(original, updated)
     }
+
+    @Test
+    fun `create RuleSection with winCondition field`() {
+        val section = RuleSection(
+            title = "Overview",
+            content = "This is the game overview.",
+            items = listOf("Item 1"),
+            winCondition = "Be the first player to collect 10 victory points"
+        )
+
+        assertEquals("Overview", section.title)
+        assertEquals("This is the game overview.", section.content)
+        assertEquals(listOf("Item 1"), section.items)
+        assertEquals("Be the first player to collect 10 victory points", section.winCondition)
+    }
+
+    @Test
+    fun `create RuleSection with null winCondition by default`() {
+        val section = RuleSection(
+            title = "Setup",
+            content = "Set up the board."
+        )
+
+        assertNull(section.winCondition)
+    }
+
+    @Test
+    fun `RuleSection with winCondition equals works correctly`() {
+        val section1 = RuleSection(
+            title = "Overview",
+            content = "Content",
+            items = listOf("Item 1"),
+            winCondition = "Win condition"
+        )
+        val section2 = RuleSection(
+            title = "Overview",
+            content = "Content",
+            items = listOf("Item 1"),
+            winCondition = "Win condition"
+        )
+
+        assertEquals(section1, section2)
+        assertEquals(section1.hashCode(), section2.hashCode())
+    }
 }
