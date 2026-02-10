@@ -41,7 +41,7 @@ import com.rulebook.core.designsystem.theme.RulebookTheme
  * - Colored accent bar on the left edge
  * - Section title with brutalist styling
  * - Expand/collapse animation with chevron rotation
- * - Content area with text and optional bulleted list OR checklist
+ * - Content area with text and optional bulleted list OR checklist OR numbered steps
  * - Optional win condition callout (displayed between content and items)
  *
  * @param title The section title (e.g., "Overview", "Setup").
@@ -53,6 +53,7 @@ import com.rulebook.core.designsystem.theme.RulebookTheme
  * @param winCondition Optional win condition text to display in a callout.
  * @param checkedItems Optional set of checked item indices (enables checklist mode when not null).
  * @param onItemToggle Optional callback when a checklist item is toggled (required if checkedItems is not null).
+ * @param useNumberedSteps Whether to display items as numbered steps (default false, displays bullets).
  * @param modifier Modifier to be applied to the card.
  */
 @Composable
@@ -66,6 +67,7 @@ fun CollapsibleRuleSection(
     winCondition: String? = null,
     checkedItems: Set<Int>? = null,
     onItemToggle: ((Int) -> Unit)? = null,
+    useNumberedSteps: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val chevronRotation by animateFloatAsState(
@@ -136,7 +138,7 @@ fun CollapsibleRuleSection(
                         WinConditionCallout(winCondition = winCondition)
                     }
 
-                    // Optional bulleted list OR checklist
+                    // Optional bulleted list OR checklist OR numbered steps
                     if (items != null && items.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(RulebookTheme.spacing.sm))
 
@@ -148,6 +150,15 @@ fun CollapsibleRuleSection(
                                     text = item,
                                     isChecked = index in checkedItems,
                                     onToggle = { onItemToggle(index) },
+                                    modifier = Modifier.padding(vertical = RulebookTheme.spacing.xs)
+                                )
+                            }
+                        } else if (useNumberedSteps) {
+                            // Numbered steps mode
+                            items.forEachIndexed { index, item ->
+                                NumberedStepItem(
+                                    stepNumber = index + 1,
+                                    text = item,
                                     modifier = Modifier.padding(vertical = RulebookTheme.spacing.xs)
                                 )
                             }
@@ -308,6 +319,48 @@ private fun CollapsibleRuleSectionWithChecklistDarkPreview() {
             onToggle = {},
             checkedItems = setOf(1),
             onItemToggle = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Expanded with Numbered Steps - Light")
+@Composable
+private fun CollapsibleRuleSectionWithNumberedStepsLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        CollapsibleRuleSection(
+            title = "First Round",
+            content = "Follow these steps for your first round:",
+            items = listOf(
+                "Each player rolls both dice. The player with the highest total goes first.",
+                "On your turn, roll the dice and collect resources based on the number rolled.",
+                "You may trade resources with other players or the bank.",
+                "Build roads, settlements, or buy development cards with your resources."
+            ),
+            accentColor = RulebookTheme.colors.yellow,
+            isExpanded = true,
+            onToggle = {},
+            useNumberedSteps = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Expanded with Numbered Steps - Dark")
+@Composable
+private fun CollapsibleRuleSectionWithNumberedStepsDarkPreview() {
+    RulebookTheme(darkTheme = true) {
+        CollapsibleRuleSection(
+            title = "First Round",
+            content = "Follow these steps for your first round:",
+            items = listOf(
+                "Each player rolls both dice. The player with the highest total goes first.",
+                "On your turn, roll the dice and collect resources based on the number rolled.",
+                "You may trade resources with other players or the bank.",
+                "Build roads, settlements, or buy development cards with your resources."
+            ),
+            accentColor = RulebookTheme.colors.yellow,
+            isExpanded = true,
+            onToggle = {},
+            useNumberedSteps = true
         )
     }
 }

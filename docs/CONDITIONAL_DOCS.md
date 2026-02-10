@@ -116,3 +116,12 @@ This guide helps you find relevant documentation based on what you're working on
     - When implementing session-local state tracking that persists through UI recomposition but resets on navigation
     - When extending CollapsibleRuleSection to new sections or adding user-interactive elements
     - When implementing strikethrough text decoration and reduced opacity visual feedback in Compose
+
+- docs/features/numbered-steps-display-pattern.md
+  - Conditions:
+    - When implementing step-by-step guides or sequential content in rules sections
+    - When adding numbered steps rendering mode to CollapsibleRuleSection or similar components
+    - When working with the NumberedStepItem design system component
+    - When displaying ordered, sequential procedures that users follow step-by-step
+    - When implementing tutorial or onboarding flows with clear sequential ordering
+    - When extending CollapsibleRuleSection rendering modes for new section types
