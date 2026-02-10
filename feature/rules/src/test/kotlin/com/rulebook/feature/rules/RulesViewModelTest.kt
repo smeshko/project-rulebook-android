@@ -40,7 +40,8 @@ class RulesViewModelTest {
         overview = RuleSection("Overview", "Test overview", null, "Win by having the most points"),
         setup = RuleSection("Setup", "Test setup", null, null),
         firstRound = RuleSection("First Round", "Test first round", null, null),
-        advanced = RuleSection("Advanced", "Test advanced", null, null)
+        advanced = RuleSection("Advanced Rules", "Test advanced with edge cases",
+            listOf("Tiebreaker: highest score wins", "Optional rule: skip turns allowed"), null)
     )
 
     @Before
@@ -183,6 +184,23 @@ class RulesViewModelTest {
         assertTrue(state.setupCheckedItems.contains(1))
         assertTrue(state.setupCheckedItems.contains(2))
         assertEquals(3, state.setupCheckedItems.size)
+    }
+
+    @Test
+    fun `advanced section title defaults to Advanced Rules when blank`() = runTest {
+        val rulesWithBlankAdvancedTitle = testRules.copy(
+            advanced = RuleSection("", "Test advanced content", null, null)
+        )
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(rulesWithBlankAdvancedTitle)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        val state = viewModel.uiState.value
+        assertTrue(state.isSuccess)
+        // The RulesScreen UI should display "Advanced Rules" as the fallback title
+        assertEquals("", state.rules?.advanced?.title)
     }
 }
 

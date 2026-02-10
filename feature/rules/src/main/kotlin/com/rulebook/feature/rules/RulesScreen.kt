@@ -266,7 +266,7 @@ private fun RulesSuccessState(
         // Advanced section
         item {
             CollapsibleRuleSection(
-                title = rules.advanced.title.ifBlank { "Advanced" },
+                title = rules.advanced.title.ifBlank { "Advanced Rules" },
                 content = rules.advanced.content,
                 items = rules.advanced.items,
                 accentColor = RulebookTheme.colors.purple,
@@ -380,9 +380,13 @@ private fun RulesScreenSuccessLightPreview() {
             items = null
         ),
         advanced = RuleSection(
-            title = "Advanced",
+            title = "Advanced Rules",
             content = "Advanced rules for experienced players.",
-            items = null
+            items = listOf(
+                "If two players tie, the player who went first loses the tiebreaker",
+                "Trading is not allowed during the first two rounds",
+                "A player may skip their turn voluntarily"
+            )
         )
     )
 
@@ -436,9 +440,13 @@ private fun RulesScreenSuccessDarkPreview() {
             items = null
         ),
         advanced = RuleSection(
-            title = "Advanced",
+            title = "Advanced Rules",
             content = "Advanced rules for experienced players.",
-            items = null
+            items = listOf(
+                "If two players tie, the player who went first loses the tiebreaker",
+                "Trading is not allowed during the first two rounds",
+                "A player may skip their turn voluntarily"
+            )
         )
     )
 
