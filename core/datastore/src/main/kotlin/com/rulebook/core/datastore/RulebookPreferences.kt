@@ -29,7 +29,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  * @param context Application context for DataStore access. Must be Application context
  *                to avoid memory leaks.
  */
-class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource {
+open class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource {
 
     /**
      * Preference keys used for DataStore storage.
@@ -140,7 +140,7 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
      * Flow of current theme mode setting.
      * Default: [ThemeMode.SYSTEM]
      */
-    val themeMode: Flow<ThemeMode> = context.dataStore.data
+    open val themeMode: Flow<ThemeMode> = context.dataStore.data
         .map { preferences ->
             ThemeMode.fromString(preferences[Keys.THEME_MODE])
         }
@@ -148,7 +148,7 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
     /**
      * Sets the theme mode.
      */
-    suspend fun setThemeMode(mode: ThemeMode) {
+    open suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { preferences ->
             preferences[Keys.THEME_MODE] = mode.name
         }
@@ -158,13 +158,13 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
      * Flow of haptic feedback enabled status.
      * Default: `true`
      */
-    val hapticsEnabled: Flow<Boolean> = context.dataStore.data
+    open val hapticsEnabled: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[Keys.HAPTICS_ENABLED] ?: true }
 
     /**
      * Sets whether haptic feedback is enabled.
      */
-    suspend fun setHapticsEnabled(enabled: Boolean) {
+    open suspend fun setHapticsEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[Keys.HAPTICS_ENABLED] = enabled
         }
@@ -174,7 +174,7 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
      * Flow of current library sort order.
      * Default: [SortOrder.RECENT]
      */
-    val sortOrder: Flow<SortOrder> = context.dataStore.data
+    open val sortOrder: Flow<SortOrder> = context.dataStore.data
         .map { preferences ->
             val storedValue = preferences[Keys.SORT_ORDER]
             when (storedValue) {
@@ -188,7 +188,7 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
     /**
      * Sets the library sort order.
      */
-    suspend fun setSortOrder(order: SortOrder) {
+    open suspend fun setSortOrder(order: SortOrder) {
         context.dataStore.edit { preferences ->
             preferences[Keys.SORT_ORDER] = order.name
         }
