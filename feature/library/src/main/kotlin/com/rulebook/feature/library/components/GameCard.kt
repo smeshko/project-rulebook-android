@@ -3,6 +3,7 @@ package com.rulebook.feature.library.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -62,7 +63,7 @@ fun GameCard(
                     AsyncImage(
                         model = game.thumbnailUrl,
                         contentDescription = "${game.title} thumbnail",
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(com.rulebook.core.designsystem.R.drawable.ic_game_placeholder),
                         error = painterResource(com.rulebook.core.designsystem.R.drawable.ic_game_placeholder)
@@ -72,7 +73,8 @@ fun GameCard(
                     androidx.compose.foundation.Image(
                         painter = painterResource(com.rulebook.core.designsystem.R.drawable.ic_game_placeholder),
                         contentDescription = "${game.title} placeholder",
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
                 }
             }
