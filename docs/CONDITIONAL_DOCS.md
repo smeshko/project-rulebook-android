@@ -160,3 +160,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When handling ActivityNotFoundException for missing share target apps
     - When implementing state-aware UI buttons that show/hide based on data load state
     - When creating pure formatter utilities for shareable content
+
+- docs/features/background-timestamp-update-pattern.md
+  - Conditions:
+    - When implementing fire-and-forget background operations in ViewModels
+    - When performing non-blocking updates that shouldn't affect UI state
+    - When implementing timestamp or audit field updates in the repository layer
+    - When adding background operations like analytics, logging, or cache updates
+    - When optimizing database queries with targeted SQL UPDATE operations
