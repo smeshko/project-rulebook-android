@@ -6,9 +6,11 @@ import com.rulebook.core.data.repository.GameRepository
 import com.rulebook.core.datastore.SortPreferencesSource
 import com.rulebook.core.model.SortOrder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
@@ -48,12 +50,18 @@ class LibraryViewModel(
 
             _sortOrder
                 .flatMapLatest { sortOrder ->
-                    // When sort order changes, switch to the appropriate sorted Flow
                     gameRepository.getGamesSorted(sortOrder)
                 }
                 .combine(_sortOrder) { games, sortOrder ->
-                    // Combine games with current sort order for UI state
                     games to sortOrder
+                }
+                .catch { e ->
+                    _uiState.update {
+                        it.copy(
+                            error = e.message ?: "Failed to load games",
+                            isLoading = false
+                        )
+                    }
                 }
                 .collect { (games, sortOrder) ->
                     _uiState.update {
@@ -87,9 +95,14 @@ class LibraryViewModel(
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true, error = null) }
-            // Room Flows automatically re-emit on data changes
-            // Just wait a moment for UI feedback, then clear refresh state
+            // Room Flows automatically re-emit on data changes.
+            // Brief delay provides visual feedback for the refresh indicator.
+            delay(REFRESH_INDICATOR_DELAY_MS)
             _uiState.update { it.copy(isRefreshing = false) }
         }
+    }
+
+    private companion object {
+        const val REFRESH_INDICATOR_DELAY_MS = 300L
     }
 }

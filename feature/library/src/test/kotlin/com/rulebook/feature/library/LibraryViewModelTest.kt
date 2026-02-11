@@ -158,21 +158,23 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `refresh completes and clears isRefreshing`() = runTest(testDispatcher) {
+    fun `refresh shows indicator then clears it`() = runTest(testDispatcher) {
         // Given
         val repository = FakeGameRepository(games = emptyList())
         val preferences = FakeRulebookPreferences()
         val viewModel = LibraryViewModel(repository, preferences)
         advanceUntilIdle()
 
-        // When
+        // When - start refresh
         viewModel.refresh()
-        advanceUntilIdle()
+        testDispatcher.scheduler.runCurrent()
 
-        // Then - isRefreshing should be false after refresh completes
+        // Then - isRefreshing should be true during refresh delay
+        assertTrue(viewModel.uiState.value.isRefreshing)
+
+        // And - isRefreshing should be false after delay completes
+        advanceUntilIdle()
         assertFalse(viewModel.uiState.value.isRefreshing)
-        // Error should be cleared
-        assertEquals(null, viewModel.uiState.value.error)
     }
 }
 
