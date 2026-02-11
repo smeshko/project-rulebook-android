@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.rulebook.core.model.SortOrder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -39,6 +40,7 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
         val CREDIT_BALANCE = intPreferencesKey("credit_balance")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
+        val SORT_ORDER = stringPreferencesKey("sort_order")
     }
 
     /**
@@ -165,6 +167,30 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
     suspend fun setHapticsEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[Keys.HAPTICS_ENABLED] = enabled
+        }
+    }
+
+    /**
+     * Flow of current library sort order.
+     * Default: [SortOrder.RECENT]
+     */
+    val sortOrder: Flow<SortOrder> = context.dataStore.data
+        .map { preferences ->
+            val storedValue = preferences[Keys.SORT_ORDER]
+            when (storedValue) {
+                SortOrder.RECENT.name -> SortOrder.RECENT
+                SortOrder.ALPHABETICAL.name -> SortOrder.ALPHABETICAL
+                SortOrder.DATE_ADDED.name -> SortOrder.DATE_ADDED
+                else -> SortOrder.RECENT // Default for null or unrecognized values
+            }
+        }
+
+    /**
+     * Sets the library sort order.
+     */
+    suspend fun setSortOrder(order: SortOrder) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.SORT_ORDER] = order.name
         }
     }
 }

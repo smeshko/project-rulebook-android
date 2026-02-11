@@ -40,6 +40,12 @@ class RulebookPreferencesTest {
         assertEquals(expected, RulebookPreferences.Keys.HAPTICS_ENABLED)
     }
 
+    @Test
+    fun `Keys SORT_ORDER has correct key name`() {
+        val expected = stringPreferencesKey("sort_order")
+        assertEquals(expected, RulebookPreferences.Keys.SORT_ORDER)
+    }
+
     // ==================== Credit Balance Validation Tests ====================
 
     @Test
