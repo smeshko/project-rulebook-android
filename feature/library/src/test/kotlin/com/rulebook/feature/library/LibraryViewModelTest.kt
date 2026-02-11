@@ -77,6 +77,59 @@ class LibraryViewModelTest {
     }
 
     @Test
+    fun `games are available in state when repository returns multiple games`() = runTest(testDispatcher) {
+        // Given
+        val games = listOf(
+            Game(
+                id = "1",
+                title = "Catan",
+                thumbnailUrl = "https://example.com/catan.jpg",
+                createdAt = 1000L,
+                lastAccessedAt = 5000L
+            ),
+            Game(
+                id = "2",
+                title = "Pandemic",
+                thumbnailUrl = null,
+                createdAt = 2000L,
+                lastAccessedAt = 4000L
+            ),
+            Game(
+                id = "3",
+                title = "Ticket to Ride",
+                thumbnailUrl = "https://example.com/ttr.jpg",
+                createdAt = 3000L,
+                lastAccessedAt = 6000L
+            )
+        )
+        val repository = FakeGameRepository(games = games)
+
+        // When
+        val viewModel = LibraryViewModel(repository)
+        advanceUntilIdle()
+
+        // Then
+        val state = viewModel.uiState.value
+        assertFalse(state.isEmpty)
+        assertEquals(3, state.games.size)
+
+        // Verify all game fields are present and correct
+        assertEquals("1", state.games[0].id)
+        assertEquals("Catan", state.games[0].title)
+        assertEquals("https://example.com/catan.jpg", state.games[0].thumbnailUrl)
+        assertEquals(1000L, state.games[0].createdAt)
+        assertEquals(5000L, state.games[0].lastAccessedAt)
+
+        assertEquals("2", state.games[1].id)
+        assertEquals("Pandemic", state.games[1].title)
+        assertNull(state.games[1].thumbnailUrl)
+
+        assertEquals("3", state.games[2].id)
+        assertEquals("Ticket to Ride", state.games[2].title)
+        assertEquals("https://example.com/ttr.jpg", state.games[2].thumbnailUrl)
+    }
+
+    @Test
     fun `refresh updates isRefreshing state`() = runTest(testDispatcher) {
         // Given
         val repository = FakeGameRepository(games = emptyList())

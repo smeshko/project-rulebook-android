@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
  * |            | Button Text     | 14sp  | Black     |
  * | Body       | Body            | 17sp  | Regular   |
  * |            | Callout         | 16sp  | Regular   |
+ * | Heading    | Card Title      | 17sp  | SemiBold  |
  * | Detail     | Caption         | 12sp  | Regular   |
  *
  * Key Principle: Black weight (900) for brutalist emphasis,
@@ -154,6 +155,22 @@ val CaptionText = TextStyle(
 )
 
 // =============================================================================
+// HEADING STYLES
+// =============================================================================
+
+/**
+ * Card Title - 17sp SemiBold
+ * Used for game card titles in grid displays.
+ */
+val HeadingCardTitle = TextStyle(
+    fontFamily = FontFamily.Default,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 17.sp,
+    lineHeight = 22.sp,
+    letterSpacing = 0.sp
+)
+
+// =============================================================================
 // EXTENDED TYPOGRAPHY
 // =============================================================================
 
@@ -178,7 +195,10 @@ data class RulebookExtendedTypography(
     val callout: TextStyle,
 
     // Detail styles
-    val caption: TextStyle
+    val caption: TextStyle,
+
+    // Heading styles
+    val cardTitle: TextStyle
 )
 
 val RulebookExtendedTypographyInstance = RulebookExtendedTypography(
@@ -190,7 +210,8 @@ val RulebookExtendedTypographyInstance = RulebookExtendedTypography(
     brutalistButtonText = BrutalistButtonText,
     body = BodyText,
     callout = BodyCallout,
-    caption = CaptionText
+    caption = CaptionText,
+    cardTitle = HeadingCardTitle
 )
 
 val LocalRulebookTypography = staticCompositionLocalOf { RulebookExtendedTypographyInstance }
