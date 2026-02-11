@@ -3,7 +3,7 @@
 #
 # Uncomment settings to customize this phase.
 
-enabled: false
+enabled: true
 timeout_seconds: 1200
 
 # input_files:  # Variable → file mappings for templates
@@ -18,4 +18,4 @@ llm:
 #   version_bump: null  # Version bump command
 #   publish: null  # Publish/deploy command
 
-# bypass_ci: true  # Bypass CI checks with --admin (requires admin)
+bypass_ci: true  # Bypass CI checks with --admin (requires admin)

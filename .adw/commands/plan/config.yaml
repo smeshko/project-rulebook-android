@@ -6,9 +6,8 @@
 enabled: true
 timeout_seconds: 900
 
-# input_files:  # Variable → file mappings for templates
-#   prd: docs/prd.md
-#   architecture: docs/architecture.md
+input_files:  # Variable → file mappings for templates
+  index: docs/README.md
 
 llm:
   model: opus

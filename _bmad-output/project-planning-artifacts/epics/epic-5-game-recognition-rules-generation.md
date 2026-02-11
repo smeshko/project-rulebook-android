@@ -2,6 +2,8 @@
 
 **Goal:** Implement the AI recognition pipeline and rules generation. After this epic, users can capture a photo and receive generated rules with progress feedback and confidence handling.
 
+**FRs covered:** FR12-18, FR26, FR35, FR38
+
 ---
 
 ## Story 5.1: Scan Flow Initiation & Credit Check
@@ -20,10 +22,24 @@ So that I don't waste time if I can't complete the scan.
 
 **And** credit is NOT deducted until scan succeeds
 
-**Technical Notes:**
-- CameraViewModel checks credits before starting
-- Navigate to paywall route if credits = 0
-- Credit deduction happens only on successful rules generation
+**Architecture requirements:**
+- Located in `feature/camera` module — `CameraViewModel` orchestrates the credit gate before scan
+- Credit balance read from `core/datastore` via `RulebookPreferences.creditBalance: Flow<Int>` injected through Koin `get()`
+- Navigation to paywall route via `NavController.navigate(Route.Purchase.route)` — feature modules MUST NOT import from each other (Architecture §Module Dependencies)
+- Credit gate is a UI-layer concern — the ViewModel checks balance and emits a navigation event via `Channel` for one-time side effects
+- No network calls at this stage; purely local DataStore read
+
+**UX/Component specifications:**
+- Credit check must be instant (DataStore cached in memory) — no loading indicator needed
+- If credits = 0, transition to paywall uses `ModalBottomSheet` presentation (UX §Modal Patterns: Bottom Sheet for paywall)
+- No confirmation dialog for proceeding — tapping capture/select immediately checks and routes (UX §Experience Principles: "Minimize modal interruptions")
+- Credit balance already visible on camera screen (Story 4.8) using `CreditsDisplay` composable — user has passive awareness
+
+**Technical notes:**
+- CameraViewModel checks `creditBalance.first()` before starting scan coroutine
+- Navigate to paywall route if credits = 0 via sealed event: `CameraEvent.NavigateToPaywall`
+- Credit deduction happens only on successful rules generation (Story 5.7)
+- Compressed image `ByteArray` from Story 4.7 is held in ViewModel state for the scan flow
 
 **Prerequisites:** Epic 4 (photo capture), Epic 1 (DataStore)
 
@@ -51,11 +67,35 @@ So that I know the app is working and how long to wait.
 **And** overall progress bar shows percentage
 **And** cancel button allows aborting
 
-**Technical Notes:**
-- GenerationViewModel tracks phase state
-- ProgressPhaseIndicator composable from design system
-- Animated transitions between phases
-- Cancel triggers coroutine cancellation
+**Architecture requirements:**
+- Located in `feature/rules` module — `GenerationScreen.kt` and `GenerationViewModel.kt`
+- `GenerationUiState` data class tracks: `currentPhase: ScanPhase`, `progress: Float`, `phaseMessage: String`, `isLoading: Boolean`, `error: String?`
+- `ScanPhase` enum in `core/model`: `PROCESSING_IMAGE`, `ANALYZING_IMAGE`, `IDENTIFYING_GAME`, `GENERATING_RULES`, `SAVING_RULES`, `COMPLETE`
+- ViewModel receives compressed image bytes as navigation argument or shared state
+- Cancel triggers `viewModelScope.coroutineContext.cancelChildren()` — proper coroutine cancellation with cleanup
+
+**UX/Component specifications:**
+- Full-screen presentation (no bottom nav, no FAB) — same as camera screen treatment
+- Progress display uses `RulebookProgressIndicator` with `type = ProgressType.LinearBar` from `core/designsystem`
+  - Bar height: 12dp (medium size), color: `brutalist.blue` (#3498DB/#5DADE2)
+  - Border: 2dp solid black, shadow: 4dp offset (from component library spec)
+- Phase labels use `brutalist.sectionTitle` typography (16sp, Black 900 weight)
+- Phase-specific messages use `body.body` typography (17sp, Regular)
+- Active phase indicator: pulsing animation using `rememberInfiniteTransition` with `animate-pulse` effect
+  - Animation: `initialValue = 0.6f, targetValue = 1f, tween(600ms)` per progress indicator dot animation pattern
+- Completed phases show `brutalist.green` (#2ECC71/#58D68D) checkmark icon
+- Pending phases show `content.tertiary` (#00000066/#FFFFFF66) color
+- Cancel button: `RulebookButton` secondary variant (outlined, no fill) positioned at bottom with `spacing.lg` (24dp) margin
+- Background: `surface.secondary` (#FFF9F0/#2C2C2E) for warm/dark feel
+- Phase transition animation: 300ms `EaseInOut` (from `animation.duration.medium`)
+- Layout: Centered vertically, `spacing.xl` (32dp) between progress bar and phase list
+
+**Technical notes:**
+- GenerationViewModel tracks phase state via `MutableStateFlow<GenerationUiState>`
+- Each API call updates phase — use `emit()` on state flow between operations
+- Animated transitions between phases using `AnimatedContent` with `fadeIn + slideInVertically`
+- Cancel fires `CameraEvent.ScanCancelled` and navigates back to camera
+- Phase messages: "Preparing your image...", "Analyzing the game box...", "Identifying the game...", "Generating rules...", "Saving to your library..."
 
 **Prerequisites:** Story 5.1, Epic 1 (design system)
 
@@ -80,10 +120,23 @@ So that the game box can be identified.
 **And** timeout is handled (30s)
 **And** errors return Result.Error with user-friendly message
 
-**Technical Notes:**
-- Retrofit `@Multipart` or `@Body` with base64
-- `RulebookApi.analyzeImage()` from core/network
-- Map API response to `ScanResult` domain model
+**Architecture requirements:**
+- API call defined in `core/network` module — `RulebookApi.analyzeImage()` Retrofit interface
+- Request/response models in `core/network`: `AnalyzeRequest` and `AnalyzeResponse` with `@Serializable` annotation
+- Response mapped to `ScanResult` domain model in `core/model` via mapper function in `core/data`
+- Repository pattern: `ScanRepository` in `core/data` wraps API call and returns `Result<ScanResult>`
+- All network errors caught in repository layer and wrapped as `Result.Error` with user-friendly messages (Architecture §Error Handling)
+- OkHttp timeout: 30s default from `RulebookApiClient` configuration (NFR16)
+- API field names use `@SerialName("snake_case")` mapping (Architecture §API Conventions)
+- Domain models are separate from API models — mappers in `core/data` handle conversion
+
+**Technical notes:**
+- Retrofit `@Multipart @POST("analyze")` with `@Part image: MultipartBody.Part`
+- Alternative: `@POST("analyze")` with `@Body` containing base64-encoded image string
+- Map API response to `ScanResult(gameTitle: String, confidence: Float, thumbnailUrl: String?)`
+- Timeout produces `Result.Error("The analysis took too long. Please try again.")`
+- Network error: `Result.Error("Unable to connect. Please check your internet connection.")`
+- Server error: `Result.Error("Something went wrong on our end. Please try again.")`
 
 **Prerequisites:** Epic 1 (network client)
 
@@ -109,10 +162,34 @@ So that I can verify it's correct before generating rules.
 - "Is this your game?" prompt
 - "Yes, continue" and "No, enter manually" buttons (FR14)
 
-**Technical Notes:**
+**Architecture requirements:**
+- Confidence gate logic in `GenerationViewModel` — evaluates `ScanResult.confidence` against threshold
+- Threshold constant in `core/common`: `const val CONFIDENCE_AUTO_PROCEED_THRESHOLD = 0.80f`
+- Auto-proceed emits state transition: `GenerationUiState(phase = GENERATING_RULES, gameName = result.gameTitle)`
+- Low confidence emits: `GenerationUiState(showConfirmation = true, scanResult = result)`
+- User choice dispatched as intent: `GenerationIntent.ConfirmGame` or `GenerationIntent.RejectGame`
+
+**UX/Component specifications:**
+- **Auto-proceed (>= 80%):** Brief toast-like overlay showing "Identified: [Game Name]" for 1.5s using `brutalist.title` (24sp, Black) typography, then auto-advances — no user action required (UX §Experience Principles: "Speed Above All")
+- **Confirmation screen (< 80%):**
+  - `ConfidenceBadge` composable from `core/designsystem`:
+    - High (>80%): `brutalist.green` (#2ECC71/#58D68D) background, "HIGH CONFIDENCE" text
+    - Medium (50-80%): `brutalist.orange` (#FF6B35/#FF8C5F) background, "MEDIUM CONFIDENCE" text
+    - Low (<50%): `brutalist.red` (#E74C3C/#EC7063) background, "LOW CONFIDENCE" text
+    - Badge spec: padding 8dp horizontal / 4dp vertical, border 2dp solid black, text 11sp bold uppercase, 0dp corners (from `RulebookBadge` component library)
+  - Game name displayed in `display.title` typography (28sp, Bold)
+  - "Is this your game?" prompt in `body.body` (17sp, Regular), `content.secondary` color
+  - "Yes, continue" button: `RulebookButton` primary variant (pink fill #E91E63, 3dp border, 4dp shadow)
+  - "No, enter manually" button: `RulebookButton` secondary variant (outlined, no fill)
+  - Buttons stacked vertically with `spacing.sm` (8dp) gap
+  - Layout: Centered content with `spacing.md` (16dp) screen margin
+- Haptic feedback: Light click on button press (UX §Haptic Patterns)
+
+**Technical notes:**
 - ConfidenceBadge composable (color-coded: green >80%, yellow 50-80%, red <50%)
 - Threshold configurable (start with 80%)
-- Analytics event for confidence level
+- Analytics events: `scan_analysis_complete` with `confidence` property
+- Auto-proceed delay: `delay(1500)` to show game name before advancing
 
 **Prerequisites:** Story 5.3
 
@@ -135,10 +212,29 @@ So that I can still get rules for obscure or misidentified games.
 
 **And** manual entry still consumes a credit
 
-**Technical Notes:**
-- TextField with brutalist styling
-- CameraViewModel handles manual name submission
+**Architecture requirements:**
+- Manual entry is a UI state within `GenerationViewModel` — `GenerationUiState(showManualEntry = true)`
+- Submitted name creates a synthetic `ScanResult(gameTitle = userInput, confidence = 1.0f, thumbnailUrl = null)` and follows the same generation pipeline
+- Same `ScanRepository.generateRules()` endpoint regardless of auto or manual identification
+- No additional network call for manual entry — goes straight to rules generation (Story 5.6)
+
+**UX/Component specifications:**
+- Text field: `RulebookTextField` (or Material 3 `TextField` with brutalist styling):
+  - Border: 3dp solid black, 0dp corner radius
+  - Background: `surface.primary` (#FFFFFF/#1C1C1E)
+  - Text: `body.body` (17sp, Regular)
+  - Placeholder: "Enter game name..." in `content.tertiary` color (#00000066/#FFFFFF66)
+  - Padding: `spacing.md` (16dp)
+- Keyboard opens automatically via `FocusRequester.requestFocus()` in `LaunchedEffect`
+- "Generate Rules" button: `RulebookButton` primary variant, enabled only when text is non-empty
+- Collaborative, non-blaming tone: "Not your game? Enter the name below" (UX §Emotional Design: "Recovery = Reassurance")
+- Layout: TextField + button centered vertically, `spacing.lg` (24dp) between elements
+
+**Technical notes:**
+- TextField with brutalist styling from design system
+- GenerationViewModel handles manual name submission via `GenerationIntent.SubmitManualName(name: String)`
 - Same rules generation flow after manual entry
+- Analytics event: `scan_manual_entry` with entered name
 
 **Prerequisites:** Story 5.4
 
@@ -164,10 +260,34 @@ So that structured rules are created for the identified game.
 **And** response is parsed into `Rules` domain model
 **And** generation completes in <45s (allows 60s total with analysis)
 
-**Technical Notes:**
+**Architecture requirements:**
+- API call defined in `core/network` — `RulebookApi.generateRules(@Body request: GenerateRequest): GenerateResponse`
+- `GenerateRequest`: `@Serializable data class(val gameName: String, val thumbnailUrl: String? = null)`
+- `GenerateResponse` maps to `Rules` domain model in `core/model` via mapper in `core/data`
+- `Rules` domain model structure:
+  ```kotlin
+  data class Rules(
+      val gameId: String,
+      val overview: RuleSection,     // summary + win condition
+      val setup: RuleSection,        // step-by-step with items list
+      val firstRound: RuleSection,   // turn structure
+      val advanced: RuleSection      // edge cases
+  )
+  data class RuleSection(
+      val title: String,
+      val content: String,
+      val items: List<String>? = null  // For checklist items in setup
+  )
+  ```
+- `ScanRepository.generateRules(gameName: String, thumbnailUrl: String?): Result<Rules>` in `core/data`
+- Response parsing: `@SerialName` maps API field names to Kotlin properties
+- Generation timeout: 45s (stricter than default 30s — configure per-request via OkHttp `Call.timeout()`)
+
+**Technical notes:**
 - `RulebookApi.generateRules()` from core/network
-- Parse JSON into RuleSection objects
-- Handle streaming response if API supports it (future)
+- Parse JSON response into `Rules` with nested `RuleSection` objects
+- Handle streaming response if API supports it (future optimization)
+- Progress updates during generation: update phase from `IDENTIFYING_GAME` → `GENERATING_RULES` at API call start
 
 **Prerequisites:** Story 5.3
 
@@ -194,11 +314,28 @@ So that I can access them later without re-scanning.
 **And** credit is deducted (FR35)
 **And** user is navigated to Rules display screen
 
-**Technical Notes:**
-- GameRepository.saveGame() with transaction
-- Room insert operations
-- Update DataStore credit balance
-- Navigate with gameId argument
+**Architecture requirements:**
+- Save operation in `core/data` — `GameRepository.saveGameWithRules(game: Game, rules: Rules): Result<String>` returning gameId
+- Room `@Transaction` ensures atomic write: `GameEntity` insert + `RulesEntity` insert in single transaction
+- Credit deduction via `RulebookPreferences.decrementCredits()` — happens AFTER successful Room insert
+- Entity mapping: `Game` → `GameEntity` and `Rules` → `RulesEntity` via mapper functions in `core/data`
+- Foreign key: `RulesEntity.gameId` references `GameEntity.id` with `CASCADE` delete (Architecture §Database Conventions)
+- UUID generated via `java.util.UUID.randomUUID().toString()`
+- Timestamps: `System.currentTimeMillis()` stored as `Long` (Architecture §Database Conventions)
+- Navigation after save: emit `GenerationEvent.NavigateToRules(gameId)` via `Channel`
+
+**UX/Component specifications:**
+- Progress phase updates to "Saving to your library..." during save (phase 5: 90-100%)
+- On completion: brief success state with `brutalist.green` checkmark animation before navigation
+- Haptic feedback: Success vibration on save complete (UX §Haptic Patterns: "Scan complete → Success vibration")
+- Transition to Rules screen: slide-in animation, 300ms (animation.duration.medium)
+
+**Technical notes:**
+- `GameRepository.saveGameWithRules()` uses Room `@Transaction` for atomicity
+- Room insert operations for both `GameEntity` and `RulesEntity`
+- Update DataStore credit balance via `RulebookPreferences.decrementCredits()`
+- Navigate with gameId argument: `navController.navigate("rules/${gameId}")`
+- Phase update: `GenerationUiState(phase = SAVING_RULES, progress = 0.9f)`
 
 **Prerequisites:** Story 5.6, Epic 1 (Room, DataStore)
 
@@ -219,10 +356,25 @@ So that I can get rules even for rare or international games.
 **And** if fallback succeeds, continue normal flow
 **And** if fallback fails, offer manual entry
 
-**Technical Notes:**
-- Backend handles model fallback (may be transparent to client)
-- Client may need to retry with different endpoint/flag
-- Track fallback usage in analytics
+**Architecture requirements:**
+- Fallback logic in `core/data` — `ScanRepository` orchestrates retry with alternate endpoint/flag
+- API contract: `RulebookApi.analyzeImage(request, useFallback: Boolean = false)` or separate endpoint
+- Fallback trigger: confidence < 30% OR primary model returns error
+- Repository chains: primary call → check result → if fallback needed → retry with fallback flag → return combined result
+- Fallback is transparent to ViewModel — `ScanRepository` handles internally and returns single `Result<ScanResult>`
+- If backend handles fallback transparently, client just needs extended timeout (45s for fallback attempts)
+
+**UX/Component specifications:**
+- Phase message updates to "Trying alternative recognition..." using same `body.body` typography
+- No additional UI element — reuses existing progress screen (Story 5.2)
+- Progress bar may stall or slow during fallback — maintain animation to show activity
+- If fallback also fails: transition to error state (Story 5.9) with option for manual entry (Story 5.5)
+
+**Technical notes:**
+- Backend may handle model fallback transparently (no client changes needed)
+- If client-side: `ScanRepository` retries with `useFallback = true` parameter
+- Track fallback usage in analytics: `scan_fallback_triggered` event with `primary_confidence` property
+- Extended timeout for fallback: allow up to 45s total for both attempts
 
 **Prerequisites:** Story 5.3
 
@@ -246,10 +398,33 @@ So that I can try a better photo without starting over.
 **And** original photo can be retried or new photo taken
 **And** no credit is consumed on failure
 
-**Technical Notes:**
-- Error state in GenerationViewModel
-- Map specific errors to user-friendly messages
-- Preserve compressed image for retry option
+**Architecture requirements:**
+- Error state in `GenerationViewModel`: `GenerationUiState(error = ErrorState(message, type))`
+- `ErrorState` sealed class in `core/model`: `NetworkError`, `ServerError`, `AnalysisError`, `TimeoutError`
+- "Try Again" emits `GenerationEvent.NavigateToCamera` — camera screen retains compressed image for retry
+- "Enter Manually" transitions to manual entry state within same ViewModel
+- No credit deduction on error — credit only consumed in Story 5.7 on successful save
+
+**UX/Component specifications:**
+- Error layout centered on screen with `surface.secondary` background
+- Error icon: warning triangle icon, `brutalist.orange` (#FF6B35/#FF8C5F) color, 48dp size
+- Error title: `brutalist.title` typography (24sp, Black 900) — "SOMETHING WENT WRONG"
+- Error message: `body.body` (17sp, Regular), `content.secondary` color — user-friendly, non-technical:
+  - Network: "Unable to connect. Check your internet and try again."
+  - Timeout: "The analysis took too long. Try a clearer photo."
+  - Server: "We hit a snag. Please try again in a moment."
+  - Analysis: "We couldn't identify this game. Try another angle or enter the name."
+- "Try Again" button: `RulebookButton` primary variant (pink fill), spacing `spacing.md` (16dp)
+- "Enter Manually" button: `RulebookButton` secondary variant (outlined)
+- Buttons stacked vertically with `spacing.sm` (8dp) gap
+- Tone: Collaborative, non-blaming (UX §Emotional Design: "Recovery = Reassurance" — "Never blame the user")
+- Haptic feedback: Double tap on error display (UX §Haptic Patterns: "Error → Double tap")
+
+**Technical notes:**
+- Error state in GenerationViewModel with `MutableStateFlow<GenerationUiState>`
+- Map specific exceptions to `ErrorState` types in repository layer
+- Preserve compressed image in CameraViewModel for retry option
+- Analytics event: `scan_failed` with `error_type` and `error_message` properties
 
 **Prerequisites:** Story 5.2
 
@@ -274,10 +449,23 @@ So that I can understand conversion and failure points.
 - `scan_failed` - With error type
 - `scan_cancelled` - User cancelled
 
-**Technical Notes:**
-- Events fired from GenerationViewModel
-- Include relevant properties (confidence, error_type, duration)
-- Match iOS event names
+**Architecture requirements:**
+- Events fired from `GenerationViewModel` — uses `AnalyticsManager` from `core/analytics` injected via Koin
+- `AnalyticsManager.trackEvent(name: String, properties: Map<String, String>)` API
+- Event names MUST match iOS event names exactly for cross-platform consistency (Architecture §Analytics)
+- No PII in event properties — game names are OK, user identifiers are NOT
+
+**Technical notes:**
+- Events fired from GenerationViewModel at each state transition
+- Properties per event:
+  - `scan_started`: `source` (camera/gallery)
+  - `scan_analysis_complete`: `confidence` (float as string), `game_title`
+  - `scan_confirmed`: `confidence`, `game_title`
+  - `scan_manual_entry`: `game_title`
+  - `scan_generation_complete`: `game_title`, `duration_ms`
+  - `scan_failed`: `error_type`, `phase`
+  - `scan_cancelled`: `phase`
+- Match iOS event names from TelemetryDeck integration
 
 **Prerequisites:** Epic 1 (Analytics)
 
@@ -286,8 +474,7 @@ So that I can understand conversion and failure points.
 **Epic 5 Complete: Game Recognition & Rules Generation**
 
 **Stories Created:** 10
-**FR Coverage:** FR12-18, FR26, FR35
-**Architecture Sections Referenced:** feature/rules, core/network, core/database
-**UX Patterns Incorporated:** Progress phases, confidence display, error recovery
-
----
+**FR Coverage:** FR12-18, FR26, FR35, FR38
+**Architecture Sections Referenced:** feature/rules, feature/camera, core/network, core/data, core/database, core/model, core/datastore, core/analytics
+**UX Patterns Incorporated:** Progress phases, confidence display, error recovery, manual fallback, haptic feedback
+**Design Tokens Referenced:** brutalist.blue, brutalist.green, brutalist.orange, brutalist.red, brutalist.pink, animation.duration.medium, typography.brutalist.title, typography.brutalist.sectionTitle
