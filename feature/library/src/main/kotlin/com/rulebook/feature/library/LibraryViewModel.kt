@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -51,17 +51,15 @@ class LibraryViewModel(
             _sortOrder
                 .flatMapLatest { sortOrder ->
                     gameRepository.getGamesSorted(sortOrder)
-                }
-                .combine(_sortOrder) { games, sortOrder ->
-                    games to sortOrder
-                }
-                .catch { e ->
-                    _uiState.update {
-                        it.copy(
-                            error = e.message ?: "Failed to load games",
-                            isLoading = false
-                        )
-                    }
+                        .map { games -> games to sortOrder }
+                        .catch { e ->
+                            _uiState.update {
+                                it.copy(
+                                    error = e.message ?: "Failed to load games",
+                                    isLoading = false
+                                )
+                            }
+                        }
                 }
                 .collect { (games, sortOrder) ->
                     _uiState.update {
