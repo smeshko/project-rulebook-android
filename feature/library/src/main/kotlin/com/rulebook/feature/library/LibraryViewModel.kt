@@ -2,17 +2,22 @@ package com.rulebook.feature.library
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rulebook.core.common.Result
 import com.rulebook.core.data.repository.GameRepository
 import com.rulebook.core.datastore.SortPreferencesSource
+import com.rulebook.core.model.Game
 import com.rulebook.core.model.SortOrder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -35,6 +40,9 @@ class LibraryViewModel(
     private val _sortOrder = MutableStateFlow(SortOrder.RECENT)
     private val _uiState = MutableStateFlow(LibraryUiState())
     val uiState: StateFlow<LibraryUiState> = _uiState.asStateFlow()
+
+    private val _events = Channel<LibraryEvent>()
+    val events: Flow<LibraryEvent> = _events.receiveAsFlow()
 
     init {
         // Initialize sort order from preferences
@@ -97,6 +105,45 @@ class LibraryViewModel(
             // Brief delay provides visual feedback for the refresh indicator.
             delay(REFRESH_INDICATOR_DELAY_MS)
             _uiState.update { it.copy(isRefreshing = false) }
+        }
+    }
+
+    /**
+     * Requests deletion of a game.
+     * Sets the deleteConfirmation state to show the confirmation dialog.
+     */
+    fun requestDelete(game: Game) {
+        _uiState.update { it.copy(deleteConfirmation = game) }
+    }
+
+    /**
+     * Cancels the pending deletion.
+     * Clears the deleteConfirmation state to hide the dialog.
+     */
+    fun cancelDelete() {
+        _uiState.update { it.copy(deleteConfirmation = null) }
+    }
+
+    /**
+     * Confirms and executes the pending deletion.
+     * Deletes the game from the repository and emits a snackbar event.
+     */
+    fun confirmDelete() {
+        viewModelScope.launch {
+            val game = _uiState.value.deleteConfirmation ?: return@launch
+
+            // Clear dialog immediately (optimistic UI)
+            _uiState.update { it.copy(deleteConfirmation = null) }
+
+            // Delete from repository
+            when (gameRepository.deleteGame(game.id)) {
+                is Result.Success -> {
+                    _events.send(LibraryEvent.ShowSnackbar("Game deleted"))
+                }
+                is Result.Error -> {
+                    _events.send(LibraryEvent.ShowSnackbar("Failed to delete game"))
+                }
+            }
         }
     }
 

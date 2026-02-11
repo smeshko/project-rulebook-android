@@ -199,6 +199,84 @@ class LibraryViewModelTest {
         // Then
         assertEquals("Test message", event.message)
     }
+
+    @Test
+    fun `requestDelete sets deleteConfirmation in state`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game))
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        // When
+        viewModel.requestDelete(game)
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(game, viewModel.uiState.value.deleteConfirmation)
+    }
+
+    @Test
+    fun `cancelDelete clears deleteConfirmation`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game))
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        viewModel.requestDelete(game)
+        advanceUntilIdle()
+        assertEquals(game, viewModel.uiState.value.deleteConfirmation)
+
+        // When
+        viewModel.cancelDelete()
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(null, viewModel.uiState.value.deleteConfirmation)
+    }
+
+    @Test
+    fun `confirmDelete calls repository deleteGame and emits snackbar event`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game))
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        viewModel.requestDelete(game)
+        advanceUntilIdle()
+
+        // When
+        viewModel.confirmDelete()
+        advanceUntilIdle()
+
+        // Then
+        assertTrue(repository.deletedIds.contains("1"))
+    }
+
+    @Test
+    fun `confirmDelete clears dialog state before calling repository`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game))
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        viewModel.requestDelete(game)
+        advanceUntilIdle()
+
+        // When
+        viewModel.confirmDelete()
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(null, viewModel.uiState.value.deleteConfirmation)
+    }
 }
 
 /**
@@ -229,6 +307,8 @@ private class FakeGameRepository(
     private val error: String? = null
 ) : GameRepository {
 
+    val deletedIds = mutableListOf<String>()
+
     override suspend fun getGames(): Result<List<Game>> {
         delay(1)
         return if (error != null) Result.Error(error) else Result.Success(games)
@@ -249,7 +329,12 @@ private class FakeGameRepository(
     }
 
     override suspend fun saveGame(game: Game): Result<Unit> = Result.Success(Unit)
-    override suspend fun deleteGame(id: String): Result<Unit> = Result.Success(Unit)
+
+    override suspend fun deleteGame(id: String): Result<Unit> {
+        deletedIds.add(id)
+        return Result.Success(Unit)
+    }
+
     override suspend fun getRulesForGame(gameId: String): Result<com.rulebook.core.model.Rules> =
         Result.Error("Not implemented")
     override suspend fun saveGameWithRules(game: Game, rules: com.rulebook.core.model.Rules, rawJson: String): Result<String> =
