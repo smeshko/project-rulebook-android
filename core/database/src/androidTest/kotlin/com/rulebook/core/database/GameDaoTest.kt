@@ -137,6 +137,23 @@ class GameDaoTest {
         assertNull(result)
     }
 
+    @Test
+    fun updateLastAccessedAt_updatesTimestampOnly() = runTest {
+        val originalTimestamp = 1000L
+        val game = createTestGame("game-1", "Catan", lastAccessedAt = originalTimestamp)
+        gameDao.insert(game)
+
+        val newTimestamp = 5000L
+        gameDao.updateLastAccessedAt("game-1", newTimestamp)
+
+        val result = gameDao.getById("game-1").first()
+        assertEquals(newTimestamp, result?.lastAccessedAt)
+        // Verify other fields unchanged
+        assertEquals("Catan", result?.title)
+        assertEquals(game.createdAt, result?.createdAt)
+        assertEquals(game.thumbnailUrl, result?.thumbnailUrl)
+    }
+
     private fun createTestGame(
         id: String,
         title: String,

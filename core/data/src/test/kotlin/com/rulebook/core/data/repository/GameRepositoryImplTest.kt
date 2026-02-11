@@ -414,6 +414,14 @@ class FakeGameDao : GameDao {
         return MutableStateFlow(games.sortedBy { it.title })
     }
 
+    override suspend fun updateLastAccessedAt(id: String, timestamp: Long) {
+        val index = games.indexOfFirst { it.id == id }
+        if (index != -1) {
+            games[index] = games[index].copy(lastAccessedAt = timestamp)
+            gamesFlow.value = games.toList()
+        }
+    }
+
     // Test helper methods
     fun insertSync(game: GameEntity) {
         games.removeIf { it.id == game.id }
