@@ -236,4 +236,8 @@ private class FakeGameRepository(
     ): Result<String> {
         return Result.Success("test-game-id")
     }
+
+    override suspend fun updateLastAccessed(gameId: String): Result<Unit> {
+        return Result.Success(Unit)
+    }
 }

@@ -70,4 +70,11 @@ interface GameDao {
      */
     @Query("SELECT * FROM saved_games ORDER BY title ASC")
     fun getAllSortedByTitleAsc(): Flow<List<GameEntity>>
+
+    /**
+     * Updates the last accessed timestamp for a specific game.
+     * This is a targeted update operation that only modifies the lastAccessedAt field.
+     */
+    @Query("UPDATE saved_games SET last_accessed_at = :timestamp WHERE id = :id")
+    suspend fun updateLastAccessedAt(id: String, timestamp: Long)
 }

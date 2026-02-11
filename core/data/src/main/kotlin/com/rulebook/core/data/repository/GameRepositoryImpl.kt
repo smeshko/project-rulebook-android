@@ -73,6 +73,10 @@ class GameRepositoryImpl(
         // Return the generated game ID
         generatedId
     }
+
+    override suspend fun updateLastAccessed(gameId: String): Result<Unit> = safeCall {
+        gameDao.updateLastAccessedAt(gameId, System.currentTimeMillis())
+    }
 }
 
 // ==================== Mapper Extension Functions ====================

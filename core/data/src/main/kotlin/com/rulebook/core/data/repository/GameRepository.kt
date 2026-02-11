@@ -63,4 +63,15 @@ interface GameRepository {
      * @return Result containing the generated game ID on success, or an error.
      */
     suspend fun saveGameWithRules(game: Game, rules: Rules, rawJson: String): Result<String>
+
+    /**
+     * Updates the last accessed timestamp for a specific game.
+     *
+     * This is a fire-and-forget operation used to track when a game's rules were last viewed.
+     * Failures are silently ignored as this is a non-critical operation.
+     *
+     * @param gameId The unique identifier of the game.
+     * @return Result indicating success or failure.
+     */
+    suspend fun updateLastAccessed(gameId: String): Result<Unit>
 }

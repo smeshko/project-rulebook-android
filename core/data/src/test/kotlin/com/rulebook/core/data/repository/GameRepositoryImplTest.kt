@@ -367,6 +367,35 @@ class GameRepositoryImplTest {
         assertEquals("Offline first round content", rules.firstRound.content)
         assertEquals("Offline advanced content", rules.advanced.content)
     }
+
+    // ==================== updateLastAccessed Tests ====================
+
+    @Test
+    fun `updateLastAccessed updates timestamp for existing game`() = runTest {
+        val entity = GameEntity(
+            id = "game-1",
+            title = "Catan",
+            thumbnailUrl = "http://example.com/catan.jpg",
+            createdAt = 1000L,
+            lastAccessedAt = 2000L
+        )
+        fakeGameDao.insertSync(entity)
+
+        val result = repository.updateLastAccessed("game-1")
+
+        assertTrue(result is Result.Success)
+        val updatedGame = fakeGameDao.getById("game-1").first()!!
+        assertTrue(updatedGame.lastAccessedAt > 2000L)
+    }
+
+    @Test
+    fun `updateLastAccessed returns success for non-existent game`() = runTest {
+        // Repository's updateLastAccessed doesn't throw if game doesn't exist
+        // (DAO's UPDATE query silently succeeds with 0 affected rows)
+        val result = repository.updateLastAccessed("nonexistent")
+
+        assertTrue(result is Result.Success)
+    }
 }
 
 /**
@@ -412,6 +441,14 @@ class FakeGameDao : GameDao {
 
     override fun getAllSortedByTitleAsc(): Flow<List<GameEntity>> {
         return MutableStateFlow(games.sortedBy { it.title })
+    }
+
+    override suspend fun updateLastAccessedAt(id: String, timestamp: Long) {
+        val index = games.indexOfFirst { it.id == id }
+        if (index != -1) {
+            games[index] = games[index].copy(lastAccessedAt = timestamp)
+            gamesFlow.value = games.toList()
+        }
     }
 
     // Test helper methods

@@ -352,6 +352,61 @@ class RulesViewModelTest {
         assertEquals("Advanced Rules", state.rules?.advanced?.title)
         assertEquals("Test advanced with edge cases", state.rules?.advanced?.content)
     }
+
+    // ==================== updateLastAccessed Tests ====================
+
+    @Test
+    fun `updates lastAccessedAt when rules load successfully`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(testRules)
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        assertEquals(1, repository.updateLastAccessedCallCount)
+        assertEquals("game-1", repository.lastUpdateLastAccessedGameId)
+    }
+
+    @Test
+    fun `does not update lastAccessedAt when game load fails`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Error("Game not found")
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        assertEquals(0, repository.updateLastAccessedCallCount)
+        assertNull(repository.lastUpdateLastAccessedGameId)
+    }
+
+    @Test
+    fun `does not update lastAccessedAt when rules load fails`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Error("Rules not found")
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        assertEquals(0, repository.updateLastAccessedCallCount)
+        assertNull(repository.lastUpdateLastAccessedGameId)
+    }
+
+    @Test
+    fun `timestamp update failure does not affect UI state`() = runTest {
+        val repository = FakeGameRepository(
+            gameResult = Result.Success(testGame),
+            rulesResult = Result.Success(testRules),
+            updateLastAccessedResult = Result.Error("Database error")
+        )
+        val viewModel = RulesViewModel("game-1", repository)
+
+        // UI should still show success even if timestamp update failed
+        val state = viewModel.uiState.value
+        assertFalse(state.isLoading)
+        assertTrue(state.isSuccess)
+        assertEquals(testGame, state.game)
+        assertEquals(testRules, state.rules)
+        assertNull(state.error)
+    }
 }
 
 /**
@@ -359,8 +414,12 @@ class RulesViewModelTest {
  */
 private class FakeGameRepository(
     var gameResult: Result<Game> = Result.Error("Not configured"),
-    var rulesResult: Result<Rules> = Result.Error("Not configured")
+    var rulesResult: Result<Rules> = Result.Error("Not configured"),
+    var updateLastAccessedResult: Result<Unit> = Result.Success(Unit)
 ) : GameRepository {
+    var updateLastAccessedCallCount = 0
+    var lastUpdateLastAccessedGameId: String? = null
+
     override suspend fun getGames(): Result<List<Game>> {
         throw NotImplementedError()
     }
@@ -383,5 +442,11 @@ private class FakeGameRepository(
 
     override suspend fun saveGameWithRules(game: Game, rules: Rules, rawJson: String): Result<String> {
         throw NotImplementedError()
+    }
+
+    override suspend fun updateLastAccessed(gameId: String): Result<Unit> {
+        updateLastAccessedCallCount++
+        lastUpdateLastAccessedGameId = gameId
+        return updateLastAccessedResult
     }
 }
