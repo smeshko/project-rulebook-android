@@ -3,6 +3,8 @@ package com.rulebook.core.data.repository
 import com.rulebook.core.common.Result
 import com.rulebook.core.model.Game
 import com.rulebook.core.model.Rules
+import com.rulebook.core.model.SortOrder
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Repository interface for game data operations.
@@ -74,4 +76,15 @@ interface GameRepository {
      * @return Result indicating success or failure.
      */
     suspend fun updateLastAccessed(gameId: String): Result<Unit>
+
+    /**
+     * Retrieves all saved games sorted by the specified order as a reactive Flow.
+     *
+     * The Flow emits a new list whenever the underlying data changes (insert/update/delete)
+     * or when the sort order changes via flatMapLatest.
+     *
+     * @param sortOrder The sort order to apply: RECENT, ALPHABETICAL, or DATE_ADDED.
+     * @return Flow emitting sorted list of games.
+     */
+    fun getGamesSorted(sortOrder: SortOrder): Flow<List<Game>>
 }

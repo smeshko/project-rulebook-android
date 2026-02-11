@@ -6,6 +6,7 @@ import com.rulebook.core.database.RulesDao
 import com.rulebook.core.database.entity.GameEntity
 import com.rulebook.core.database.entity.RulesEntity
 import com.rulebook.core.model.Game
+import com.rulebook.core.model.SortOrder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -395,6 +396,66 @@ class GameRepositoryImplTest {
         val result = repository.updateLastAccessed("nonexistent")
 
         assertTrue(result is Result.Success)
+    }
+
+    // ==================== getGamesSorted Tests ====================
+
+    @Test
+    fun `getGamesSorted returns games sorted by recent when RECENT order specified`() = runTest {
+        val game1 = GameEntity("1", "A Game", null, 1000L, 3000L)
+        val game2 = GameEntity("2", "B Game", null, 2000L, 1000L)
+        val game3 = GameEntity("3", "C Game", null, 3000L, 2000L)
+        fakeGameDao.insertSync(game1)
+        fakeGameDao.insertSync(game2)
+        fakeGameDao.insertSync(game3)
+
+        val result = repository.getGamesSorted(SortOrder.RECENT).first()
+
+        assertEquals(3, result.size)
+        assertEquals("1", result[0].id) // lastAccessedAt: 3000
+        assertEquals("3", result[1].id) // lastAccessedAt: 2000
+        assertEquals("2", result[2].id) // lastAccessedAt: 1000
+    }
+
+    @Test
+    fun `getGamesSorted returns games sorted alphabetically when ALPHABETICAL order specified`() = runTest {
+        val game1 = GameEntity("1", "Catan", null, 1000L, 3000L)
+        val game2 = GameEntity("2", "Azul", null, 2000L, 1000L)
+        val game3 = GameEntity("3", "Brass", null, 3000L, 2000L)
+        fakeGameDao.insertSync(game1)
+        fakeGameDao.insertSync(game2)
+        fakeGameDao.insertSync(game3)
+
+        val result = repository.getGamesSorted(SortOrder.ALPHABETICAL).first()
+
+        assertEquals(3, result.size)
+        assertEquals("Azul", result[0].title)
+        assertEquals("Brass", result[1].title)
+        assertEquals("Catan", result[2].title)
+    }
+
+    @Test
+    fun `getGamesSorted returns games sorted by date added when DATE_ADDED order specified`() = runTest {
+        val game1 = GameEntity("1", "A Game", null, 1000L, 3000L)
+        val game2 = GameEntity("2", "B Game", null, 3000L, 1000L)
+        val game3 = GameEntity("3", "C Game", null, 2000L, 2000L)
+        fakeGameDao.insertSync(game1)
+        fakeGameDao.insertSync(game2)
+        fakeGameDao.insertSync(game3)
+
+        val result = repository.getGamesSorted(SortOrder.DATE_ADDED).first()
+
+        assertEquals(3, result.size)
+        assertEquals("2", result[0].id) // createdAt: 3000
+        assertEquals("3", result[1].id) // createdAt: 2000
+        assertEquals("1", result[2].id) // createdAt: 1000
+    }
+
+    @Test
+    fun `getGamesSorted returns empty list when no games saved`() = runTest {
+        val result = repository.getGamesSorted(SortOrder.RECENT).first()
+
+        assertEquals(emptyList<Game>(), result)
     }
 }
 
