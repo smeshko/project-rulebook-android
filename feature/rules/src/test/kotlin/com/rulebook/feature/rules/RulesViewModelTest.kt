@@ -424,6 +424,10 @@ private class FakeGameRepository(
         throw NotImplementedError()
     }
 
+    override fun getGamesSorted(sortOrder: com.rulebook.core.model.SortOrder): kotlinx.coroutines.flow.Flow<List<Game>> {
+        return kotlinx.coroutines.flow.emptyFlow()
+    }
+
     override suspend fun getGameById(id: String): Result<Game> {
         return gameResult
     }

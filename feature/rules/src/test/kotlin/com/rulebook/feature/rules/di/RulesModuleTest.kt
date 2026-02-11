@@ -65,6 +65,9 @@ class RulesModuleTest : KoinTest {
  */
 private class FakeGameRepository : GameRepository {
     override suspend fun getGames(): Result<List<Game>> = Result.Error("Not implemented")
+    override fun getGamesSorted(sortOrder: com.rulebook.core.model.SortOrder): kotlinx.coroutines.flow.Flow<List<Game>> {
+        return kotlinx.coroutines.flow.emptyFlow()
+    }
     override suspend fun getGameById(id: String): Result<Game> = Result.Error("Not implemented")
     override suspend fun saveGame(game: Game): Result<Unit> = Result.Error("Not implemented")
     override suspend fun deleteGame(id: String): Result<Unit> = Result.Error("Not implemented")
