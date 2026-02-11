@@ -455,3 +455,40 @@ private fun LibraryScreenGamesDarkPreview() {
         )
     }
 }
+
+@Preview(showBackground = true, name = "Delete Confirmation Dialog - Light")
+@Composable
+private fun LibraryScreenDeleteConfirmationPreview() {
+    val sampleGame = com.rulebook.core.model.Game(
+        id = "1",
+        title = "Catan",
+        thumbnailUrl = "https://example.com/catan.jpg",
+        createdAt = System.currentTimeMillis(),
+        lastAccessedAt = System.currentTimeMillis()
+    )
+    val sampleGames = listOf(
+        sampleGame,
+        com.rulebook.core.model.Game(
+            id = "2",
+            title = "Pandemic",
+            thumbnailUrl = null,
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        )
+    )
+    RulebookTheme(darkTheme = false) {
+        LibraryScreenContent(
+            uiState = LibraryUiState(
+                games = sampleGames,
+                deleteConfirmation = sampleGame
+            ),
+            snackbarHostState = remember { SnackbarHostState() },
+            onRefresh = {},
+            onNavigateToCamera = {},
+            onNavigateToRules = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onCancelDelete = {}
+        )
+    }
+}
