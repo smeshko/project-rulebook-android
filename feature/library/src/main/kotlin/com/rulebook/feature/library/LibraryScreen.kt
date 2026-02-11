@@ -260,3 +260,117 @@ private fun LibraryScreenErrorDarkPreview() {
         )
     }
 }
+
+@Preview(showBackground = true, name = "Games Grid - Light")
+@Composable
+private fun LibraryScreenGamesLightPreview() {
+    val sampleGames = listOf(
+        com.rulebook.core.model.Game(
+            id = "1",
+            title = "Catan",
+            thumbnailUrl = "https://example.com/catan.jpg",
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        ),
+        com.rulebook.core.model.Game(
+            id = "2",
+            title = "Ticket to Ride",
+            thumbnailUrl = null,
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        ),
+        com.rulebook.core.model.Game(
+            id = "3",
+            title = "Pandemic",
+            thumbnailUrl = "https://example.com/pandemic.jpg",
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        ),
+        com.rulebook.core.model.Game(
+            id = "4",
+            title = "Azul",
+            thumbnailUrl = null,
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        ),
+        com.rulebook.core.model.Game(
+            id = "5",
+            title = "7 Wonders",
+            thumbnailUrl = "https://example.com/7wonders.jpg",
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        ),
+        com.rulebook.core.model.Game(
+            id = "6",
+            title = "Dominion",
+            thumbnailUrl = null,
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        )
+    )
+    RulebookTheme(darkTheme = false) {
+        LibraryScreenContent(
+            uiState = LibraryUiState(games = sampleGames),
+            onRefresh = {},
+            onNavigateToCamera = {},
+            onNavigateToRules = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Games Grid - Dark")
+@Composable
+private fun LibraryScreenGamesDarkPreview() {
+    val sampleGames = listOf(
+        com.rulebook.core.model.Game(
+            id = "1",
+            title = "Catan",
+            thumbnailUrl = "https://example.com/catan.jpg",
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        ),
+        com.rulebook.core.model.Game(
+            id = "2",
+            title = "Ticket to Ride",
+            thumbnailUrl = null,
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        ),
+        com.rulebook.core.model.Game(
+            id = "3",
+            title = "Pandemic",
+            thumbnailUrl = "https://example.com/pandemic.jpg",
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        ),
+        com.rulebook.core.model.Game(
+            id = "4",
+            title = "Azul",
+            thumbnailUrl = null,
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        ),
+        com.rulebook.core.model.Game(
+            id = "5",
+            title = "7 Wonders",
+            thumbnailUrl = "https://example.com/7wonders.jpg",
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        ),
+        com.rulebook.core.model.Game(
+            id = "6",
+            title = "Dominion",
+            thumbnailUrl = null,
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        )
+    )
+    RulebookTheme(darkTheme = true) {
+        LibraryScreenContent(
+            uiState = LibraryUiState(games = sampleGames),
+            onRefresh = {},
+            onNavigateToCamera = {},
+            onNavigateToRules = {}
+        )
+    }
+}
