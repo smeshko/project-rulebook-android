@@ -105,6 +105,11 @@ class RulesViewModel(
                             error = null
                         )
                     }
+
+                    // Update last accessed timestamp in background (fire-and-forget)
+                    viewModelScope.launch {
+                        gameRepository.updateLastAccessed(gameId)
+                    }
                 }
                 is Result.Error -> {
                     _uiState.update {
