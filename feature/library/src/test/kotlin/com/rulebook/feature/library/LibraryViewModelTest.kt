@@ -190,6 +190,15 @@ class LibraryViewModelTest {
         // Then
         assertEquals(null, viewModel.uiState.value.deleteConfirmation)
     }
+
+    @Test
+    fun `LibraryEvent ShowSnackbar can be created with message`() {
+        // When
+        val event = LibraryEvent.ShowSnackbar("Test message")
+
+        // Then
+        assertEquals("Test message", event.message)
+    }
 }
 
 /**
