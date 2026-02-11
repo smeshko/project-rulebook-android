@@ -26,3 +26,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When integrating Coil 3 AsyncImage with placeholder/error handling
     - When extending brutalist card styling patterns in design system
     - When working with typography tokens and design system integration
+
+- `docs/features/delete-game-confirmation-dialog.md` - Delete Game with Confirmation Dialog (RULE-219)
+  - Conditions:
+    - When implementing one-time event channels for notifications in library or other features
+    - When adding long-press gesture detection to composable components
+    - When creating confirmation dialogs for destructive operations (delete, logout, reset)
+    - When integrating snackbar notifications with event-driven architecture
+    - When implementing optimistic UI patterns with Room reactive cascading deletes
