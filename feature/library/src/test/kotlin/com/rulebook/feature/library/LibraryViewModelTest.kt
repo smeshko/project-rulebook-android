@@ -176,6 +176,20 @@ class LibraryViewModelTest {
         advanceUntilIdle()
         assertFalse(viewModel.uiState.value.isRefreshing)
     }
+
+    @Test
+    fun `deleteConfirmation is null by default`() = runTest(testDispatcher) {
+        // Given
+        val repository = FakeGameRepository()
+        val preferences = FakeRulebookPreferences()
+
+        // When
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(null, viewModel.uiState.value.deleteConfirmation)
+    }
 }
 
 /**
