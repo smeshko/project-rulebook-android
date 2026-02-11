@@ -10,7 +10,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -277,6 +279,33 @@ class LibraryViewModelTest {
         // Then
         assertEquals(null, viewModel.uiState.value.deleteConfirmation)
     }
+
+    @Test
+    fun `confirmDelete emits error snackbar when repository fails`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game), deleteError = "Delete failed")
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        viewModel.requestDelete(game)
+        advanceUntilIdle()
+
+        // Collect events in background
+        val events = mutableListOf<LibraryEvent>()
+        val job = launch {
+            viewModel.events.collect { events.add(it) }
+        }
+
+        // When
+        viewModel.confirmDelete()
+        advanceUntilIdle()
+
+        // Then
+        assertTrue(events.any { it is LibraryEvent.ShowSnackbar && it.message == "Failed to delete game" })
+        job.cancel()
+    }
 }
 
 /**
@@ -304,7 +333,8 @@ private class FakeRulebookPreferences(
  */
 private class FakeGameRepository(
     private val games: List<Game> = emptyList(),
-    private val error: String? = null
+    private val error: String? = null,
+    private val deleteError: String? = null
 ) : GameRepository {
 
     val deletedIds = mutableListOf<String>()
@@ -332,7 +362,7 @@ private class FakeGameRepository(
 
     override suspend fun deleteGame(id: String): Result<Unit> {
         deletedIds.add(id)
-        return Result.Success(Unit)
+        return if (deleteError != null) Result.Error(deleteError) else Result.Success(Unit)
     }
 
     override suspend fun getRulesForGame(gameId: String): Result<com.rulebook.core.model.Rules> =
