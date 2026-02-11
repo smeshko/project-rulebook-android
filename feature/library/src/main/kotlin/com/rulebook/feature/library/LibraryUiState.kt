@@ -14,13 +14,15 @@ import com.rulebook.core.model.SortOrder
  * @param isLoading Whether initial data loading is in progress.
  * @param isRefreshing Whether a pull-to-refresh is in progress.
  * @param error Optional error message if loading failed.
+ * @param deleteConfirmation The game awaiting delete confirmation, or null if no dialog shown.
  */
 data class LibraryUiState(
     val games: List<Game> = emptyList(),
     val sortOrder: SortOrder = SortOrder.RECENT,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val deleteConfirmation: Game? = null
 ) {
     /**
      * Whether the empty state should be displayed.

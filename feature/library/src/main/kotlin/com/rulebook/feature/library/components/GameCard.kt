@@ -1,6 +1,9 @@
 package com.rulebook.feature.library.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,15 +11,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.rulebook.core.designsystem.component.RulebookCard
+import com.rulebook.core.designsystem.modifier.brutalistBorder
+import com.rulebook.core.designsystem.modifier.brutalistShadow
+import com.rulebook.core.designsystem.theme.BrutalistShadowOffset
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.core.model.Game
 
@@ -33,18 +41,31 @@ import com.rulebook.core.model.Game
  *
  * @param game The game to display
  * @param onClick Callback when the card is tapped
+ * @param onLongClick Optional callback when the card is long-pressed
  * @param modifier Modifier to be applied to the card
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GameCard(
     game: Game,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onLongClick: (() -> Unit)? = null
 ) {
-    RulebookCard(
-        modifier = modifier.heightIn(min = 200.dp),
-        onClick = onClick
-    ) {
+    val cardModifier = modifier
+        .heightIn(min = 200.dp)
+        .brutalistShadow(offset = BrutalistShadowOffset)
+        .brutalistBorder()
+        .background(MaterialTheme.colorScheme.surface)
+        .combinedClickable(
+            onClick = onClick,
+            onLongClick = onLongClick,
+            interactionSource = remember { MutableInteractionSource() },
+            indication = ripple()
+        )
+        .padding(RulebookTheme.spacing.md)
+
+    Box(modifier = cardModifier) {
         Column {
             // Cover area
             Box(

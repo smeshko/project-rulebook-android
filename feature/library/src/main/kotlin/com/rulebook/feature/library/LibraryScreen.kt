@@ -15,11 +15,16 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +36,7 @@ import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.component.RulebookCard
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
 import com.rulebook.core.designsystem.theme.RulebookTheme
+import com.rulebook.feature.library.components.DeleteConfirmationDialog
 import com.rulebook.feature.library.components.GameCard
 import com.rulebook.feature.library.components.LibraryEmptyState
 import org.koin.androidx.compose.koinViewModel
@@ -55,12 +61,31 @@ fun LibraryScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Collect one-time events
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is LibraryEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(
+                        message = event.message,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+            }
+        }
+    }
 
     LibraryScreenContent(
         uiState = uiState,
+        snackbarHostState = snackbarHostState,
         onRefresh = viewModel::refresh,
         onNavigateToCamera = onNavigateToCamera,
         onNavigateToRules = onNavigateToRules,
+        onRequestDelete = viewModel::requestDelete,
+        onConfirmDelete = viewModel::confirmDelete,
+        onCancelDelete = viewModel::cancelDelete,
         modifier = modifier
     )
 }
@@ -69,30 +94,52 @@ fun LibraryScreen(
 @Composable
 internal fun LibraryScreenContent(
     uiState: LibraryUiState,
+    snackbarHostState: SnackbarHostState,
     onRefresh: () -> Unit,
     onNavigateToCamera: () -> Unit,
     onNavigateToRules: (String) -> Unit,
+    onRequestDelete: (com.rulebook.core.model.Game) -> Unit,
+    onConfirmDelete: () -> Unit,
+    onCancelDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
-        RulebookHeaderBar(title = "Library")
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            RulebookHeaderBar(title = "Library")
 
-        PullToRefreshBox(
-            isRefreshing = uiState.isRefreshing,
-            onRefresh = onRefresh,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            when {
-                uiState.error != null -> LibraryErrorState(
-                    message = uiState.error,
-                    onRetry = onRefresh
-                )
-                uiState.isEmpty -> LibraryEmptyState(onScanClick = onNavigateToCamera)
-                else -> LibraryContent(
-                    games = uiState.games,
-                    onGameClick = onNavigateToRules
-                )
+            PullToRefreshBox(
+                isRefreshing = uiState.isRefreshing,
+                onRefresh = onRefresh,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when {
+                    uiState.error != null -> LibraryErrorState(
+                        message = uiState.error,
+                        onRetry = onRefresh
+                    )
+                    uiState.isEmpty -> LibraryEmptyState(onScanClick = onNavigateToCamera)
+                    else -> LibraryContent(
+                        games = uiState.games,
+                        onGameClick = onNavigateToRules,
+                        onRequestDelete = onRequestDelete
+                    )
+                }
             }
+        }
+
+        // Snackbar host overlay
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+
+        // Delete confirmation dialog
+        uiState.deleteConfirmation?.let { game ->
+            DeleteConfirmationDialog(
+                gameName = game.title,
+                onConfirm = onConfirmDelete,
+                onDismiss = onCancelDelete
+            )
         }
     }
 }
@@ -105,6 +152,7 @@ internal fun LibraryScreenContent(
 private fun LibraryContent(
     games: List<com.rulebook.core.model.Game>,
     onGameClick: (String) -> Unit,
+    onRequestDelete: (com.rulebook.core.model.Game) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
@@ -122,7 +170,8 @@ private fun LibraryContent(
         ) { game ->
             GameCard(
                 game = game,
-                onClick = { onGameClick(game.id) }
+                onClick = { onGameClick(game.id) },
+                onLongClick = { onRequestDelete(game) }
             )
         }
     }
@@ -189,9 +238,13 @@ private fun LibraryScreenEmptyLightPreview() {
     RulebookTheme(darkTheme = false) {
         LibraryScreenContent(
             uiState = LibraryUiState(),
+            snackbarHostState = remember { SnackbarHostState() },
             onRefresh = {},
             onNavigateToCamera = {},
-            onNavigateToRules = {}
+            onNavigateToRules = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onCancelDelete = {}
         )
     }
 }
@@ -202,9 +255,13 @@ private fun LibraryScreenEmptyDarkPreview() {
     RulebookTheme(darkTheme = true) {
         LibraryScreenContent(
             uiState = LibraryUiState(),
+            snackbarHostState = remember { SnackbarHostState() },
             onRefresh = {},
             onNavigateToCamera = {},
-            onNavigateToRules = {}
+            onNavigateToRules = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onCancelDelete = {}
         )
     }
 }
@@ -215,9 +272,13 @@ private fun LibraryScreenLoadingLightPreview() {
     RulebookTheme(darkTheme = false) {
         LibraryScreenContent(
             uiState = LibraryUiState(isLoading = true),
+            snackbarHostState = remember { SnackbarHostState() },
             onRefresh = {},
             onNavigateToCamera = {},
-            onNavigateToRules = {}
+            onNavigateToRules = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onCancelDelete = {}
         )
     }
 }
@@ -228,9 +289,13 @@ private fun LibraryScreenRefreshingLightPreview() {
     RulebookTheme(darkTheme = false) {
         LibraryScreenContent(
             uiState = LibraryUiState(isRefreshing = true),
+            snackbarHostState = remember { SnackbarHostState() },
             onRefresh = {},
             onNavigateToCamera = {},
-            onNavigateToRules = {}
+            onNavigateToRules = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onCancelDelete = {}
         )
     }
 }
@@ -241,9 +306,13 @@ private fun LibraryScreenErrorLightPreview() {
     RulebookTheme(darkTheme = false) {
         LibraryScreenContent(
             uiState = LibraryUiState(error = "Failed to load games. Please check your connection."),
+            snackbarHostState = remember { SnackbarHostState() },
             onRefresh = {},
             onNavigateToCamera = {},
-            onNavigateToRules = {}
+            onNavigateToRules = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onCancelDelete = {}
         )
     }
 }
@@ -254,9 +323,13 @@ private fun LibraryScreenErrorDarkPreview() {
     RulebookTheme(darkTheme = true) {
         LibraryScreenContent(
             uiState = LibraryUiState(error = "Failed to load games. Please check your connection."),
+            snackbarHostState = remember { SnackbarHostState() },
             onRefresh = {},
             onNavigateToCamera = {},
-            onNavigateToRules = {}
+            onNavigateToRules = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onCancelDelete = {}
         )
     }
 }
@@ -311,9 +384,13 @@ private fun LibraryScreenGamesLightPreview() {
     RulebookTheme(darkTheme = false) {
         LibraryScreenContent(
             uiState = LibraryUiState(games = sampleGames),
+            snackbarHostState = remember { SnackbarHostState() },
             onRefresh = {},
             onNavigateToCamera = {},
-            onNavigateToRules = {}
+            onNavigateToRules = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onCancelDelete = {}
         )
     }
 }
@@ -368,9 +445,50 @@ private fun LibraryScreenGamesDarkPreview() {
     RulebookTheme(darkTheme = true) {
         LibraryScreenContent(
             uiState = LibraryUiState(games = sampleGames),
+            snackbarHostState = remember { SnackbarHostState() },
             onRefresh = {},
             onNavigateToCamera = {},
-            onNavigateToRules = {}
+            onNavigateToRules = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onCancelDelete = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Delete Confirmation Dialog - Light")
+@Composable
+private fun LibraryScreenDeleteConfirmationPreview() {
+    val sampleGame = com.rulebook.core.model.Game(
+        id = "1",
+        title = "Catan",
+        thumbnailUrl = "https://example.com/catan.jpg",
+        createdAt = System.currentTimeMillis(),
+        lastAccessedAt = System.currentTimeMillis()
+    )
+    val sampleGames = listOf(
+        sampleGame,
+        com.rulebook.core.model.Game(
+            id = "2",
+            title = "Pandemic",
+            thumbnailUrl = null,
+            createdAt = System.currentTimeMillis(),
+            lastAccessedAt = System.currentTimeMillis()
+        )
+    )
+    RulebookTheme(darkTheme = false) {
+        LibraryScreenContent(
+            uiState = LibraryUiState(
+                games = sampleGames,
+                deleteConfirmation = sampleGame
+            ),
+            snackbarHostState = remember { SnackbarHostState() },
+            onRefresh = {},
+            onNavigateToCamera = {},
+            onNavigateToRules = {},
+            onRequestDelete = {},
+            onConfirmDelete = {},
+            onCancelDelete = {}
         )
     }
 }

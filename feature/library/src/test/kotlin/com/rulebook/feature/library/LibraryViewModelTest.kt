@@ -10,7 +10,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -176,6 +178,142 @@ class LibraryViewModelTest {
         advanceUntilIdle()
         assertFalse(viewModel.uiState.value.isRefreshing)
     }
+
+    @Test
+    fun `deleteConfirmation is null by default`() = runTest(testDispatcher) {
+        // Given
+        val repository = FakeGameRepository()
+        val preferences = FakeRulebookPreferences()
+
+        // When
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(null, viewModel.uiState.value.deleteConfirmation)
+    }
+
+    @Test
+    fun `LibraryEvent ShowSnackbar can be created with message`() {
+        // When
+        val event = LibraryEvent.ShowSnackbar("Test message")
+
+        // Then
+        assertEquals("Test message", event.message)
+    }
+
+    @Test
+    fun `requestDelete sets deleteConfirmation in state`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game))
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        // When
+        viewModel.requestDelete(game)
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(game, viewModel.uiState.value.deleteConfirmation)
+    }
+
+    @Test
+    fun `cancelDelete clears deleteConfirmation`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game))
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        viewModel.requestDelete(game)
+        advanceUntilIdle()
+        assertEquals(game, viewModel.uiState.value.deleteConfirmation)
+
+        // When
+        viewModel.cancelDelete()
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(null, viewModel.uiState.value.deleteConfirmation)
+    }
+
+    @Test
+    fun `confirmDelete calls repository deleteGame and emits snackbar event`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game))
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        viewModel.requestDelete(game)
+        advanceUntilIdle()
+
+        // Collect events in background
+        val events = mutableListOf<LibraryEvent>()
+        val job = launch {
+            viewModel.events.collect { events.add(it) }
+        }
+
+        // When
+        viewModel.confirmDelete()
+        advanceUntilIdle()
+
+        // Then
+        assertTrue(repository.deletedIds.contains("1"))
+        assertTrue(events.any { it is LibraryEvent.ShowSnackbar && it.message == "Game deleted" })
+        job.cancel()
+    }
+
+    @Test
+    fun `confirmDelete clears dialog state before calling repository`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game))
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        viewModel.requestDelete(game)
+        advanceUntilIdle()
+
+        // When
+        viewModel.confirmDelete()
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(null, viewModel.uiState.value.deleteConfirmation)
+    }
+
+    @Test
+    fun `confirmDelete emits error snackbar when repository fails`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game), deleteError = "Delete failed")
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        viewModel.requestDelete(game)
+        advanceUntilIdle()
+
+        // Collect events in background
+        val events = mutableListOf<LibraryEvent>()
+        val job = launch {
+            viewModel.events.collect { events.add(it) }
+        }
+
+        // When
+        viewModel.confirmDelete()
+        advanceUntilIdle()
+
+        // Then
+        assertTrue(events.any { it is LibraryEvent.ShowSnackbar && it.message == "Failed to delete game" })
+        job.cancel()
+    }
 }
 
 /**
@@ -203,8 +341,11 @@ private class FakeRulebookPreferences(
  */
 private class FakeGameRepository(
     private val games: List<Game> = emptyList(),
-    private val error: String? = null
+    private val error: String? = null,
+    private val deleteError: String? = null
 ) : GameRepository {
+
+    val deletedIds = mutableListOf<String>()
 
     override suspend fun getGames(): Result<List<Game>> {
         delay(1)
@@ -226,7 +367,12 @@ private class FakeGameRepository(
     }
 
     override suspend fun saveGame(game: Game): Result<Unit> = Result.Success(Unit)
-    override suspend fun deleteGame(id: String): Result<Unit> = Result.Success(Unit)
+
+    override suspend fun deleteGame(id: String): Result<Unit> {
+        deletedIds.add(id)
+        return if (deleteError != null) Result.Error(deleteError) else Result.Success(Unit)
+    }
+
     override suspend fun getRulesForGame(gameId: String): Result<com.rulebook.core.model.Rules> =
         Result.Error("Not implemented")
     override suspend fun saveGameWithRules(game: Game, rules: com.rulebook.core.model.Rules, rawJson: String): Result<String> =
