@@ -170,7 +170,8 @@ private fun LibraryContent(
         ) { game ->
             GameCard(
                 game = game,
-                onClick = { onGameClick(game.id) }
+                onClick = { onGameClick(game.id) },
+                onLongClick = { onRequestDelete(game) }
             )
         }
     }
