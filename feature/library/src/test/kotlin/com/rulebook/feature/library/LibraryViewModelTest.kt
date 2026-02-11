@@ -252,12 +252,20 @@ class LibraryViewModelTest {
         viewModel.requestDelete(game)
         advanceUntilIdle()
 
+        // Collect events in background
+        val events = mutableListOf<LibraryEvent>()
+        val job = launch {
+            viewModel.events.collect { events.add(it) }
+        }
+
         // When
         viewModel.confirmDelete()
         advanceUntilIdle()
 
         // Then
         assertTrue(repository.deletedIds.contains("1"))
+        assertTrue(events.any { it is LibraryEvent.ShowSnackbar && it.message == "Game deleted" })
+        job.cancel()
     }
 
     @Test
