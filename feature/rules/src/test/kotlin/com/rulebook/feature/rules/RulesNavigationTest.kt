@@ -1,5 +1,8 @@
 package com.rulebook.feature.rules
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -23,7 +26,7 @@ class RulesNavigationTest {
         // RulesScreen signature accepts onNavigateBack: () -> Unit
         // This test verifies the function signature at compile time
         val callback: () -> Unit = onNavigateBack
-        assert(callback != null)
+        assertNotNull(callback)
     }
 
     @Test
@@ -36,7 +39,7 @@ class RulesNavigationTest {
         onNavigateBack()
 
         // Then - callback was invoked
-        assert(callbackInvoked) { "onNavigateBack callback should be invoked" }
+        assertTrue("onNavigateBack callback should be invoked", callbackInvoked)
     }
 
     @Test
@@ -51,9 +54,7 @@ class RulesNavigationTest {
         onNavigateBack()
 
         // Then - callback invoked correct number of times
-        assert(invocationCount == 3) {
-            "Expected 3 invocations but got $invocationCount"
-        }
+        assertEquals("Expected 3 invocations", 3, invocationCount)
     }
 
     @Test
@@ -68,6 +69,6 @@ class RulesNavigationTest {
 
         // Then - type signature is correct
         val verified: () -> Unit = onNavigateBack
-        assert(verified != null)
+        assertNotNull(verified)
     }
 }

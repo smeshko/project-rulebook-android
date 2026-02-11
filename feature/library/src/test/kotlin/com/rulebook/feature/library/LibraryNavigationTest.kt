@@ -1,7 +1,8 @@
 package com.rulebook.feature.library
 
-import com.rulebook.core.model.Game
-import com.rulebook.feature.library.components.GameCard
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -25,7 +26,7 @@ class LibraryNavigationTest {
         // LibraryScreenContent signature accepts onNavigateToRules: (String) -> Unit
         // This test verifies the function signature at compile time
         val callback: (String) -> Unit = onNavigateToRules
-        assert(callback != null)
+        assertNotNull(callback)
     }
 
     @Test
@@ -38,7 +39,7 @@ class LibraryNavigationTest {
         onClick()
 
         // Then - callback was invoked
-        assert(callbackInvoked) { "onClick callback should be invoked" }
+        assertTrue("onClick callback should be invoked", callbackInvoked)
     }
 
     @Test
@@ -55,9 +56,7 @@ class LibraryNavigationTest {
         onNavigateToRules(testGameId)
 
         // Then - callback received correct gameId
-        assert(receivedGameId == testGameId) {
-            "Expected gameId '$testGameId' but got '$receivedGameId'"
-        }
+        assertEquals("Expected correct gameId", testGameId, receivedGameId)
     }
 
     @Test
@@ -74,8 +73,10 @@ class LibraryNavigationTest {
         onNavigateToRules("game-3")
 
         // Then - all gameIds received in order
-        assert(receivedGameIds == listOf("game-1", "game-2", "game-3")) {
-            "Expected [game-1, game-2, game-3] but got $receivedGameIds"
-        }
+        assertEquals(
+            "Expected [game-1, game-2, game-3]",
+            listOf("game-1", "game-2", "game-3"),
+            receivedGameIds
+        )
     }
 }

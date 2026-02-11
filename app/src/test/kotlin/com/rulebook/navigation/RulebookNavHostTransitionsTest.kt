@@ -1,5 +1,7 @@
 package com.rulebook.navigation
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -23,9 +25,7 @@ class RulebookNavHostTransitionsTest {
 
         // Then - verify expected duration matches spec
         val expectedDurationMs = 300
-        assert(expectedDurationMs == 300) {
-            "Transition duration should be 300ms per UX spec"
-        }
+        assertEquals("Transition duration should be 300ms per UX spec", 300, expectedDurationMs)
     }
 
     @Test
@@ -40,12 +40,8 @@ class RulebookNavHostTransitionsTest {
         val calculatedOffset = initialOffsetX(fullWidth)
 
         // Then - offset should be positive (from right)
-        assert(calculatedOffset > 0) {
-            "Rules should slide in from right (positive offset)"
-        }
-        assert(calculatedOffset == fullWidth) {
-            "Rules should start at full width offset (off-screen right)"
-        }
+        assertTrue("Rules should slide in from right (positive offset)", calculatedOffset > 0)
+        assertEquals("Rules should start at full width offset (off-screen right)", fullWidth, calculatedOffset)
     }
 
     @Test
@@ -60,12 +56,8 @@ class RulebookNavHostTransitionsTest {
         val calculatedOffset = targetOffsetX(fullWidth)
 
         // Then - offset should be positive (to right)
-        assert(calculatedOffset > 0) {
-            "Rules should slide out to right (positive offset)"
-        }
-        assert(calculatedOffset == fullWidth) {
-            "Rules should exit at full width offset (off-screen right)"
-        }
+        assertTrue("Rules should slide out to right (positive offset)", calculatedOffset > 0)
+        assertEquals("Rules should exit at full width offset (off-screen right)", fullWidth, calculatedOffset)
     }
 
     @Test
@@ -80,12 +72,8 @@ class RulebookNavHostTransitionsTest {
         val calculatedOffset = initialOffsetX(fullWidth)
 
         // Then - offset should be negative (from left)
-        assert(calculatedOffset < 0) {
-            "Library should slide in from left (negative offset)"
-        }
-        assert(calculatedOffset == -fullWidth) {
-            "Library should start at negative full width offset (off-screen left)"
-        }
+        assertTrue("Library should slide in from left (negative offset)", calculatedOffset < 0)
+        assertEquals("Library should start at negative full width offset (off-screen left)", -fullWidth, calculatedOffset)
     }
 
     @Test
@@ -102,14 +90,8 @@ class RulebookNavHostTransitionsTest {
         val testWidth = 1000
 
         // Then - verify pattern matches Material 3
-        assert(forwardEnter(testWidth) == testWidth) {
-            "Forward enter should slide from right edge"
-        }
-        assert(backwardExit(testWidth) == testWidth) {
-            "Backward exit should slide to right edge"
-        }
-        assert(backwardEnter(testWidth) == -testWidth) {
-            "Backward enter should slide from left edge"
-        }
+        assertEquals("Forward enter should slide from right edge", testWidth, forwardEnter(testWidth))
+        assertEquals("Backward exit should slide to right edge", testWidth, backwardExit(testWidth))
+        assertEquals("Backward enter should slide from left edge", -testWidth, backwardEnter(testWidth))
     }
 }
