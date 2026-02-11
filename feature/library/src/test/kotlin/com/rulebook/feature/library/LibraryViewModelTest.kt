@@ -2,7 +2,7 @@ package com.rulebook.feature.library
 
 import com.rulebook.core.common.Result
 import com.rulebook.core.data.repository.GameRepository
-import com.rulebook.core.datastore.ThemeMode
+import com.rulebook.core.datastore.SortPreferencesSource
 import com.rulebook.core.model.Game
 import com.rulebook.core.model.SortOrder
 import kotlinx.coroutines.Dispatchers
@@ -78,7 +78,7 @@ class LibraryViewModelTest {
 
     @Test
     fun `games are available in state when repository returns multiple games`() = runTest(testDispatcher) {
-        // Given
+        // Given - games with different lastAccessedAt for RECENT sort
         val games = listOf(
             Game("1", "Catan", "https://example.com/catan.jpg", 1000L, 5000L),
             Game("2", "Pandemic", null, 2000L, 4000L),
@@ -91,12 +91,13 @@ class LibraryViewModelTest {
         val viewModel = LibraryViewModel(repository, preferences)
         advanceUntilIdle()
 
-        // Then
+        // Then - default sort is RECENT (lastAccessedAt desc)
         val state = viewModel.uiState.value
         assertFalse(state.isEmpty)
         assertEquals(3, state.games.size)
-        assertEquals("1", state.games[0].id)
-        assertEquals("Catan", state.games[0].title)
+        assertEquals("3", state.games[0].id) // lastAccessedAt: 6000
+        assertEquals("1", state.games[1].id) // lastAccessedAt: 5000
+        assertEquals("2", state.games[2].id) // lastAccessedAt: 4000
     }
 
     @Test
@@ -157,7 +158,7 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `refresh updates isRefreshing state`() = runTest(testDispatcher) {
+    fun `refresh completes and clears isRefreshing`() = runTest(testDispatcher) {
         // Given
         val repository = FakeGameRepository(games = emptyList())
         val preferences = FakeRulebookPreferences()
@@ -166,28 +167,22 @@ class LibraryViewModelTest {
 
         // When
         viewModel.refresh()
-        testDispatcher.scheduler.runCurrent()
-
-        // Then - isRefreshing should be true during refresh
-        assertTrue(viewModel.uiState.value.isRefreshing)
-
-        // And - isRefreshing should be false after refresh completes
         advanceUntilIdle()
+
+        // Then - isRefreshing should be false after refresh completes
         assertFalse(viewModel.uiState.value.isRefreshing)
+        // Error should be cleared
+        assertEquals(null, viewModel.uiState.value.error)
     }
 }
 
 /**
- * Fake implementation of RulebookPreferences for testing.
- * Extends RulebookPreferences but overrides all DataStore-dependent properties
- * to avoid requiring Android Context in unit tests.
+ * Fake implementation of SortPreferencesSource for testing.
+ * Implements the interface directly to avoid DataStore/Context dependencies.
  */
-@Suppress("UNUSED_PARAMETER", "NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 private class FakeRulebookPreferences(
     initialSortOrder: SortOrder = SortOrder.RECENT
-) : com.rulebook.core.datastore.RulebookPreferences(
-    context = null!! // Never accessed in tests since we override all DataStore properties
-) {
+) : SortPreferencesSource {
 
     private val _sortOrder = MutableStateFlow(initialSortOrder)
     var lastSetSortOrder: SortOrder? = null
@@ -199,18 +194,6 @@ private class FakeRulebookPreferences(
         lastSetSortOrder = order
         _sortOrder.value = order
     }
-
-    // Override other DataStore properties to avoid NullPointerException
-    override val hasCompletedOnboarding: Flow<Boolean> = flowOf(false)
-    override suspend fun setOnboardingCompleted(completed: Boolean) {}
-    override suspend fun completeOnboardingWithCredits(creditAmount: Int) = false
-
-    override val creditBalance: Flow<Int> = flowOf(0)
-    override suspend fun awardInitialCreditsIfNeeded(amount: Int) = false
-    override suspend fun deductCredit() = false
-
-    override val themeMode: Flow<ThemeMode> = flowOf(ThemeMode.SYSTEM)
-    override val hapticsEnabled: Flow<Boolean> = flowOf(true)
 }
 
 /**

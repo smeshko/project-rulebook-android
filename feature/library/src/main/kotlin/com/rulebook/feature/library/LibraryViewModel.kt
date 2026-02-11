@@ -3,8 +3,9 @@ package com.rulebook.feature.library
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rulebook.core.data.repository.GameRepository
-import com.rulebook.core.datastore.RulebookPreferences
+import com.rulebook.core.datastore.SortPreferencesSource
 import com.rulebook.core.model.SortOrder
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,11 +22,12 @@ import kotlinx.coroutines.launch
  * updates reactively when underlying data changes (inserts/updates/deletes).
  *
  * @param gameRepository Repository for accessing game data.
- * @param rulebookPreferences Preferences store for reading/writing sort order.
+ * @param sortPreferencesSource Preferences source for reading/writing sort order.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class LibraryViewModel(
     private val gameRepository: GameRepository,
-    private val rulebookPreferences: RulebookPreferences
+    private val sortPreferencesSource: SortPreferencesSource
 ) : ViewModel() {
 
     private val _sortOrder = MutableStateFlow(SortOrder.RECENT)
@@ -35,7 +37,7 @@ class LibraryViewModel(
     init {
         // Initialize sort order from preferences
         viewModelScope.launch {
-            rulebookPreferences.sortOrder.collect { order ->
+            sortPreferencesSource.sortOrder.collect { order ->
                 _sortOrder.value = order
             }
         }
@@ -72,7 +74,7 @@ class LibraryViewModel(
      */
     fun changeSortOrder(order: SortOrder) {
         viewModelScope.launch {
-            rulebookPreferences.setSortOrder(order)
+            sortPreferencesSource.setSortOrder(order)
             // _sortOrder updates via Flow collection in init block
         }
     }

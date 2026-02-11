@@ -29,7 +29,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  * @param context Application context for DataStore access. Must be Application context
  *                to avoid memory leaks.
  */
-open class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource {
+open class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource, SortPreferencesSource {
 
     /**
      * Preference keys used for DataStore storage.
@@ -174,7 +174,7 @@ open class RulebookPreferences(private val context: Context) : OnboardingPrefere
      * Flow of current library sort order.
      * Default: [SortOrder.RECENT]
      */
-    open val sortOrder: Flow<SortOrder> = context.dataStore.data
+    override val sortOrder: Flow<SortOrder> = context.dataStore.data
         .map { preferences ->
             val storedValue = preferences[Keys.SORT_ORDER]
             when (storedValue) {
@@ -188,7 +188,7 @@ open class RulebookPreferences(private val context: Context) : OnboardingPrefere
     /**
      * Sets the library sort order.
      */
-    open suspend fun setSortOrder(order: SortOrder) {
+    override suspend fun setSortOrder(order: SortOrder) {
         context.dataStore.edit { preferences ->
             preferences[Keys.SORT_ORDER] = order.name
         }
