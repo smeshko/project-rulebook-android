@@ -70,4 +70,5 @@ private class FakeGameRepository : GameRepository {
     override suspend fun deleteGame(id: String): Result<Unit> = Result.Error("Not implemented")
     override suspend fun getRulesForGame(gameId: String): Result<Rules> = Result.Error("Not implemented")
     override suspend fun saveGameWithRules(game: Game, rules: Rules, rawJson: String): Result<String> = Result.Error("Not implemented")
+    override suspend fun updateLastAccessed(gameId: String): Result<Unit> = Result.Success(Unit)
 }

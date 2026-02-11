@@ -1871,6 +1871,10 @@ class FakeGameRepository : com.rulebook.core.data.repository.GameRepository {
         }
         return saveGameWithRulesResult
     }
+
+    override suspend fun updateLastAccessed(gameId: String): Result<Unit> {
+        return Result.Success(Unit)
+    }
 }
 
 /**

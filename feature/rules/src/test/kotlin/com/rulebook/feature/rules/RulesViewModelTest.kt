@@ -384,4 +384,8 @@ private class FakeGameRepository(
     override suspend fun saveGameWithRules(game: Game, rules: Rules, rawJson: String): Result<String> {
         throw NotImplementedError()
     }
+
+    override suspend fun updateLastAccessed(gameId: String): Result<Unit> {
+        return Result.Success(Unit)
+    }
 }
