@@ -11,6 +11,14 @@ This guide helps you find relevant documentation based on what you're working on
 
 ## Documentation Map
 
+- `docs/features/library-sorting-reactive-flow.md` - Library Sorting with Reactive Flow State Management (RULE-217)
+  - Conditions:
+    - When implementing sorting functionality with reactive updates
+    - When designing UI state management with flow-based preferences
+    - When implementing multi-sort-order queries with Room database
+    - When using flatMapLatest to switch between reactive data sources based on state changes
+    - When persisting user preferences with DataStore and applying them reactively
+
 - `docs/features/game-grid-display.md` - Game Grid Display Pattern (RULE-216)
   - Conditions:
     - When implementing grid layouts for game lists or collections
