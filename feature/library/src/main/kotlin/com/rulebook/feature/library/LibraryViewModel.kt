@@ -2,62 +2,105 @@ package com.rulebook.feature.library
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rulebook.core.common.Result
 import com.rulebook.core.data.repository.GameRepository
+import com.rulebook.core.datastore.SortPreferencesSource
+import com.rulebook.core.model.SortOrder
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
  * ViewModel for the Library screen.
  *
- * Manages the list of saved games and handles loading/refresh operations.
- * Currently loads an empty list as the repository is not yet connected to
- * a real data source (will be implemented in Epic 3).
+ * Manages the list of saved games with reactive sorting capabilities.
+ * Games automatically re-sort when the sort order changes, and the list
+ * updates reactively when underlying data changes (inserts/updates/deletes).
  *
  * @param gameRepository Repository for accessing game data.
+ * @param sortPreferencesSource Preferences source for reading/writing sort order.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class LibraryViewModel(
-    private val gameRepository: GameRepository
+    private val gameRepository: GameRepository,
+    private val sortPreferencesSource: SortPreferencesSource
 ) : ViewModel() {
 
+    private val _sortOrder = MutableStateFlow(SortOrder.RECENT)
     private val _uiState = MutableStateFlow(LibraryUiState())
     val uiState: StateFlow<LibraryUiState> = _uiState.asStateFlow()
 
     init {
-        loadGames()
+        // Initialize sort order from preferences
+        viewModelScope.launch {
+            sortPreferencesSource.sortOrder.collect { order ->
+                _sortOrder.value = order
+            }
+        }
+
+        // Set up reactive game loading with flatMapLatest for sort order changes
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            _sortOrder
+                .flatMapLatest { sortOrder ->
+                    gameRepository.getGamesSorted(sortOrder)
+                        .map { games -> games to sortOrder }
+                        .catch { e ->
+                            _uiState.update {
+                                it.copy(
+                                    error = e.message ?: "Failed to load games",
+                                    isLoading = false
+                                )
+                            }
+                        }
+                }
+                .collect { (games, sortOrder) ->
+                    _uiState.update {
+                        it.copy(
+                            games = games,
+                            sortOrder = sortOrder,
+                            isLoading = false,
+                            error = null
+                        )
+                    }
+                }
+        }
+    }
+
+    /**
+     * Changes the library sort order.
+     * Updates DataStore and triggers reactive re-sort via flatMapLatest.
+     */
+    fun changeSortOrder(order: SortOrder) {
+        viewModelScope.launch {
+            sortPreferencesSource.setSortOrder(order)
+            // _sortOrder updates via Flow collection in init block
+        }
     }
 
     /**
      * Refreshes the games list.
      * Called when the user performs a pull-to-refresh gesture.
+     * The reactive Flow automatically re-emits when underlying data changes.
      */
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true, error = null) }
-            loadGamesInternal()
+            // Room Flows automatically re-emit on data changes.
+            // Brief delay provides visual feedback for the refresh indicator.
+            delay(REFRESH_INDICATOR_DELAY_MS)
             _uiState.update { it.copy(isRefreshing = false) }
         }
     }
 
-    private fun loadGames() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            loadGamesInternal()
-            _uiState.update { it.copy(isLoading = false) }
-        }
-    }
-
-    private suspend fun loadGamesInternal() {
-        when (val result = gameRepository.getGames()) {
-            is Result.Success -> _uiState.update {
-                it.copy(games = result.data, error = null)
-            }
-            is Result.Error -> _uiState.update {
-                it.copy(error = result.message)
-            }
-        }
+    private companion object {
+        const val REFRESH_INDICATOR_DELAY_MS = 300L
     }
 }

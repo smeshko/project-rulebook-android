@@ -10,6 +10,9 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.androidx.core.ktx)
 
+    // Core modules
+    implementation(project(":core:model"))
+
     // Koin
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)

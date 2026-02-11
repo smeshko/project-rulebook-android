@@ -9,7 +9,10 @@ import com.rulebook.core.database.mapper.toDomain
 import com.rulebook.core.database.mapper.toEntity
 import com.rulebook.core.model.Game
 import com.rulebook.core.model.Rules
+import com.rulebook.core.model.SortOrder
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import java.util.UUID
 
 /**
@@ -76,6 +79,15 @@ class GameRepositoryImpl(
 
     override suspend fun updateLastAccessed(gameId: String): Result<Unit> = safeCall {
         gameDao.updateLastAccessedAt(gameId, System.currentTimeMillis())
+    }
+
+    override fun getGamesSorted(sortOrder: SortOrder): Flow<List<Game>> {
+        val entitiesFlow = when (sortOrder) {
+            SortOrder.RECENT -> gameDao.getAllSortedByLastAccessedDesc()
+            SortOrder.ALPHABETICAL -> gameDao.getAllSortedByTitleAsc()
+            SortOrder.DATE_ADDED -> gameDao.getAllSortedByCreatedAtDesc()
+        }
+        return entitiesFlow.map { entities -> entities.map { it.toDomain() } }
     }
 }
 

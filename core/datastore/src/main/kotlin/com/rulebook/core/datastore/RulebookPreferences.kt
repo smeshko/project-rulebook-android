@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.rulebook.core.model.SortOrder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -28,7 +29,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  * @param context Application context for DataStore access. Must be Application context
  *                to avoid memory leaks.
  */
-class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource {
+open class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource, SortPreferencesSource {
 
     /**
      * Preference keys used for DataStore storage.
@@ -39,6 +40,7 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
         val CREDIT_BALANCE = intPreferencesKey("credit_balance")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
+        val SORT_ORDER = stringPreferencesKey("sort_order")
     }
 
     /**
@@ -138,7 +140,7 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
      * Flow of current theme mode setting.
      * Default: [ThemeMode.SYSTEM]
      */
-    val themeMode: Flow<ThemeMode> = context.dataStore.data
+    open val themeMode: Flow<ThemeMode> = context.dataStore.data
         .map { preferences ->
             ThemeMode.fromString(preferences[Keys.THEME_MODE])
         }
@@ -146,7 +148,7 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
     /**
      * Sets the theme mode.
      */
-    suspend fun setThemeMode(mode: ThemeMode) {
+    open suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { preferences ->
             preferences[Keys.THEME_MODE] = mode.name
         }
@@ -156,15 +158,39 @@ class RulebookPreferences(private val context: Context) : OnboardingPreferencesS
      * Flow of haptic feedback enabled status.
      * Default: `true`
      */
-    val hapticsEnabled: Flow<Boolean> = context.dataStore.data
+    open val hapticsEnabled: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[Keys.HAPTICS_ENABLED] ?: true }
 
     /**
      * Sets whether haptic feedback is enabled.
      */
-    suspend fun setHapticsEnabled(enabled: Boolean) {
+    open suspend fun setHapticsEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[Keys.HAPTICS_ENABLED] = enabled
+        }
+    }
+
+    /**
+     * Flow of current library sort order.
+     * Default: [SortOrder.RECENT]
+     */
+    override val sortOrder: Flow<SortOrder> = context.dataStore.data
+        .map { preferences ->
+            val storedValue = preferences[Keys.SORT_ORDER]
+            when (storedValue) {
+                SortOrder.RECENT.name -> SortOrder.RECENT
+                SortOrder.ALPHABETICAL.name -> SortOrder.ALPHABETICAL
+                SortOrder.DATE_ADDED.name -> SortOrder.DATE_ADDED
+                else -> SortOrder.RECENT // Default for null or unrecognized values
+            }
+        }
+
+    /**
+     * Sets the library sort order.
+     */
+    override suspend fun setSortOrder(order: SortOrder) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.SORT_ORDER] = order.name
         }
     }
 }

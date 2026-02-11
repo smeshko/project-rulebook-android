@@ -9,6 +9,7 @@ android {
 dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:common"))
+    implementation(project(":core:datastore"))
 
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
