@@ -1,12 +1,17 @@
 package com.rulebook.feature.library
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +31,7 @@ import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.component.RulebookCard
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
 import com.rulebook.core.designsystem.theme.RulebookTheme
+import com.rulebook.feature.library.components.GameCard
 import com.rulebook.feature.library.components.LibraryEmptyState
 import org.koin.androidx.compose.koinViewModel
 
@@ -92,8 +98,8 @@ internal fun LibraryScreenContent(
 }
 
 /**
- * Content displaying the list of games when the library is not empty.
- * Currently a placeholder as game list UI will be implemented in Epic 7.
+ * Content displaying the list of games in a 2-column grid.
+ * Shows game cards with thumbnail and title, scrollable vertically.
  */
 @Composable
 private fun LibraryContent(
@@ -101,8 +107,25 @@ private fun LibraryContent(
     onGameClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // TODO: Implement game list grid in Epic 7
-    // For now, this is a placeholder that won't be shown since we always return empty list
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = modifier
+            .fillMaxSize()
+            .background(RulebookTheme.colors.surfaceSecondary),
+        contentPadding = PaddingValues(RulebookTheme.spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(RulebookTheme.spacing.md),
+        verticalArrangement = Arrangement.spacedBy(RulebookTheme.spacing.md)
+    ) {
+        items(
+            items = games,
+            key = { game -> game.id }
+        ) { game ->
+            GameCard(
+                game = game,
+                onClick = { onGameClick(game.id) }
+            )
+        }
+    }
 }
 
 /**
