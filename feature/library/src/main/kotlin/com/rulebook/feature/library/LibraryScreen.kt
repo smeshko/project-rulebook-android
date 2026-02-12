@@ -21,6 +21,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -110,6 +112,8 @@ internal fun LibraryScreenContent(
     onDismissContextMenu: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val pullToRefreshState = rememberPullToRefreshState()
+
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             RulebookHeaderBar(title = "Library")
@@ -117,7 +121,17 @@ internal fun LibraryScreenContent(
             PullToRefreshBox(
                 isRefreshing = uiState.isRefreshing,
                 onRefresh = onRefresh,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                state = pullToRefreshState,
+                indicator = {
+                    PullToRefreshDefaults.Indicator(
+                        modifier = Modifier.align(Alignment.TopCenter),
+                        isRefreshing = uiState.isRefreshing,
+                        state = pullToRefreshState,
+                        color = RulebookTheme.colors.pink,
+                        containerColor = RulebookTheme.colors.surfacePrimary
+                    )
+                }
             ) {
                 when {
                     uiState.error != null -> LibraryErrorState(
