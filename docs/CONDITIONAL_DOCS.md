@@ -42,3 +42,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When managing temporary UI state (menus, tooltips, popovers) with nullable state pattern
     - When integrating haptic feedback for gesture detection (long-press, double-tap)
     - When extending game card interactions with multiple action options (view, delete, share)
+
+- `docs/features/pull-to-refresh-branded-indicator.md` - Pull-to-Refresh Branded Indicator (RULE-221)
+  - Conditions:
+    - When customizing Material 3 pull-to-refresh indicators with brand colors
+    - When integrating pull-to-refresh gestures with branded visual feedback
+    - When styling Material 3 components while preserving platform conventions
+    - When implementing refresh mechanisms for future cloud sync integration
+    - When using design system color tokens in Material 3 components
