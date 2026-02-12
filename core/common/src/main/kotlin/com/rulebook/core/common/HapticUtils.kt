@@ -41,6 +41,20 @@ object HapticUtils {
     }
 
     /**
+     * Performs long-press haptic feedback.
+     *
+     * Uses [HapticFeedbackConstants.LONG_PRESS] which provides medium-intensity
+     * feedback appropriate for long-press detection on UI elements.
+     *
+     * This method automatically respects system haptic feedback settings.
+     *
+     * @param view The view to perform haptic feedback from.
+     */
+    fun performLongPressHaptic(view: View) {
+        view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+    }
+
+    /**
      * Performs haptic feedback using the Vibrator service.
      *
      * This is an alternative to View-based haptic feedback for cases
