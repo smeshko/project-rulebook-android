@@ -34,3 +34,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When creating confirmation dialogs for destructive operations (delete, logout, reset)
     - When integrating snackbar notifications with event-driven architecture
     - When implementing optimistic UI patterns with Room reactive cascading deletes
+
+- `docs/features/game-context-menu-long-press.md` - Game Context Menu with Long-Press (RULE-220)
+  - Conditions:
+    - When implementing long-press context menus for card-based UI components
+    - When adding brutalist-styled dropdown menus to game cards or similar list items
+    - When managing temporary UI state (menus, tooltips, popovers) with nullable state pattern
+    - When integrating haptic feedback for gesture detection (long-press, double-tap)
+    - When extending game card interactions with multiple action options (view, delete, share)
