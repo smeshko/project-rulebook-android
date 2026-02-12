@@ -27,6 +27,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -38,6 +40,7 @@ import com.rulebook.core.designsystem.component.RulebookHeaderBar
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.feature.library.components.DeleteConfirmationDialog
 import com.rulebook.feature.library.components.GameCard
+import com.rulebook.feature.library.components.GameCardContextMenu
 import com.rulebook.feature.library.components.LibraryEmptyState
 import org.koin.androidx.compose.koinViewModel
 
@@ -86,6 +89,8 @@ fun LibraryScreen(
         onRequestDelete = viewModel::requestDelete,
         onConfirmDelete = viewModel::confirmDelete,
         onCancelDelete = viewModel::cancelDelete,
+        onShowContextMenu = viewModel::showContextMenu,
+        onDismissContextMenu = viewModel::dismissContextMenu,
         modifier = modifier
     )
 }
@@ -101,6 +106,8 @@ internal fun LibraryScreenContent(
     onRequestDelete: (com.rulebook.core.model.Game) -> Unit,
     onConfirmDelete: () -> Unit,
     onCancelDelete: () -> Unit,
+    onShowContextMenu: (com.rulebook.core.model.Game) -> Unit,
+    onDismissContextMenu: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -120,8 +127,11 @@ internal fun LibraryScreenContent(
                     uiState.isEmpty -> LibraryEmptyState(onScanClick = onNavigateToCamera)
                     else -> LibraryContent(
                         games = uiState.games,
+                        contextMenuGame = uiState.contextMenuGame,
                         onGameClick = onNavigateToRules,
-                        onRequestDelete = onRequestDelete
+                        onRequestDelete = onRequestDelete,
+                        onShowContextMenu = onShowContextMenu,
+                        onDismissContextMenu = onDismissContextMenu
                     )
                 }
             }
@@ -151,10 +161,15 @@ internal fun LibraryScreenContent(
 @Composable
 private fun LibraryContent(
     games: List<com.rulebook.core.model.Game>,
+    contextMenuGame: com.rulebook.core.model.Game?,
     onGameClick: (String) -> Unit,
     onRequestDelete: (com.rulebook.core.model.Game) -> Unit,
+    onShowContextMenu: (com.rulebook.core.model.Game) -> Unit,
+    onDismissContextMenu: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = modifier
@@ -168,11 +183,24 @@ private fun LibraryContent(
             items = games,
             key = { game -> game.id }
         ) { game ->
-            GameCard(
-                game = game,
-                onClick = { onGameClick(game.id) },
-                onLongClick = { onRequestDelete(game) }
-            )
+            Box {
+                GameCard(
+                    game = game,
+                    onClick = { onGameClick(game.id) },
+                    onLongClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onShowContextMenu(game)
+                    }
+                )
+
+                // Show context menu for this specific game
+                GameCardContextMenu(
+                    expanded = contextMenuGame?.id == game.id,
+                    onDismiss = onDismissContextMenu,
+                    onViewRules = { onGameClick(game.id) },
+                    onDelete = { onRequestDelete(game) }
+                )
+            }
         }
     }
 }
@@ -244,7 +272,9 @@ private fun LibraryScreenEmptyLightPreview() {
             onNavigateToRules = {},
             onRequestDelete = {},
             onConfirmDelete = {},
-            onCancelDelete = {}
+            onCancelDelete = {},
+            onShowContextMenu = {},
+            onDismissContextMenu = {}
         )
     }
 }
@@ -261,7 +291,9 @@ private fun LibraryScreenEmptyDarkPreview() {
             onNavigateToRules = {},
             onRequestDelete = {},
             onConfirmDelete = {},
-            onCancelDelete = {}
+            onCancelDelete = {},
+            onShowContextMenu = {},
+            onDismissContextMenu = {}
         )
     }
 }
@@ -278,7 +310,9 @@ private fun LibraryScreenLoadingLightPreview() {
             onNavigateToRules = {},
             onRequestDelete = {},
             onConfirmDelete = {},
-            onCancelDelete = {}
+            onCancelDelete = {},
+            onShowContextMenu = {},
+            onDismissContextMenu = {}
         )
     }
 }
@@ -295,7 +329,9 @@ private fun LibraryScreenRefreshingLightPreview() {
             onNavigateToRules = {},
             onRequestDelete = {},
             onConfirmDelete = {},
-            onCancelDelete = {}
+            onCancelDelete = {},
+            onShowContextMenu = {},
+            onDismissContextMenu = {}
         )
     }
 }
@@ -312,7 +348,9 @@ private fun LibraryScreenErrorLightPreview() {
             onNavigateToRules = {},
             onRequestDelete = {},
             onConfirmDelete = {},
-            onCancelDelete = {}
+            onCancelDelete = {},
+            onShowContextMenu = {},
+            onDismissContextMenu = {}
         )
     }
 }
@@ -329,7 +367,9 @@ private fun LibraryScreenErrorDarkPreview() {
             onNavigateToRules = {},
             onRequestDelete = {},
             onConfirmDelete = {},
-            onCancelDelete = {}
+            onCancelDelete = {},
+            onShowContextMenu = {},
+            onDismissContextMenu = {}
         )
     }
 }
@@ -390,7 +430,9 @@ private fun LibraryScreenGamesLightPreview() {
             onNavigateToRules = {},
             onRequestDelete = {},
             onConfirmDelete = {},
-            onCancelDelete = {}
+            onCancelDelete = {},
+            onShowContextMenu = {},
+            onDismissContextMenu = {}
         )
     }
 }
@@ -451,7 +493,9 @@ private fun LibraryScreenGamesDarkPreview() {
             onNavigateToRules = {},
             onRequestDelete = {},
             onConfirmDelete = {},
-            onCancelDelete = {}
+            onCancelDelete = {},
+            onShowContextMenu = {},
+            onDismissContextMenu = {}
         )
     }
 }
@@ -488,7 +532,9 @@ private fun LibraryScreenDeleteConfirmationPreview() {
             onNavigateToRules = {},
             onRequestDelete = {},
             onConfirmDelete = {},
-            onCancelDelete = {}
+            onCancelDelete = {},
+            onShowContextMenu = {},
+            onDismissContextMenu = {}
         )
     }
 }
