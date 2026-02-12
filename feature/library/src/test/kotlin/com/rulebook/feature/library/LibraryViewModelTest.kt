@@ -314,6 +314,100 @@ class LibraryViewModelTest {
         assertTrue(events.any { it is LibraryEvent.ShowSnackbar && it.message == "Failed to delete game" })
         job.cancel()
     }
+
+    @Test
+    fun `contextMenuGame is null by default`() = runTest(testDispatcher) {
+        // Given
+        val repository = FakeGameRepository()
+        val preferences = FakeRulebookPreferences()
+
+        // When
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(null, viewModel.uiState.value.contextMenuGame)
+    }
+
+    @Test
+    fun `showContextMenu sets contextMenuGame in state`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game))
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        // When
+        viewModel.showContextMenu(game)
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(game, viewModel.uiState.value.contextMenuGame)
+    }
+
+    @Test
+    fun `dismissContextMenu clears contextMenuGame`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game))
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        viewModel.showContextMenu(game)
+        advanceUntilIdle()
+        assertEquals(game, viewModel.uiState.value.contextMenuGame)
+
+        // When
+        viewModel.dismissContextMenu()
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(null, viewModel.uiState.value.contextMenuGame)
+    }
+
+    @Test
+    fun `showContextMenu then dismissContextMenu returns null`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Pandemic", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game))
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        // When - show then dismiss
+        viewModel.showContextMenu(game)
+        advanceUntilIdle()
+        viewModel.dismissContextMenu()
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(null, viewModel.uiState.value.contextMenuGame)
+    }
+
+    @Test
+    fun `delete from context menu triggers requestDelete and dismisses menu`() = runTest(testDispatcher) {
+        // Given
+        val game = Game("1", "Catan", null, 1000L, 2000L)
+        val repository = FakeGameRepository(games = listOf(game))
+        val preferences = FakeRulebookPreferences()
+        val viewModel = LibraryViewModel(repository, preferences)
+        advanceUntilIdle()
+
+        viewModel.showContextMenu(game)
+        advanceUntilIdle()
+        assertEquals(game, viewModel.uiState.value.contextMenuGame)
+
+        // When - simulate user selecting delete from context menu
+        viewModel.dismissContextMenu()
+        viewModel.requestDelete(game)
+        advanceUntilIdle()
+
+        // Then - context menu cleared and delete confirmation shown
+        assertEquals(null, viewModel.uiState.value.contextMenuGame)
+        assertEquals(game, viewModel.uiState.value.deleteConfirmation)
+    }
 }
 
 /**
