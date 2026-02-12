@@ -147,6 +147,22 @@ class LibraryViewModel(
         }
     }
 
+    /**
+     * Shows the context menu for a game.
+     * Sets the contextMenuGame state to display the menu.
+     */
+    fun showContextMenu(game: Game) {
+        _uiState.update { it.copy(contextMenuGame = game) }
+    }
+
+    /**
+     * Dismisses the context menu.
+     * Clears the contextMenuGame state to hide the menu.
+     */
+    fun dismissContextMenu() {
+        _uiState.update { it.copy(contextMenuGame = null) }
+    }
+
     private companion object {
         const val REFRESH_INDICATOR_DELAY_MS = 300L
     }
