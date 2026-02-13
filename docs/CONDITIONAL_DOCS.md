@@ -58,3 +58,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When implementing multi-variant reusable composables for different screen contexts
     - When using state-based icon tinting and accessibility semantic labels
     - When handling string pluralization and internationalization for count-based UI
+
+- `docs/features/credit-consumption-on-scan.md` - Credit Consumption on Successful Scan (RULE-225)
+  - Conditions:
+    - When implementing atomic transaction patterns between Room database saves and DataStore updates
+    - When designing defensive navigation that proceeds despite secondary operation failures
+    - When integrating analytics events that should not block user navigation flows
+    - When implementing credit/resource deduction with paywall gating on zero balance
+    - When handling DataStore atomic edit blocks for financial or resource-critical state updates
