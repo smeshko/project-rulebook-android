@@ -50,3 +50,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When styling Material 3 components while preserving platform conventions
     - When implementing refresh mechanisms for future cloud sync integration
     - When using design system color tokens in Material 3 components
+
+- `docs/features/credit-balance-display-component.md` - Credit Balance Display Component (RULE-224)
+  - Conditions:
+    - When displaying reactive credit balance in app headers or navigation
+    - When integrating DataStore Preferences with proper error handling and fallback patterns
+    - When implementing multi-variant reusable composables for different screen contexts
+    - When using state-based icon tinting and accessibility semantic labels
+    - When handling string pluralization and internationalization for count-based UI
