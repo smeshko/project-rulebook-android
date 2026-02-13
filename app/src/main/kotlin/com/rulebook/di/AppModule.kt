@@ -1,6 +1,7 @@
 package com.rulebook.di
 
 import com.rulebook.core.analytics.di.analyticsModule
+import com.rulebook.core.billing.di.billingModule
 import com.rulebook.core.common.di.commonModule
 import com.rulebook.core.data.di.dataModule
 import com.rulebook.core.database.di.databaseModule
@@ -37,6 +38,7 @@ val appModules = listOf(
     networkModule,
     dataStoreModule,
     analyticsModule,
+    billingModule,
     dataModule,
     coilModule,
     // Feature modules
