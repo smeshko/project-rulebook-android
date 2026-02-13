@@ -171,6 +171,22 @@ val HeadingCardTitle = TextStyle(
 )
 
 // =============================================================================
+// SPECIAL STYLES
+// =============================================================================
+
+/**
+ * Credit Balance - 24sp Bold
+ * Used for displaying credit balance with emphasis.
+ */
+val CreditBalanceText = TextStyle(
+    fontFamily = FontFamily.Default,
+    fontWeight = FontWeight.Bold,
+    fontSize = 24.sp,
+    lineHeight = 29.sp,
+    letterSpacing = 0.sp
+)
+
+// =============================================================================
 // EXTENDED TYPOGRAPHY
 // =============================================================================
 
@@ -198,7 +214,10 @@ data class RulebookExtendedTypography(
     val caption: TextStyle,
 
     // Heading styles
-    val cardTitle: TextStyle
+    val cardTitle: TextStyle,
+
+    // Special styles
+    val creditBalance: TextStyle
 )
 
 val RulebookExtendedTypographyInstance = RulebookExtendedTypography(
@@ -211,7 +230,8 @@ val RulebookExtendedTypographyInstance = RulebookExtendedTypography(
     body = BodyText,
     callout = BodyCallout,
     caption = CaptionText,
-    cardTitle = HeadingCardTitle
+    cardTitle = HeadingCardTitle,
+    creditBalance = CreditBalanceText
 )
 
 val LocalRulebookTypography = staticCompositionLocalOf { RulebookExtendedTypographyInstance }
