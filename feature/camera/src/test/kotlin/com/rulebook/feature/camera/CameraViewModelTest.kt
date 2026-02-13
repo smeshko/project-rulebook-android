@@ -759,6 +759,27 @@ class CameraViewModelTest {
 
         job.cancel()
     }
+
+    @Test
+    fun `checkCreditsAndProceed navigates to paywall when balance is 0 after deduction`() = runTest {
+        // Simulate a user who just used their last credit - balance is now 0
+        fakeCreditRepository.setCreditBalance(0)
+        advanceUntilIdle()
+
+        val events = mutableListOf<CameraEvent>()
+        val job = launch { viewModel.events.toList(events) }
+
+        // When user tries to scan again
+        val imageUri = "file:///test/image.jpg"
+        viewModel.checkCreditsAndProceed(imageUri)
+        advanceUntilIdle()
+
+        // Then NavigateToPaywall event is emitted (paywall gate is triggered)
+        assertEquals(1, events.size)
+        assertTrue(events[0] is CameraEvent.NavigateToPaywall)
+
+        job.cancel()
+    }
 }
 
 /**
