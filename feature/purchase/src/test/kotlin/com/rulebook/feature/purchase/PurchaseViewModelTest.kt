@@ -102,11 +102,12 @@ class PurchaseViewModelTest {
     }
 
     @Test
-    fun `onProductSelected tracks analytics`() = runTest {
+    fun `onProductSelected tracks analytics with product id`() = runTest {
         viewModel.onProductSelected("pack_1")
 
         assertEquals(1, fakeAnalyticsManager.getTrackedEvents().size)
         assertEquals("paywall_product_tapped", fakeAnalyticsManager.getTrackedEvents()[0].first)
+        assertEquals(mapOf("product_id" to "pack_1"), fakeAnalyticsManager.getTrackedEvents()[0].second)
     }
 
     @Test
@@ -115,6 +116,30 @@ class PurchaseViewModelTest {
 
         assertEquals(1, fakeAnalyticsManager.getTrackedEvents().size)
         assertEquals("paywall_restore_purchases_tapped", fakeAnalyticsManager.getTrackedEvents()[0].first)
+    }
+
+    @Test
+    fun `onDismiss tracks analytics`() = runTest {
+        viewModel.onDismiss()
+        advanceUntilIdle()
+
+        assertTrue(fakeAnalyticsManager.getTrackedEvents().any { it.first == "paywall_dismissed" })
+    }
+
+    @Test
+    fun `error state set when queryProducts fails`() = runTest {
+        // Create a new ViewModel with a failing billing repository
+        fakeBillingRepository.shouldFailQueryProducts = true
+        val failingViewModel = PurchaseViewModel(
+            creditRepository = fakeCreditRepository,
+            billingRepository = fakeBillingRepository,
+            analyticsManager = fakeAnalyticsManager
+        )
+        advanceUntilIdle()
+
+        val state = failingViewModel.uiState.first()
+        assertEquals("Failed to load products", state.error)
+        assertFalse(state.isLoading)
     }
 }
 
@@ -154,6 +179,7 @@ class FakeCreditRepository : CreditRepository {
 
 class FakeBillingRepository : BillingRepository {
     private val _products = MutableStateFlow<List<ProductInfo>>(emptyList())
+    var shouldFailQueryProducts = false
 
     override val products: Flow<List<ProductInfo>> = _products
 
@@ -162,6 +188,9 @@ class FakeBillingRepository : BillingRepository {
     }
 
     override suspend fun queryProducts(): Result<List<ProductInfo>> {
+        if (shouldFailQueryProducts) {
+            return Result.failure(RuntimeException("Billing service unavailable"))
+        }
         return Result.success(_products.value)
     }
 

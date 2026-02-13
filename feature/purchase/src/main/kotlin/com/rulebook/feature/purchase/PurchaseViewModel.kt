@@ -79,7 +79,7 @@ class PurchaseViewModel(
                 emit(emptyList())
             }
             .onEach { products ->
-                _uiState.update { it.copy(products = products, isLoading = products.isEmpty()) }
+                _uiState.update { it.copy(products = products) }
             }
             .launchIn(viewModelScope)
 
@@ -135,8 +135,19 @@ class PurchaseViewModel(
      */
     fun onDismiss() {
         viewModelScope.launch {
-            analyticsManager.trackEvent("paywall_dismissed")
+            try {
+                analyticsManager.trackEvent("paywall_dismissed")
+            } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to track paywall dismissed analytics", e)
+            }
             _events.send(PurchaseEvent.Dismiss)
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d(TAG, "PurchaseViewModel cleared")
     }
 }
