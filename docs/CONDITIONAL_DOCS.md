@@ -66,3 +66,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When integrating analytics events that should not block user navigation flows
     - When implementing credit/resource deduction with paywall gating on zero balance
     - When handling DataStore atomic edit blocks for financial or resource-critical state updates
+
+- `docs/features/paywall-screen-mvi-pattern.md` - Paywall Screen MVI Pattern (RULE-226)
+  - Conditions:
+    - When implementing MVI pattern with StateFlow for state and Channel for one-time events
+    - When integrating credit balance with reactive repository flows and error handling
+    - When building paywall/purchase UI with Google Play billing repository integration
+    - When creating ViewModel that observes multiple repository flows with proper error handling
+    - When writing ViewModel unit tests with fake repository implementations

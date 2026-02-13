@@ -1,9 +1,9 @@
 package com.rulebook.feature.purchase.di
 
+import com.rulebook.feature.purchase.PurchaseViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val purchaseModule = module {
-    // TODO: Add PurchaseViewModel when implemented
-    // viewModel { PurchaseViewModel(get()) }
+    viewModel { PurchaseViewModel(get(), get(), get()) }
 }
