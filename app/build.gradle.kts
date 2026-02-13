@@ -59,6 +59,7 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:common"))
     implementation(project(":core:analytics"))
+    implementation(project(":core:billing"))
 
     // Core Android
     implementation(libs.androidx.core.ktx)
