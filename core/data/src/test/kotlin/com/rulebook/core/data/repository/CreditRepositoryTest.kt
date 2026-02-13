@@ -131,6 +131,18 @@ class CreditRepositoryTest {
         assertEquals(0, repository.creditBalance.first())
     }
 
+    @Test
+    fun `deductCredit from balance of 1 results in 0 and hasCredits returns false`() = runTest {
+        fakePreferences.setBalance(1)
+
+        val deductResult = repository.deductCredit()
+        assertTrue(deductResult)
+        assertEquals(0, repository.creditBalance.first())
+
+        val hasCreditsResult = repository.hasCredits()
+        assertFalse(hasCreditsResult)
+    }
+
     // ==================== hasCredits Tests ====================
 
     @Test

@@ -1476,6 +1476,89 @@ class GenerationViewModelTest {
     }
 
     @Test
+    fun `successful save tracks credit_deducted analytics with correct balance`() = runTest {
+        val fakeGameRepository = FakeGameRepository()
+        val fakeCreditRepository = FakeCreditRepository()
+        fakeCreditRepository.deductResult = true
+
+        val viewModel = createViewModelWithRepositories(
+            gameRepository = fakeGameRepository,
+            creditRepository = fakeCreditRepository
+        )
+        advanceUntilIdle()
+
+        // Verify credit_deducted analytics was tracked
+        val creditDeductedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "credit_deducted" }
+        assertEquals(1, creditDeductedEvents.size)
+        assertEquals("3", creditDeductedEvents[0].properties["new_balance"])
+        assertEquals("test-game-id-123", creditDeductedEvents[0].properties["game_id"])
+    }
+
+    @Test
+    fun `successful save tracks scan_completed analytics with gameId and gameName`() = runTest {
+        val fakeGameRepository = FakeGameRepository()
+        val fakeCreditRepository = FakeCreditRepository()
+
+        val viewModel = createViewModelWithRepositories(
+            gameRepository = fakeGameRepository,
+            creditRepository = fakeCreditRepository
+        )
+        advanceUntilIdle()
+
+        // Verify scan_completed analytics was tracked
+        val scanCompletedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "scan_completed" }
+        assertEquals(1, scanCompletedEvents.size)
+        assertEquals("test-game-id-123", scanCompletedEvents[0].properties["game_id"])
+        assertEquals("Test Game", scanCompletedEvents[0].properties["game_name"])
+        assertEquals("3", scanCompletedEvents[0].properties["new_credit_balance"])
+    }
+
+    @Test
+    fun `analytics failure after credit deduction does not block navigation`() = runTest {
+        val fakeGameRepository = FakeGameRepository()
+        val fakeCreditRepository = FakeCreditRepository()
+        fakeAnalyticsManager.setThrowOnTrackEvent(true)
+
+        val viewModel = createViewModelWithRepositories(
+            gameRepository = fakeGameRepository,
+            creditRepository = fakeCreditRepository
+        )
+
+        val events = mutableListOf<GenerationEvent>()
+        val job = launch {
+            viewModel.events.toList(events)
+        }
+
+        advanceUntilIdle()
+        job.cancel()
+
+        // Still navigates even if analytics fails
+        val navigateEvent = events.filterIsInstance<GenerationEvent.NavigateToRules>().firstOrNull()
+        assertNotNull(navigateEvent)
+    }
+
+    @Test
+    fun `save error does not track credit_deducted analytics`() = runTest {
+        val fakeGameRepository = FakeGameRepository()
+        fakeGameRepository.saveGameWithRulesResult = Result.Error("Database error")
+        val fakeCreditRepository = FakeCreditRepository()
+
+        val viewModel = createViewModelWithRepositories(
+            gameRepository = fakeGameRepository,
+            creditRepository = fakeCreditRepository
+        )
+        advanceUntilIdle()
+
+        // Verify no credit_deducted analytics was tracked
+        val creditDeductedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "credit_deducted" }
+        assertEquals(0, creditDeductedEvents.size)
+
+        // Verify no scan_completed analytics was tracked
+        val scanCompletedEvents = fakeAnalyticsManager.trackedEvents.filter { it.name == "scan_completed" }
+        assertEquals(0, scanCompletedEvents.size)
+    }
+
+    @Test
     fun `confirm path sets gameTitleDisplay and navigates to rules after save`() = runTest {
         // Low confidence → shows confirmation screen
         fakeScanRepository.analyzeResult = Result.Success(
@@ -1890,8 +1973,8 @@ class FakeCreditRepository : com.rulebook.core.data.repository.CreditRepository 
     var deductCallCount = 0
     var shouldThrowOnDeduct = false
 
-    override val creditBalance: kotlinx.coroutines.flow.Flow<Int> =
-        kotlinx.coroutines.flow.MutableStateFlow(3)
+    private val _creditBalance = kotlinx.coroutines.flow.MutableStateFlow(4)
+    override val creditBalance: kotlinx.coroutines.flow.Flow<Int> = _creditBalance
 
     override suspend fun awardInitialCredits(amount: Int): Boolean {
         return true
@@ -1900,10 +1983,13 @@ class FakeCreditRepository : com.rulebook.core.data.repository.CreditRepository 
     override suspend fun deductCredit(): Boolean {
         deductCallCount++
         if (shouldThrowOnDeduct) throw RuntimeException("Simulated DataStore IO error")
+        if (deductResult && _creditBalance.value > 0) {
+            _creditBalance.value = _creditBalance.value - 1
+        }
         return deductResult
     }
 
     override suspend fun hasCredits(): Boolean {
-        return true
+        return _creditBalance.value > 0
     }
 }
