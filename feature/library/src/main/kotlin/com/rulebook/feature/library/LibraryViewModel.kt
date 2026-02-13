@@ -56,10 +56,13 @@ class LibraryViewModel(
         }
 
         // Collect credit balance from preferences
+        // catch emits 0 on DataStore IOException to keep UI functional
         viewModelScope.launch {
-            creditPreferencesSource.creditBalance.collect { balance ->
-                _uiState.update { it.copy(creditBalance = balance) }
-            }
+            creditPreferencesSource.creditBalance
+                .catch { emit(0) }
+                .collect { balance ->
+                    _uiState.update { it.copy(creditBalance = balance) }
+                }
         }
 
         // Set up reactive game loading with flatMapLatest for sort order changes

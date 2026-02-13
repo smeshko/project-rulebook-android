@@ -67,10 +67,10 @@ fun SettingsCreditRow(
         // Credit count label
         Text(
             text = pluralStringResource(
-                id = R.plurals.credits_count,
+                id = R.plurals.credits_remaining,
                 count = creditCount,
                 creditCount
-            ) + " Remaining",
+            ),
             style = RulebookTheme.typography.body,
             modifier = Modifier.weight(1f)
         )

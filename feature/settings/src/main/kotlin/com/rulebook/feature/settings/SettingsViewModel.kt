@@ -6,6 +6,7 @@ import com.rulebook.core.datastore.CreditPreferencesSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -26,10 +27,13 @@ class SettingsViewModel(
 
     init {
         // Collect credit balance from preferences
+        // catch emits 0 on DataStore IOException to keep UI functional
         viewModelScope.launch {
-            creditPreferencesSource.creditBalance.collect { balance ->
-                _uiState.update { it.copy(creditBalance = balance) }
-            }
+            creditPreferencesSource.creditBalance
+                .catch { emit(0) }
+                .collect { balance ->
+                    _uiState.update { it.copy(creditBalance = balance) }
+                }
         }
     }
 

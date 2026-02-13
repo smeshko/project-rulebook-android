@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -164,15 +166,27 @@ private fun CreditsHeaderVariant(
         CreditState.Normal -> RulebookTheme.colors.contentPrimary
     }
 
+    val iconTint = when (creditState) {
+        CreditState.Empty -> RulebookTheme.colors.red
+        CreditState.Low -> RulebookTheme.colors.orange
+        CreditState.Normal -> RulebookTheme.colors.orange
+    }
+
+    val accessibilityLabel = pluralStringResource(
+        id = R.plurals.credits_count,
+        count = creditCount,
+        creditCount
+    )
+
     Row(
-        modifier = modifier,
+        modifier = modifier.semantics { contentDescription = accessibilityLabel },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_credit_coin),
             contentDescription = null,
-            tint = RulebookTheme.colors.orange,
+            tint = iconTint,
             modifier = Modifier.size(20.dp)
         )
         Text(
