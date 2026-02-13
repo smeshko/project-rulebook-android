@@ -282,4 +282,14 @@ class AnalyticsManagerTest {
         assertEquals("scan_manual_entry_from_error", analyticsManager.trackedEvents[0].name)
         assertEquals("timeout", analyticsManager.trackedEvents[0].properties["error_type"])
     }
+
+    @Test
+    fun `trackCreditDeducted fires credit_deducted event with new_balance and game_id`() {
+        analyticsManager.trackCreditDeducted(newBalance = 4, gameId = "game-123")
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("credit_deducted", analyticsManager.trackedEvents[0].name)
+        assertEquals("4", analyticsManager.trackedEvents[0].properties["new_balance"])
+        assertEquals("game-123", analyticsManager.trackedEvents[0].properties["game_id"])
+    }
 }

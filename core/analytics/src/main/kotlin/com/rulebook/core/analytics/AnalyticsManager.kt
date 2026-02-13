@@ -235,4 +235,21 @@ interface AnalyticsManager {
             )
         )
     }
+
+    /**
+     * Track when a credit is deducted after successful scan (Story 8.2).
+     * This is a convenience method that fires the "credit_deducted" event.
+     *
+     * @param newBalance The user's credit balance after deduction
+     * @param gameId The ID of the game that was scanned
+     */
+    fun trackCreditDeducted(newBalance: Int, gameId: String) {
+        trackEvent(
+            "credit_deducted",
+            mapOf(
+                "new_balance" to newBalance.toString(),
+                "game_id" to gameId
+            )
+        )
+    }
 }
