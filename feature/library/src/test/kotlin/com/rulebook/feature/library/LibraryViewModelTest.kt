@@ -2,6 +2,7 @@ package com.rulebook.feature.library
 
 import com.rulebook.core.common.Result
 import com.rulebook.core.data.repository.GameRepository
+import com.rulebook.core.datastore.CreditPreferencesSource
 import com.rulebook.core.datastore.SortPreferencesSource
 import com.rulebook.core.model.Game
 import com.rulebook.core.model.SortOrder
@@ -47,7 +48,7 @@ class LibraryViewModelTest {
         val preferences = FakeRulebookPreferences()
 
         // When
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         // Then
@@ -68,7 +69,7 @@ class LibraryViewModelTest {
         val preferences = FakeRulebookPreferences()
 
         // When
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         // Then
@@ -90,7 +91,7 @@ class LibraryViewModelTest {
         val preferences = FakeRulebookPreferences()
 
         // When
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         // Then - default sort is RECENT (lastAccessedAt desc)
@@ -109,7 +110,7 @@ class LibraryViewModelTest {
         val preferences = FakeRulebookPreferences(initialSortOrder = SortOrder.ALPHABETICAL)
 
         // When
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         // Then
@@ -117,11 +118,33 @@ class LibraryViewModelTest {
     }
 
     @Test
+    fun `credit balance flows into UI state`() = runTest(testDispatcher) {
+        // Given
+        val repository = FakeGameRepository()
+        val sortPreferences = FakeRulebookPreferences()
+        val creditPreferences = FakeCreditPreferences(initialBalance = 10)
+
+        // When
+        val viewModel = LibraryViewModel(repository, sortPreferences, creditPreferences)
+        advanceUntilIdle()
+
+        // Then
+        assertEquals(10, viewModel.uiState.value.creditBalance)
+
+        // And when credit balance changes
+        creditPreferences.setCreditBalance(5)
+        advanceUntilIdle()
+
+        // Then UI state updates
+        assertEquals(5, viewModel.uiState.value.creditBalance)
+    }
+
+    @Test
     fun `changeSortOrder updates UI state and persists to preferences`() = runTest(testDispatcher) {
         // Given
         val repository = FakeGameRepository()
         val preferences = FakeRulebookPreferences()
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         assertEquals(SortOrder.RECENT, viewModel.uiState.value.sortOrder)
@@ -144,7 +167,7 @@ class LibraryViewModelTest {
         )
         val repository = FakeGameRepository(games = games)
         val preferences = FakeRulebookPreferences()
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         // Initially RECENT sort (by lastAccessedAt desc)
@@ -164,7 +187,7 @@ class LibraryViewModelTest {
         // Given
         val repository = FakeGameRepository(games = emptyList())
         val preferences = FakeRulebookPreferences()
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         // When - start refresh
@@ -186,7 +209,7 @@ class LibraryViewModelTest {
         val preferences = FakeRulebookPreferences()
 
         // When
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         // Then
@@ -208,7 +231,7 @@ class LibraryViewModelTest {
         val game = Game("1", "Catan", null, 1000L, 2000L)
         val repository = FakeGameRepository(games = listOf(game))
         val preferences = FakeRulebookPreferences()
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         // When
@@ -225,7 +248,7 @@ class LibraryViewModelTest {
         val game = Game("1", "Catan", null, 1000L, 2000L)
         val repository = FakeGameRepository(games = listOf(game))
         val preferences = FakeRulebookPreferences()
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         viewModel.requestDelete(game)
@@ -246,7 +269,7 @@ class LibraryViewModelTest {
         val game = Game("1", "Catan", null, 1000L, 2000L)
         val repository = FakeGameRepository(games = listOf(game))
         val preferences = FakeRulebookPreferences()
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         viewModel.requestDelete(game)
@@ -274,7 +297,7 @@ class LibraryViewModelTest {
         val game = Game("1", "Catan", null, 1000L, 2000L)
         val repository = FakeGameRepository(games = listOf(game))
         val preferences = FakeRulebookPreferences()
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         viewModel.requestDelete(game)
@@ -294,7 +317,7 @@ class LibraryViewModelTest {
         val game = Game("1", "Catan", null, 1000L, 2000L)
         val repository = FakeGameRepository(games = listOf(game), deleteError = "Delete failed")
         val preferences = FakeRulebookPreferences()
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         viewModel.requestDelete(game)
@@ -322,7 +345,7 @@ class LibraryViewModelTest {
         val preferences = FakeRulebookPreferences()
 
         // When
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         // Then
@@ -335,7 +358,7 @@ class LibraryViewModelTest {
         val game = Game("1", "Catan", null, 1000L, 2000L)
         val repository = FakeGameRepository(games = listOf(game))
         val preferences = FakeRulebookPreferences()
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         // When
@@ -352,7 +375,7 @@ class LibraryViewModelTest {
         val game = Game("1", "Catan", null, 1000L, 2000L)
         val repository = FakeGameRepository(games = listOf(game))
         val preferences = FakeRulebookPreferences()
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         viewModel.showContextMenu(game)
@@ -373,7 +396,7 @@ class LibraryViewModelTest {
         val game = Game("1", "Pandemic", null, 1000L, 2000L)
         val repository = FakeGameRepository(games = listOf(game))
         val preferences = FakeRulebookPreferences()
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         // When - show then dismiss
@@ -392,7 +415,7 @@ class LibraryViewModelTest {
         val game = Game("1", "Catan", null, 1000L, 2000L)
         val repository = FakeGameRepository(games = listOf(game))
         val preferences = FakeRulebookPreferences()
-        val viewModel = LibraryViewModel(repository, preferences)
+        val viewModel = LibraryViewModel(repository, preferences, FakeCreditPreferences())
         advanceUntilIdle()
 
         viewModel.showContextMenu(game)
@@ -428,6 +451,23 @@ private class FakeRulebookPreferences(
         lastSetSortOrder = order
         _sortOrder.value = order
     }
+}
+
+/**
+ * Fake implementation of CreditPreferencesSource for testing.
+ */
+private class FakeCreditPreferences(
+    initialBalance: Int = 0
+) : CreditPreferencesSource {
+    private val _creditBalance = MutableStateFlow(initialBalance)
+    override val creditBalance: Flow<Int> = _creditBalance
+
+    fun setCreditBalance(balance: Int) {
+        _creditBalance.value = balance
+    }
+
+    override suspend fun awardInitialCreditsIfNeeded(amount: Int): Boolean = false
+    override suspend fun deductCredit(): Boolean = false
 }
 
 /**

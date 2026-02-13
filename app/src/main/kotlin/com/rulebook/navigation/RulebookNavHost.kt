@@ -82,7 +82,9 @@ fun RulebookNavHost(
             enterTransition = { fadeIn(animationSpec = tween(TRANSITION_DURATION_MS)) },
             exitTransition = { fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
-            SettingsScreen()
+            SettingsScreen(
+                onNavigateToPaywall = { navController.navigate(Route.Purchase.route) }
+            )
         }
 
         // Camera - capture rulebook pages

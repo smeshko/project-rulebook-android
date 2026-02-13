@@ -14,8 +14,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,17 +45,52 @@ enum class CreditState {
 }
 
 /**
+ * Display variant for the credit balance component.
+ *
+ * Determines the visual style and layout of the credit display.
+ */
+enum class CreditsDisplayVariant {
+    /** Camera overlay variant - pill shape with semi-transparent background and white text. */
+    Camera,
+
+    /** Header variant - compact display for app bar trailing content with icon and caption text. */
+    Header
+}
+
+/**
  * CreditsDisplay - Shows the user's current credit balance.
  *
- * A compact, pill-shaped display designed for camera overlay usage.
- * Features semi-transparent background for readability over camera preview
- * and warning/error states for low/zero credit situations.
+ * Supports multiple display variants for different contexts:
+ * - Camera: Pill-shaped overlay with semi-transparent background
+ * - Header: Compact display for app bar with coin icon and caption text
  *
  * @param creditCount The number of credits to display.
+ * @param variant The display variant to use (default: Camera for backward compatibility).
  * @param modifier Modifier to be applied to the component.
  */
 @Composable
 fun CreditsDisplay(
+    creditCount: Int,
+    variant: CreditsDisplayVariant = CreditsDisplayVariant.Camera,
+    modifier: Modifier = Modifier
+) {
+    when (variant) {
+        CreditsDisplayVariant.Camera -> CreditsCameraVariant(
+            creditCount = creditCount,
+            modifier = modifier
+        )
+        CreditsDisplayVariant.Header -> CreditsHeaderVariant(
+            creditCount = creditCount,
+            modifier = modifier
+        )
+    }
+}
+
+/**
+ * Camera overlay variant - pill-shaped with semi-transparent background.
+ */
+@Composable
+private fun CreditsCameraVariant(
     creditCount: Int,
     modifier: Modifier = Modifier
 ) {
@@ -108,6 +146,57 @@ fun CreditsDisplay(
     }
 }
 
+/**
+ * Header variant - compact display with coin icon for app bar.
+ */
+@Composable
+private fun CreditsHeaderVariant(
+    creditCount: Int,
+    modifier: Modifier = Modifier
+) {
+    val creditState = when {
+        creditCount == 0 -> CreditState.Empty
+        creditCount == 1 -> CreditState.Low
+        else -> CreditState.Normal
+    }
+
+    val textColor = when (creditState) {
+        CreditState.Empty -> RulebookTheme.colors.red
+        CreditState.Low -> RulebookTheme.colors.orange
+        CreditState.Normal -> RulebookTheme.colors.contentPrimary
+    }
+
+    val iconTint = when (creditState) {
+        CreditState.Empty -> RulebookTheme.colors.red
+        CreditState.Low -> RulebookTheme.colors.orange
+        CreditState.Normal -> RulebookTheme.colors.orange
+    }
+
+    val accessibilityLabel = pluralStringResource(
+        id = R.plurals.credits_count,
+        count = creditCount,
+        creditCount
+    )
+
+    Row(
+        modifier = modifier.semantics { contentDescription = accessibilityLabel },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_credit_coin),
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(20.dp)
+        )
+        Text(
+            text = creditCount.toString(),
+            style = RulebookTheme.typography.caption,
+            color = textColor
+        )
+    }
+}
+
 // =============================================================================
 // PREVIEWS
 // =============================================================================
@@ -133,5 +222,29 @@ private fun CreditsDisplayLowPreview() {
 private fun CreditsDisplayEmptyPreview() {
     RulebookTheme {
         CreditsDisplay(creditCount = 0)
+    }
+}
+
+@Preview(showBackground = true, name = "Header - Normal (3 credits)")
+@Composable
+private fun CreditsDisplayHeaderNormalPreview() {
+    RulebookTheme {
+        CreditsDisplay(creditCount = 3, variant = CreditsDisplayVariant.Header)
+    }
+}
+
+@Preview(showBackground = true, name = "Header - Low (1 credit)")
+@Composable
+private fun CreditsDisplayHeaderLowPreview() {
+    RulebookTheme {
+        CreditsDisplay(creditCount = 1, variant = CreditsDisplayVariant.Header)
+    }
+}
+
+@Preview(showBackground = true, name = "Header - Empty (0 credits)")
+@Composable
+private fun CreditsDisplayHeaderEmptyPreview() {
+    RulebookTheme {
+        CreditsDisplay(creditCount = 0, variant = CreditsDisplayVariant.Header)
     }
 }

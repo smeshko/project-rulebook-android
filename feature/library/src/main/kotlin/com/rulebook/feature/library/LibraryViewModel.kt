@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rulebook.core.common.Result
 import com.rulebook.core.data.repository.GameRepository
+import com.rulebook.core.datastore.CreditPreferencesSource
 import com.rulebook.core.datastore.SortPreferencesSource
 import com.rulebook.core.model.Game
 import com.rulebook.core.model.SortOrder
@@ -30,11 +31,13 @@ import kotlinx.coroutines.launch
  *
  * @param gameRepository Repository for accessing game data.
  * @param sortPreferencesSource Preferences source for reading/writing sort order.
+ * @param creditPreferencesSource Preferences source for reading credit balance.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class LibraryViewModel(
     private val gameRepository: GameRepository,
-    private val sortPreferencesSource: SortPreferencesSource
+    private val sortPreferencesSource: SortPreferencesSource,
+    private val creditPreferencesSource: CreditPreferencesSource
 ) : ViewModel() {
 
     private val _sortOrder = MutableStateFlow(SortOrder.RECENT)
@@ -50,6 +53,16 @@ class LibraryViewModel(
             sortPreferencesSource.sortOrder.collect { order ->
                 _sortOrder.value = order
             }
+        }
+
+        // Collect credit balance from preferences
+        // catch emits 0 on DataStore IOException to keep UI functional
+        viewModelScope.launch {
+            creditPreferencesSource.creditBalance
+                .catch { emit(0) }
+                .collect { balance ->
+                    _uiState.update { it.copy(creditBalance = balance) }
+                }
         }
 
         // Set up reactive game loading with flatMapLatest for sort order changes

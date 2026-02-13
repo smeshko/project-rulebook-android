@@ -17,6 +17,7 @@ import com.rulebook.core.designsystem.component.ButtonVariant
 import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
 import com.rulebook.core.designsystem.theme.RulebookTheme
+import com.rulebook.feature.settings.components.SettingsCreditRow
 import com.rulebook.feature.settings.components.SettingsInfoRow
 import com.rulebook.feature.settings.components.SettingsLinkRow
 import com.rulebook.feature.settings.components.SettingsSectionHeader
@@ -33,11 +34,13 @@ import org.koin.androidx.compose.koinViewModel
  * - About (version, privacy, terms)
  * - Data (clear data action)
  *
+ * @param onNavigateToPaywall Callback invoked when the user taps the credit balance row.
  * @param viewModel The ViewModel managing settings state.
  * @param modifier Modifier to be applied to the screen.
  */
 @Composable
 fun SettingsScreen(
+    onNavigateToPaywall: () -> Unit = {},
     viewModel: SettingsViewModel = koinViewModel(),
     modifier: Modifier = Modifier,
 ) {
@@ -45,6 +48,7 @@ fun SettingsScreen(
 
     SettingsScreenContent(
         uiState = uiState,
+        onCreditsTap = onNavigateToPaywall,
         onThemeToggle = viewModel::onThemeToggle,
         onHapticsToggle = viewModel::onHapticsToggle,
         onClearData = viewModel::onClearData,
@@ -60,6 +64,7 @@ fun SettingsScreen(
 @Composable
 internal fun SettingsScreenContent(
     uiState: SettingsUiState,
+    onCreditsTap: () -> Unit,
     onThemeToggle: (Boolean) -> Unit,
     onHapticsToggle: (Boolean) -> Unit,
     onClearData: () -> Unit,
@@ -78,9 +83,23 @@ internal fun SettingsScreenContent(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // Credits Section
+            item {
+                SettingsSectionHeader(title = "Credits")
+            }
+            item {
+                SettingsCreditRow(
+                    creditCount = uiState.creditBalance,
+                    onClick = onCreditsTap
+                )
+            }
+
             // Appearance Section
             item {
-                SettingsSectionHeader(title = "Appearance")
+                SettingsSectionHeader(
+                    title = "Appearance",
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
             item {
                 SettingsToggleRow(
@@ -185,7 +204,8 @@ internal fun SettingsScreenContent(
 private fun SettingsScreenLightPreview() {
     RulebookTheme(darkTheme = false) {
         SettingsScreenContent(
-            uiState = SettingsUiState(),
+            uiState = SettingsUiState(creditBalance = 5),
+            onCreditsTap = {},
             onThemeToggle = {},
             onHapticsToggle = {},
             onClearData = {},
@@ -203,7 +223,8 @@ private fun SettingsScreenLightPreview() {
 private fun SettingsScreenDarkPreview() {
     RulebookTheme(darkTheme = true) {
         SettingsScreenContent(
-            uiState = SettingsUiState(isDarkTheme = true),
+            uiState = SettingsUiState(creditBalance = 5, isDarkTheme = true),
+            onCreditsTap = {},
             onThemeToggle = {},
             onHapticsToggle = {},
             onClearData = {},
