@@ -1973,8 +1973,8 @@ class FakeCreditRepository : com.rulebook.core.data.repository.CreditRepository 
     var deductCallCount = 0
     var shouldThrowOnDeduct = false
 
-    override val creditBalance: kotlinx.coroutines.flow.Flow<Int> =
-        kotlinx.coroutines.flow.MutableStateFlow(3)
+    private val _creditBalance = kotlinx.coroutines.flow.MutableStateFlow(4)
+    override val creditBalance: kotlinx.coroutines.flow.Flow<Int> = _creditBalance
 
     override suspend fun awardInitialCredits(amount: Int): Boolean {
         return true
@@ -1983,10 +1983,13 @@ class FakeCreditRepository : com.rulebook.core.data.repository.CreditRepository 
     override suspend fun deductCredit(): Boolean {
         deductCallCount++
         if (shouldThrowOnDeduct) throw RuntimeException("Simulated DataStore IO error")
+        if (deductResult && _creditBalance.value > 0) {
+            _creditBalance.value = _creditBalance.value - 1
+        }
         return deductResult
     }
 
     override suspend fun hasCredits(): Boolean {
-        return true
+        return _creditBalance.value > 0
     }
 }

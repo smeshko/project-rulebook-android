@@ -292,4 +292,15 @@ class AnalyticsManagerTest {
         assertEquals("4", analyticsManager.trackedEvents[0].properties["new_balance"])
         assertEquals("game-123", analyticsManager.trackedEvents[0].properties["game_id"])
     }
+
+    @Test
+    fun `trackScanCompleted fires scan_completed event with game_id, game_name, and new_credit_balance`() {
+        analyticsManager.trackScanCompleted(gameId = "game-456", gameName = "Catan", newCreditBalance = 2)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("scan_completed", analyticsManager.trackedEvents[0].name)
+        assertEquals("game-456", analyticsManager.trackedEvents[0].properties["game_id"])
+        assertEquals("Catan", analyticsManager.trackedEvents[0].properties["game_name"])
+        assertEquals("2", analyticsManager.trackedEvents[0].properties["new_credit_balance"])
+    }
 }

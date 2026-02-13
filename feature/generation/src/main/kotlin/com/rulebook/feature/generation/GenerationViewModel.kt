@@ -491,8 +491,9 @@ class GenerationViewModel(
                 val gameId = saveResult.data
 
                 // Deduct credit — wrapped in try/catch so IO errors don't block navigation
+                var creditDeducted = false
                 try {
-                    val creditDeducted = creditRepository.deductCredit()
+                    creditDeducted = creditRepository.deductCredit()
                     if (!creditDeducted) {
                         Log.w(TAG, "Credit deduction returned false after save - balance may already be 0")
                     }
@@ -503,19 +504,22 @@ class GenerationViewModel(
                 }
 
                 // Track analytics after successful save + credit deduction
+                // Only fire credit_deducted if a credit was actually deducted
                 // Analytics failure must not block navigation
-                try {
-                    val newBalance = creditRepository.creditBalance.first()
-                    analyticsManager.trackCreditDeducted(newBalance = newBalance, gameId = gameId)
-                    analyticsManager.trackScanCompleted(
-                        gameId = gameId,
-                        gameName = gameTitle,
-                        newCreditBalance = newBalance
-                    )
-                } catch (e: kotlin.coroutines.cancellation.CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Log.e(TAG, "Analytics tracking failed after successful save", e)
+                if (creditDeducted) {
+                    try {
+                        val newBalance = creditRepository.creditBalance.first()
+                        analyticsManager.trackCreditDeducted(newBalance = newBalance, gameId = gameId)
+                        analyticsManager.trackScanCompleted(
+                            gameId = gameId,
+                            gameName = gameTitle,
+                            newCreditBalance = newBalance
+                        )
+                    } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to read balance or track analytics after successful save", e)
+                    }
                 }
 
                 // Update progress to 100%
