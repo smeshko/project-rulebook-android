@@ -52,6 +52,37 @@ class CreditsDisplayTest {
     }
 
     // =========================================================================
+    // CREDITSDISPLAYVARIANT ENUM TESTS
+    // =========================================================================
+
+    @Test
+    fun `CreditsDisplayVariant enum exists`() {
+        val clazz = Class.forName("com.rulebook.core.designsystem.component.CreditsDisplayVariant")
+        assertNotNull("CreditsDisplayVariant enum should exist", clazz)
+        assertTrue("CreditsDisplayVariant should be an enum", clazz.isEnum)
+    }
+
+    @Test
+    fun `CreditsDisplayVariant has Camera variant`() {
+        val variant = CreditsDisplayVariant.Camera
+        assertNotNull("Camera variant should exist", variant)
+        assertEquals("Camera", variant.name)
+    }
+
+    @Test
+    fun `CreditsDisplayVariant has Header variant`() {
+        val variant = CreditsDisplayVariant.Header
+        assertNotNull("Header variant should exist", variant)
+        assertEquals("Header", variant.name)
+    }
+
+    @Test
+    fun `CreditsDisplayVariant has exactly two variants`() {
+        val variants = CreditsDisplayVariant.entries
+        assertEquals("CreditsDisplayVariant should have exactly 2 variants", 2, variants.size)
+    }
+
+    // =========================================================================
     // CREDITSDISPLAY COMPOSABLE TESTS
     // =========================================================================
 
