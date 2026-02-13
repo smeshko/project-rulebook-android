@@ -36,6 +36,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rulebook.core.designsystem.component.ButtonVariant
+import com.rulebook.core.designsystem.component.CreditsDisplay
+import com.rulebook.core.designsystem.component.CreditsDisplayVariant
 import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.component.RulebookCard
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
@@ -116,7 +118,15 @@ internal fun LibraryScreenContent(
 
     Box(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            RulebookHeaderBar(title = "Library")
+            RulebookHeaderBar(
+                title = "Library",
+                actions = {
+                    CreditsDisplay(
+                        creditCount = uiState.creditBalance,
+                        variant = CreditsDisplayVariant.Header
+                    )
+                }
+            )
 
             PullToRefreshBox(
                 isRefreshing = uiState.isRefreshing,
@@ -437,7 +447,7 @@ private fun LibraryScreenGamesLightPreview() {
     )
     RulebookTheme(darkTheme = false) {
         LibraryScreenContent(
-            uiState = LibraryUiState(games = sampleGames),
+            uiState = LibraryUiState(games = sampleGames, creditBalance = 5),
             snackbarHostState = remember { SnackbarHostState() },
             onRefresh = {},
             onNavigateToCamera = {},
