@@ -11,6 +11,7 @@ import com.rulebook.core.model.SortOrder
  *
  * @param games The list of saved games.
  * @param sortOrder The current sort order for the library.
+ * @param creditBalance The user's current credit balance.
  * @param isLoading Whether initial data loading is in progress.
  * @param isRefreshing Whether a pull-to-refresh is in progress.
  * @param error Optional error message if loading failed.
@@ -20,6 +21,7 @@ import com.rulebook.core.model.SortOrder
 data class LibraryUiState(
     val games: List<Game> = emptyList(),
     val sortOrder: SortOrder = SortOrder.RECENT,
+    val creditBalance: Int = 0,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,
     val error: String? = null,
