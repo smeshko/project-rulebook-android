@@ -252,4 +252,24 @@ interface AnalyticsManager {
             )
         )
     }
+
+    /**
+     * Track when a scan completes successfully with rules saved (Story 8.2).
+     * This is a convenience method that fires the "scan_completed" event.
+     * Aligns with iOS event naming per scan-analytics-events.md.
+     *
+     * @param gameId The ID of the saved game
+     * @param gameName The name of the game
+     * @param newCreditBalance The user's credit balance after deduction
+     */
+    fun trackScanCompleted(gameId: String, gameName: String, newCreditBalance: Int) {
+        trackEvent(
+            "scan_completed",
+            mapOf(
+                "game_id" to gameId,
+                "game_name" to gameName,
+                "new_credit_balance" to newCreditBalance.toString()
+            )
+        )
+    }
 }

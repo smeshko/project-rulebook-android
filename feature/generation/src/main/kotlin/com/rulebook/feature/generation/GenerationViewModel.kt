@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -499,6 +500,22 @@ class GenerationViewModel(
                     throw e
                 } catch (e: Exception) {
                     Log.e(TAG, "Credit deduction failed after successful save", e)
+                }
+
+                // Track analytics after successful save + credit deduction
+                // Analytics failure must not block navigation
+                try {
+                    val newBalance = creditRepository.creditBalance.first()
+                    analyticsManager.trackCreditDeducted(newBalance = newBalance, gameId = gameId)
+                    analyticsManager.trackScanCompleted(
+                        gameId = gameId,
+                        gameName = gameTitle,
+                        newCreditBalance = newBalance
+                    )
+                } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e(TAG, "Analytics tracking failed after successful save", e)
                 }
 
                 // Update progress to 100%
