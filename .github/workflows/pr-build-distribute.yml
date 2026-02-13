@@ -56,22 +56,29 @@ jobs:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
 
       - name: Upload to Firebase App Distribution
+        id: firebase-upload
         run: |
           npm install -g firebase-tools
-          firebase appdistribution:distribute app/build/outputs/apk/debug/app-debug.apk \
+          OUTPUT=$(firebase appdistribution:distribute app/build/outputs/apk/debug/app-debug.apk \
             --app "${{ secrets.FIREBASE_APP_ID }}" \
             --groups "solo-dev" \
-            --release-notes "PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }} (commit: ${{ github.sha }})"
+            --release-notes "PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }} (commit: ${{ github.sha }})" 2>&1)
+          echo "$OUTPUT"
+          SHARE_URL=$(echo "$OUTPUT" | grep -oP 'https://appdistribution\.firebase\.google\.com/testerapps/[^\s?]+')
+          CONSOLE_URL=$(echo "$OUTPUT" | grep -oP 'https://console\.firebase\.google\.com/[^\s?]+')
+          echo "share_url=$SHARE_URL" >> "$GITHUB_OUTPUT"
+          echo "console_url=$CONSOLE_URL" >> "$GITHUB_OUTPUT"
 
       - name: Post QR code comment on PR
         uses: actions/github-script@v7
         with:
           script: |
-            const appId = '${{ secrets.FIREBASE_APP_ID }}';
-            const testerLink = `https://appdistribution.firebase.dev/i/${appId}`;
+            const shareUrl = '${{ steps.firebase-upload.outputs.share_url }}';
+            const consoleUrl = '${{ steps.firebase-upload.outputs.console_url }}';
+            const testerLink = shareUrl || consoleUrl || 'https://appdistribution.firebase.google.com';
             const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(testerLink)}`;
-            const sha = '${{ github.sha }}'.substring(0, 7);
-            const branch = '${{ github.head_ref }}';
+            const sha = context.sha.substring(0, 7);
+            const branch = context.payload.pull_request.head.ref;
 
             const body = [
               `## Firebase App Distribution`,
