@@ -170,6 +170,55 @@ class BillingRepositoryImplTest {
         assertTrue(result.isFailure)
         assertEquals("No connection", result.exceptionOrNull()?.message)
     }
+
+    // ==================== Retry-on-Disconnect Tests ====================
+
+    @Test
+    fun `consumePurchase retries when wrapper fails and connection is lost`() = runTest {
+        var callCount = 0
+        fakeWrapper = object : FakeBillingClientWrapper() {
+            override suspend fun consumePurchase(purchaseToken: String): Result<Unit> {
+                callCount++
+                return if (callCount == 1) {
+                    // Simulate disconnect mid-operation
+                    setConnectionState(false)
+                    Result.failure(Exception("Disconnected"))
+                } else {
+                    Result.success(Unit)
+                }
+            }
+        }
+        repository = BillingRepositoryImpl(fakeWrapper)
+
+        val result = repository.consumePurchase("token")
+
+        assertTrue(result.isSuccess)
+        assertEquals(2, callCount)
+    }
+
+    @Test
+    fun `queryUnconsumedPurchases retries when wrapper fails and connection is lost`() = runTest {
+        val purchases = listOf(PurchaseInfo("t1", "credits_1", "o1"))
+        var callCount = 0
+        fakeWrapper = object : FakeBillingClientWrapper() {
+            override suspend fun queryPurchases(): Result<List<PurchaseInfo>> {
+                callCount++
+                return if (callCount == 1) {
+                    setConnectionState(false)
+                    Result.failure(Exception("Disconnected"))
+                } else {
+                    Result.success(purchases)
+                }
+            }
+        }
+        repository = BillingRepositoryImpl(fakeWrapper)
+
+        val result = repository.queryUnconsumedPurchases()
+
+        assertTrue(result.isSuccess)
+        assertEquals(purchases, result.getOrNull())
+        assertEquals(2, callCount)
+    }
 }
 
 /**
@@ -177,7 +226,7 @@ class BillingRepositoryImplTest {
  *
  * All return values are configurable per test. Follows the Fake pattern from project conventions.
  */
-class FakeBillingClientWrapper : BillingClientWrapper {
+open class FakeBillingClientWrapper : BillingClientWrapper {
 
     var connectionResult: Result<Unit> = Result.success(Unit)
     var productsToReturn: Result<List<ProductInfo>> = Result.success(emptyList())
@@ -188,6 +237,10 @@ class FakeBillingClientWrapper : BillingClientWrapper {
 
     private val _connectionState = MutableStateFlow(true)
     override val connectionState: StateFlow<Boolean> = _connectionState
+
+    fun setConnectionState(connected: Boolean) {
+        _connectionState.value = connected
+    }
 
     override val purchaseUpdates: SharedFlow<PurchaseUpdate> = MutableSharedFlow()
 

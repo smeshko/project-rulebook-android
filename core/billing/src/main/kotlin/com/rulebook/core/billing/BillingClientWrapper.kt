@@ -17,6 +17,7 @@ import com.android.billingclient.api.queryProductDetails
 import com.android.billingclient.api.queryPurchasesAsync
 import com.rulebook.core.billing.repository.PurchaseInfo
 import com.rulebook.core.model.ProductInfo
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,6 +56,8 @@ internal suspend fun <T> retryWithExponentialBackoff(
     repeat(maxAttempts) { attempt ->
         try {
             return block(attempt)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             lastException = e
             if (attempt < maxAttempts - 1) {
@@ -131,7 +134,10 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
         .build()
 
     override suspend fun ensureConnected(): Result<Unit> {
-        if (billingClient.isReady) return Result.success(Unit)
+        if (billingClient.isReady) {
+            _connectionState.value = true
+            return Result.success(Unit)
+        }
         return try {
             retryWithExponentialBackoff(maxAttempts = MAX_RETRIES) {
                 connectToBillingService()
@@ -163,6 +169,11 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
 
             override fun onBillingServiceDisconnected() {
                 _connectionState.value = false
+                if (continuation.isActive) {
+                    continuation.resumeWithException(
+                        Exception("Billing service disconnected during setup")
+                    )
+                }
             }
         })
     }
@@ -261,10 +272,11 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
             if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 val purchases = result.purchasesList
                     .filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+                    .filter { it.products.isNotEmpty() }
                     .map { purchase ->
                         PurchaseInfo(
                             purchaseToken = purchase.purchaseToken,
-                            productId = purchase.products.firstOrNull() ?: "",
+                            productId = purchase.products.first(),
                             orderId = purchase.orderId ?: ""
                         )
                     }
