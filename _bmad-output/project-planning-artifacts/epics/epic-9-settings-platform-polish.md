@@ -310,7 +310,9 @@ So that I can start scanning faster.
 
 ---
 
-## Story 9.7: Predictive Back Gesture Refinement
+## Story 9.7: Predictive Back Gesture Refinement (QA Polish Pass)
+
+> **Note:** This is a QA/polish pass over the predictive back gesture support implemented in **Story 2.8**. This story focuses on per-screen verification and edge case testing, not reimplementation.
 
 As a user,
 I want back gestures to feel native and predictable,
@@ -356,7 +358,9 @@ So that navigation matches my Android expectations.
 
 ---
 
-## Story 9.8: Edge-to-Edge Polish
+## Story 9.8: Edge-to-Edge Polish (QA Polish Pass)
+
+> **Note:** This is a QA/polish pass over the edge-to-edge setup implemented in **Story 2.1**. This story focuses on per-screen verification and device-specific testing, not reimplementation.
 
 As a user,
 I want the app to look polished edge-to-edge,

@@ -84,6 +84,7 @@ So that I can organize my collection my way.
 
 **Architecture requirements:**
 - Sort state in `LibraryViewModel` — reads initial value from `RulebookPreferences.sortOrder: Flow<SortOrder>` in `core/datastore`
+- **Note:** `sortOrder` preference must be added to DataStore schema (not in original Story 1.4 — added here): `stringPreferencesKey("sort_order")` with default `SortOrder.RECENT`
 - Sort change: `LibraryIntent.ChangeSortOrder(order: SortOrder)` → updates DataStore + reloads Room query
 - Room queries per sort: `GameDao.getAllSortedByRecent()`, `GameDao.getAllSortedAlphabetically()`, `GameDao.getAllSortedByDate()`
 - DataStore persistence: `RulebookPreferences.setSortOrder(order: SortOrder)` — suspend function

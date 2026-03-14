@@ -4,7 +4,6 @@
 # Uncomment settings to customize this phase.
 
 enabled: true
-timeout_seconds: 1200
 
 # input_files:  # Variable → file mappings for templates
 #   prd: docs/prd.md
@@ -14,8 +13,9 @@ llm:
   model: sonnet
 
 # === Ship Phase Settings ===
-# commands:
-#   version_bump: null  # Version bump command
+commands:
+  version_bump: ./scripts/bump-version.sh.  # Version bump command
 #   publish: null  # Publish/deploy command
 
-bypass_ci: true  # Bypass CI checks with --admin (requires admin)
+bypass_ci: false  # Bypass CI checks with --admin (requires admin)
+wait_for_merge: true  # Wait for CI checks before merge completes

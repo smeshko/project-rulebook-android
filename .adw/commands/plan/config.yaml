@@ -4,10 +4,10 @@
 # Uncomment settings to customize this phase.
 
 enabled: true
-timeout_seconds: 900
 
-input_files:  # Variable → file mappings for templates
-  index: docs/README.md
+# input_files:  # Variable → file mappings for templates
+#   prd: docs/prd.md
+#   architecture: docs/architecture.md
 
 llm:
   model: opus

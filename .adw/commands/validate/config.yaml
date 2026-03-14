@@ -4,7 +4,6 @@
 # Uncomment settings to customize this phase.
 
 enabled: true
-timeout_seconds: 1200
 
 # input_files:  # Variable → file mappings for templates
 #   prd: docs/prd.md
@@ -12,3 +11,6 @@ timeout_seconds: 1200
 
 llm:
   model: opus
+
+# === Validate Phase Settings ===
+# lint_command: null  # Command to run linter (e.g., ruff check .)

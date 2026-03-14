@@ -48,33 +48,11 @@ So that I always know how many scans I have remaining.
 
 ## Story 8.2: Credit Consumption on Successful Scan
 
-As a user,
-I want credits deducted only when a scan succeeds,
-So that I don't lose credits on failed attempts.
+> **Note:** This story is a reference to the credit deduction logic already specified in **Story 5.7** (Save Rules to Database). The implementation lives in `GameRepository.saveGameWithRules()` as part of Story 5.7. This story exists only for FR coverage tracking (FR35) — no separate implementation is needed.
 
-**Acceptance Criteria:**
+**See Story 5.7 for full acceptance criteria, architecture, and technical details.**
 
-**Given** a scan completes successfully (FR35)
-**When** rules are saved to database
-**Then** credit balance is decremented by 1
-**And** if balance reaches 0, future scans show paywall
-**And** credit deduction is atomic with rules save
-
-**Architecture requirements:**
-- Credit deduction in `GameRepository.saveGameWithRules()` — same method that saves to Room (Story 5.7)
-- Deduction via `RulebookPreferences.decrementCredits()` — atomic DataStore update
-- Deduction happens AFTER successful Room insert — if Room fails, no credit is consumed
-- Logical transaction: Room write succeeds → DataStore credit decrement → navigate to rules
-- If DataStore write fails (extremely rare): log error, credit may be "free" — acceptable trade-off vs. charging for failed save
-- Credit check before scan in CameraViewModel (Story 5.1) prevents scanning with 0 credits
-
-**Technical notes:**
-- Transaction in `GameRepository`: Room insert → DataStore credit decrement
-- DataStore `edit { prefs -> prefs[CREDIT_BALANCE] = prefs[CREDIT_BALANCE]?.minus(1) ?: 0 }`
-- Credit check before scan start (Story 5.1) as first gate
-- If `creditBalance` reaches 0 after deduction, next scan attempt triggers paywall
-
-**Prerequisites:** Epic 5 (scan flow), Epic 1 (DataStore)
+**Prerequisites:** Story 5.7
 
 ---
 
@@ -292,7 +270,9 @@ So that I receive credits after payment.
 
 ---
 
-## Story 8.7: Purchase Verification & Credit Delivery
+## Story 8.7: Purchase Verification & Credit Delivery (Client-Side — Interim)
+
+> **Important: This story's implementation will be replaced by Epic 10 (Server-Side Receipt Validation).** Epic 8 ships with client-side verification as an interim solution. Once Epic 10 is implemented, Story 10.2 replaces the consume/verify logic, and Story 10.6 removes client-side consume entirely. Design the `PurchaseVerifier` interface to allow swapping implementations.
 
 As a developer,
 I want purchases verified before delivering credits,
@@ -318,6 +298,7 @@ So that fraudulent purchases don't grant credits.
 - SKU-to-credits mapping in `core/billing`: `mapOf("credits_1" to 1, "credits_3" to 3, "credits_10" to 10)`
 - Consume BEFORE delivering credits — if consume fails, don't deliver (prevents double-deliver)
 - If consume succeeds but credit delivery fails: log critical error — edge case, DataStore write failure is extremely rare
+- **Future-proofing:** Introduce `PurchaseVerifier` interface so Epic 10 can swap in server-side verification without restructuring the ViewModel
 
 **Technical notes:**
 - Check `Purchase.purchaseState == Purchase.PurchaseState.PURCHASED`
@@ -331,6 +312,8 @@ So that fraudulent purchases don't grant credits.
 ---
 
 ## Story 8.8: Restore Purchases
+
+> **Note: Post-Epic 10, the restore flow changes.** Instead of consuming locally, restored purchases are sent to the backend for server-side validation (see Story 10.6). The UX and user-facing behavior remain the same.
 
 As a user,
 I want to restore my previous purchases,
@@ -348,7 +331,7 @@ So that I don't lose credits if I reinstall the app.
 **Architecture requirements:**
 - Restore via `BillingRepository.queryUnconsumedPurchases()` → returns `List<PurchaseInfo>`
 - Queries `BillingClient.queryPurchasesAsync(QueryPurchasesParams)` for INAPP products
-- Any `PURCHASED` but not consumed purchases are processed: consume → deliver credits
+- Any `PURCHASED` but not consumed purchases are processed: consume → deliver credits (Epic 10 replaces with server validation)
 - Restore action dispatched: `PurchaseIntent.RestorePurchases`
 - Results: `PurchaseState.Success(creditsRestored)` or `PurchaseState.Error("No purchases to restore")`
 
@@ -371,11 +354,13 @@ So that I don't lose credits if I reinstall the app.
 
 ---
 
-## Story 8.9: Pending Purchase Handling (Ask-to-Buy)
+## Story 8.9: Pending Purchase Handling (Family Approval)
 
-As a user with family sharing,
+> **Note: Post-Epic 10, the PENDING→PURCHASED resolution path changes.** Instead of consuming locally, approved purchases are sent to the backend for server-side validation (see Story 10.6). The UX and user-facing behavior remain the same.
+
+As a user with family payment controls,
 I want pending purchases handled gracefully,
-So that Ask-to-Buy works correctly.
+So that family approval flows work correctly.
 
 **Acceptance Criteria:**
 
@@ -389,7 +374,7 @@ So that Ask-to-Buy works correctly.
 - Pending detection: `Purchase.purchaseState == Purchase.PurchaseState.PENDING` in `PurchasesUpdatedListener`
 - Store pending purchase token in DataStore: `RulebookPreferences.pendingPurchaseToken: Flow<String?>`
 - On app resume (`onResume`/ViewModel `init`): `BillingRepository.checkPendingPurchases()` queries for resolution
-- If `PENDING → PURCHASED`: consume and deliver credits
+- If `PENDING → PURCHASED`: consume and deliver credits (Epic 10 replaces with server validation)
 - If `PENDING → still PENDING`: no action, check again next launch
 - Clear pending token after successful consumption
 
