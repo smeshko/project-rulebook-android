@@ -74,3 +74,12 @@ This guide helps you find relevant documentation based on what you're working on
     - When building paywall/purchase UI with Google Play billing repository integration
     - When creating ViewModel that observes multiple repository flows with proper error handling
     - When writing ViewModel unit tests with fake repository implementations
+
+- `docs/features/google-play-billing-integration.md` - Google Play Billing Integration (RULE-227)
+  - Conditions:
+    - When integrating Google Play Billing Library for in-app purchases
+    - When implementing exponential backoff retry logic for transient failures
+    - When managing connection lifecycle for external services (SERVICE_DISCONNECTED handling)
+    - When creating testable abstractions over Android framework APIs via wrapper interfaces
+    - When implementing purchase consumption and unconsumed purchase queries
+    - When caching expensive query results (ProductDetails in-memory cache)
