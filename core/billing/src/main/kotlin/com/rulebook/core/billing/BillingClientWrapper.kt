@@ -149,6 +149,10 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
     }
 
     private suspend fun connectToBillingService(): Unit = suspendCancellableCoroutine { continuation ->
+        continuation.invokeOnCancellation {
+            billingClient.endConnection()
+            _connectionState.value = false
+        }
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(billingResult: BillingResult) {
                 val connected = billingResult.responseCode == BillingClient.BillingResponseCode.OK
@@ -176,6 +180,14 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
                 }
             }
         })
+    }
+
+    private fun updateConnectionStateOnError(responseCode: Int) {
+        if (responseCode == BillingClient.BillingResponseCode.SERVICE_DISCONNECTED ||
+            responseCode == BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE
+        ) {
+            _connectionState.value = false
+        }
     }
 
     override suspend fun queryProducts(): Result<List<ProductInfo>> {
@@ -208,6 +220,7 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
                 }
                 Result.success(productInfoList)
             } else {
+                updateConnectionStateOnError(result.billingResult.responseCode)
                 Result.failure(
                     Exception("Query products failed: ${result.billingResult.debugMessage}")
                 )
@@ -253,6 +266,7 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
             if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                 Result.success(Unit)
             } else {
+                updateConnectionStateOnError(result.billingResult.responseCode)
                 Result.failure(
                     Exception("Consume purchase failed: ${result.billingResult.debugMessage}")
                 )
@@ -282,6 +296,7 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
                     }
                 Result.success(purchases)
             } else {
+                updateConnectionStateOnError(result.billingResult.responseCode)
                 Result.failure(
                     Exception("Query purchases failed: ${result.billingResult.debugMessage}")
                 )
