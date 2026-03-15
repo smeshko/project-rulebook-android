@@ -106,11 +106,19 @@ internal fun PurchaseScreenContent(
 
             Spacer(modifier = Modifier.height(spacing.sm))
 
-            ProductCardsRow(
-                products = uiState.products,
-                isLoading = uiState.isLoading,
-                onProductSelected = onProductSelected
-            )
+            if (uiState.error != null) {
+                Text(
+                    text = uiState.error,
+                    style = RulebookTheme.typography.callout,
+                    color = MaterialTheme.colorScheme.error
+                )
+            } else {
+                ProductCardsRow(
+                    products = uiState.products,
+                    isLoading = uiState.isLoading,
+                    onProductSelected = onProductSelected
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 

@@ -44,7 +44,7 @@ fun ProductCardsRow(
                 ProductCardSkeleton(modifier = Modifier.weight(1f))
             }
         } else {
-            products.forEach { product ->
+            products.sortedBy { it.credits }.forEach { product ->
                 ProductCard(
                     product = product,
                     badge = badgeForProduct(product.productId),
