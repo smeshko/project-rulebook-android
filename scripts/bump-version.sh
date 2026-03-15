@@ -20,8 +20,8 @@ if [[ "$BUMP_TYPE" != "major" && "$BUMP_TYPE" != "minor" && "$BUMP_TYPE" != "pat
 fi
 
 # Extract current values
-CURRENT_VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' "$GRADLE_FILE")
-CURRENT_CODE=$(grep -oP 'versionCode\s*=\s*\K\d+' "$GRADLE_FILE")
+CURRENT_VERSION=$(sed -n 's/.*versionName *= *"\([^"]*\)".*/\1/p' "$GRADLE_FILE")
+CURRENT_CODE=$(sed -n 's/.*versionCode *= *\([0-9]*\).*/\1/p' "$GRADLE_FILE")
 
 if [[ -z "$CURRENT_VERSION" || -z "$CURRENT_CODE" ]]; then
     echo "Error: Could not parse versionName or versionCode from $GRADLE_FILE"
