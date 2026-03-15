@@ -17,6 +17,7 @@ import com.rulebook.feature.camera.CameraScreen
 import com.rulebook.feature.generation.GenerationScreen
 import com.rulebook.feature.library.LibraryScreen
 import com.rulebook.feature.onboarding.OnboardingScreen
+import com.rulebook.feature.purchase.PurchaseScreen
 import com.rulebook.feature.rules.RulesScreen
 import com.rulebook.feature.settings.SettingsScreen
 
@@ -173,7 +174,9 @@ fun RulebookNavHost(
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
             popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
-            PurchasePlaceholder()
+            PurchaseScreen(
+                onDismiss = { navController.popBackStack() }
+            )
         }
 
         // Rules - displays rules for a specific game with type-safe gameId argument
