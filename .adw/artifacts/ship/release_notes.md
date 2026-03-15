@@ -1,16 +1,18 @@
-## [Unreleased] - 2026-03-14
+## [Unreleased] - 2026-03-15
 
 ### Added
-- Implement BillingClientWrapper with connection management
-- Replace stub BillingRepositoryImpl with real billing implementation
-- Update Koin DI to provide BillingClientWrapper as singleton
+- Wire PurchaseScreen with ViewModel and real ProductCardsRow
+- Add ProductCardsRow composable with loading skeleton support
+- Add ProductCardSkeleton composable with shimmer animation
+- Add ProductCard composable with press animation and badge support
+- Add ProductBadge sealed class with badge mapping functions
+- Add RulebookBadge composable
 
 ### Fixed
-- Handle cancellation and SERVICE_DISCONNECTED in BillingClientWrapper
-- Address code review findings in billing implementation
+- Sort products by credits and surface error state
 
 ### Documentation
-- Add feature documentation for Google Play Billing integration
+- Add product cards and badges feature documentation
 
 ### Other
-- Rewrite BillingRepositoryImplTest with FakeBillingClientWrapper
+- Add ProductBadgeTest covering badge mapping and elevation logic
