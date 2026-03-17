@@ -140,8 +140,13 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
     private val cachedProductDetails = mutableMapOf<String, com.android.billingclient.api.ProductDetails>()
 
     private val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
-        val tokens = purchases?.map { it.purchaseToken } ?: emptyList()
-        val productIds = purchases?.flatMap { it.products } ?: emptyList()
+        // Only include purchases that have completed (PURCHASED state).
+        // Pending purchases (e.g. family approval) are handled by Story 8.9.
+        val completedPurchases = purchases?.filter {
+            it.purchaseState == Purchase.PurchaseState.PURCHASED
+        }
+        val tokens = completedPurchases?.map { it.purchaseToken } ?: emptyList()
+        val productIds = completedPurchases?.flatMap { it.products } ?: emptyList()
         _purchaseUpdates.tryEmit(PurchaseUpdate(billingResult.responseCode, tokens, productIds))
     }
 

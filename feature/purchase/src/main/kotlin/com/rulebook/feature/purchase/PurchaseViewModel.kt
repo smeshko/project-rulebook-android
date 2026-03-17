@@ -167,13 +167,28 @@ class PurchaseViewModel(
                 val purchaseToken = update.purchaseTokens.firstOrNull()
                 if (purchaseToken == null) {
                     Log.e(TAG, "Purchase OK but no token received for $productId")
+                    analyticsManager.trackEvent(
+                        "purchase_failed",
+                        mapOf("product_id" to productId, "error_code" to "TOKEN_MISSING")
+                    )
                     _uiState.update {
                         it.copy(purchaseState = PurchaseState.Error("Purchase token missing"))
                     }
                     return
                 }
                 viewModelScope.launch {
-                    val credits = billingRepository.creditsForProduct(productId) ?: 1
+                    val credits = billingRepository.creditsForProduct(productId)
+                    if (credits == null) {
+                        Log.e(TAG, "Unknown product ID: $productId")
+                        analyticsManager.trackEvent(
+                            "purchase_failed",
+                            mapOf("product_id" to productId, "error_code" to "UNKNOWN_SKU")
+                        )
+                        _uiState.update {
+                            it.copy(purchaseState = PurchaseState.Error("Unknown product"))
+                        }
+                        return@launch
+                    }
 
                     // Consume the purchase so it can be purchased again
                     val consumeResult = billingRepository.consumePurchase(purchaseToken)
