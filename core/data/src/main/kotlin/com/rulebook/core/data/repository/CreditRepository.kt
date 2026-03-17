@@ -45,4 +45,14 @@ interface CreditRepository {
      * @return true if the user has at least one credit, false otherwise.
      */
     suspend fun hasCredits(): Boolean
+
+    /**
+     * Adds credits to the user's balance.
+     *
+     * Used after a successful in-app purchase to deliver credits.
+     *
+     * @param amount The number of credits to add.
+     * @return true if credits were added successfully.
+     */
+    suspend fun addCredits(amount: Int): Boolean
 }

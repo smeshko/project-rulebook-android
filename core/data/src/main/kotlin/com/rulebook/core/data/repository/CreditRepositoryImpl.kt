@@ -30,4 +30,8 @@ class CreditRepositoryImpl(
     override suspend fun hasCredits(): Boolean {
         return creditBalance.first() > 0
     }
+
+    override suspend fun addCredits(amount: Int): Boolean {
+        return preferencesSource.addCredits(amount)
+    }
 }
