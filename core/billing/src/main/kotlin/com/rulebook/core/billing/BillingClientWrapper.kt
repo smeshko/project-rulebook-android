@@ -35,6 +35,24 @@ internal val SKU_CREDIT_MAP: Map<String, Int> = mapOf(
     "credits_10" to 10
 )
 
+/**
+ * Public constants for Google Play Billing response codes.
+ *
+ * Mirrors [com.android.billingclient.api.BillingClient.BillingResponseCode] to allow
+ * feature modules to handle purchase results without depending on the billing library directly.
+ */
+object BillingResponseCode {
+    const val OK = 0
+    const val USER_CANCELED = 1
+    const val SERVICE_UNAVAILABLE = 2
+    const val BILLING_UNAVAILABLE = 3
+    const val ITEM_UNAVAILABLE = 4
+    const val DEVELOPER_ERROR = 5
+    const val ERROR = 6
+    const val ITEM_ALREADY_OWNED = 7
+    const val ITEM_NOT_OWNED = 8
+}
+
 internal val SKU_LIST: List<String> = SKU_CREDIT_MAP.keys.toList()
 
 private const val MAX_RETRIES = 3
@@ -74,10 +92,12 @@ internal suspend fun <T> retryWithExponentialBackoff(
  *
  * @property responseCode The BillingClient response code.
  * @property purchaseTokens List of purchase tokens from the update.
+ * @property productIds List of product IDs (SKUs) from the update.
  */
 data class PurchaseUpdate(
     val responseCode: Int,
-    val purchaseTokens: List<String>
+    val purchaseTokens: List<String>,
+    val productIds: List<String> = emptyList()
 )
 
 /**
@@ -120,8 +140,14 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
     private val cachedProductDetails = mutableMapOf<String, com.android.billingclient.api.ProductDetails>()
 
     private val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
-        val tokens = purchases?.map { it.purchaseToken } ?: emptyList()
-        _purchaseUpdates.tryEmit(PurchaseUpdate(billingResult.responseCode, tokens))
+        // Only include purchases that have completed (PURCHASED state).
+        // Pending purchases (e.g. family approval) are handled by Story 8.9.
+        val completedPurchases = purchases?.filter {
+            it.purchaseState == Purchase.PurchaseState.PURCHASED
+        }
+        val tokens = completedPurchases?.map { it.purchaseToken } ?: emptyList()
+        val productIds = completedPurchases?.flatMap { it.products } ?: emptyList()
+        _purchaseUpdates.tryEmit(PurchaseUpdate(billingResult.responseCode, tokens, productIds))
     }
 
     private val billingClient: BillingClient = BillingClient.newBuilder(context)

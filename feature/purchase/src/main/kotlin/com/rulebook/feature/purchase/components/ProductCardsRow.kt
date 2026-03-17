@@ -1,8 +1,11 @@
 package com.rulebook.feature.purchase.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -10,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.core.model.ProductInfo
+import com.rulebook.core.model.PurchaseState
 
 /**
  * ProductCardsRow - Horizontal row of three credit-pack product cards.
@@ -22,8 +26,12 @@ import com.rulebook.core.model.ProductInfo
  * - `credits_10` → "Best Value" badge
  * - `credits_1` → no badge
  *
+ * When [purchaseState] is [PurchaseState.Processing], the card matching the SKU
+ * shows a loading overlay, and all other cards are disabled at 40% opacity.
+ *
  * @param products The list of available [ProductInfo] items to display.
  * @param isLoading When true, skeleton placeholders are shown instead of real cards.
+ * @param purchaseState The current purchase state, used to show loading/disabled states.
  * @param onProductSelected Callback invoked with the productId when a card is tapped.
  * @param modifier Modifier applied to the outer Row.
  */
@@ -31,9 +39,12 @@ import com.rulebook.core.model.ProductInfo
 fun ProductCardsRow(
     products: List<ProductInfo>,
     isLoading: Boolean,
+    purchaseState: PurchaseState? = null,
     onProductSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val processingSkuId = (purchaseState as? PurchaseState.Processing)?.sku
+
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -45,13 +56,39 @@ fun ProductCardsRow(
             }
         } else {
             products.sortedBy { it.credits }.forEach { product ->
-                ProductCard(
-                    product = product,
-                    badge = badgeForProduct(product.productId),
-                    isElevated = isElevatedProduct(product.productId),
-                    onClick = { onProductSelected(product.productId) },
-                    modifier = Modifier.weight(1f)
-                )
+                val isProcessingThisCard = product.productId == processingSkuId
+                val isAnyPurchaseActive = processingSkuId != null
+
+                if (isProcessingThisCard) {
+                    // Show processing card with loading overlay
+                    Box(modifier = Modifier.weight(1f)) {
+                        ProductCard(
+                            product = product,
+                            badge = badgeForProduct(product.productId),
+                            isElevated = isElevatedProduct(product.productId),
+                            enabled = false,
+                            onClick = {},
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Box(
+                            modifier = Modifier.matchParentSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                } else {
+                    ProductCard(
+                        product = product,
+                        badge = badgeForProduct(product.productId),
+                        isElevated = isElevatedProduct(product.productId),
+                        enabled = !isAnyPurchaseActive,
+                        onClick = { onProductSelected(product.productId) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     }
@@ -98,6 +135,19 @@ private fun ProductCardsRowLoadingPreview() {
         ProductCardsRow(
             products = emptyList(),
             isLoading = true,
+            onProductSelected = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Product Cards Row - Processing credits_3")
+@Composable
+private fun ProductCardsRowProcessingPreview() {
+    RulebookTheme(darkTheme = false) {
+        ProductCardsRow(
+            products = previewProducts,
+            isLoading = false,
+            purchaseState = PurchaseState.Processing("credits_3"),
             onProductSelected = {}
         )
     }

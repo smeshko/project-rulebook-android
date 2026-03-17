@@ -137,6 +137,21 @@ open class RulebookPreferences(private val context: Context) : OnboardingPrefere
     }
 
     /**
+     * Adds credits to the current balance atomically.
+     *
+     * @param amount The number of credits to add.
+     * @return true if credits were added successfully.
+     */
+    override suspend fun addCredits(amount: Int): Boolean {
+        if (amount <= 0) return false
+        context.dataStore.edit { preferences ->
+            val currentBalance = preferences[Keys.CREDIT_BALANCE] ?: 0
+            preferences[Keys.CREDIT_BALANCE] = currentBalance + amount
+        }
+        return true
+    }
+
+    /**
      * Flow of current theme mode setting.
      * Default: [ThemeMode.SYSTEM]
      */

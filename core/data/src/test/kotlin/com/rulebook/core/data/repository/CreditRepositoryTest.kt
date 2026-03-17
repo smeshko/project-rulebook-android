@@ -184,6 +184,11 @@ class FakeCreditPreferencesSource : CreditPreferencesSource {
         }
     }
 
+    override suspend fun addCredits(amount: Int): Boolean {
+        _creditBalance.value = _creditBalance.value + amount
+        return true
+    }
+
     fun setBalance(balance: Int) {
         _creditBalance.value = balance
     }

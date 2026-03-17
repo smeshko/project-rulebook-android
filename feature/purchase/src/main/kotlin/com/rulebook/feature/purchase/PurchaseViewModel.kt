@@ -1,12 +1,17 @@
 package com.rulebook.feature.purchase
 
+import android.app.Activity
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rulebook.core.analytics.AnalyticsManager
+import com.rulebook.core.billing.BillingResponseCode
+import com.rulebook.core.billing.PurchaseUpdate
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.data.repository.CreditRepository
+import com.rulebook.core.model.PurchaseState
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,12 +34,13 @@ private const val TAG = "PurchaseViewModel"
  * The ViewModel handles:
  * - Loading available in-app products from the billing service
  * - Observing user's credit balance
- * - Handling purchase intent (stub for Story 8.3, real impl in Story 8.4)
+ * - Initiating and tracking purchase flows
+ * - Handling purchase success/failure/cancellation
  * - Restore purchases
  * - Dismiss action
  *
- * @param creditRepository Repository for observing credit balance.
- * @param billingRepository Repository for billing operations.
+ * @param creditRepository Repository for observing and modifying credit balance.
+ * @param billingRepository Repository for billing operations and purchase updates.
  * @param analyticsManager Manager for tracking analytics events.
  */
 class PurchaseViewModel(
@@ -83,6 +89,11 @@ class PurchaseViewModel(
             }
             .launchIn(viewModelScope)
 
+        // Observe purchase update callbacks from Google Play
+        billingRepository.purchaseUpdates
+            .onEach { update -> handlePurchaseUpdate(update) }
+            .launchIn(viewModelScope)
+
         // Query products from Play Store
         queryProducts()
     }
@@ -107,27 +118,131 @@ class PurchaseViewModel(
     /**
      * Handles user selecting a product to purchase.
      *
-     * This is a stub for Story 8.3. The actual purchase flow will be
-     * implemented in Story 8.4.
+     * Sets the purchase state to [PurchaseState.Processing], launches the Google Play
+     * billing flow, and waits for the result via [handlePurchaseUpdate].
      *
+     * @param activity The current Activity, required by BillingClient.launchBillingFlow.
+     *                 If null (e.g. in tests where Activity cannot be created), the billing
+     *                 flow is not launched but state and analytics are still updated.
      * @param productId The product identifier (SKU) to purchase.
      */
-    fun onProductSelected(productId: String) {
-        Log.d(TAG, "Product selected: $productId (stub - not implemented)")
-        analyticsManager.trackEvent("paywall_product_tapped", mapOf("product_id" to productId))
-        // Story 8.4 will implement the actual purchase flow
+    fun onProductSelected(activity: Activity?, productId: String) {
+        analyticsManager.trackEvent("purchase_started", mapOf("product_id" to productId))
+        _uiState.update { it.copy(purchaseState = PurchaseState.Processing(productId)) }
+
+        if (activity == null) {
+            Log.w(TAG, "onProductSelected called with null activity — billing flow not launched")
+            return
+        }
+
+        viewModelScope.launch {
+            val result = billingRepository.launchPurchaseFlow(activity, productId)
+            result.onFailure { error ->
+                Log.e(TAG, "Failed to launch purchase flow for $productId", error)
+                analyticsManager.trackEvent(
+                    "purchase_failed",
+                    mapOf("product_id" to productId, "error_code" to "LAUNCH_FAILED")
+                )
+                _uiState.update {
+                    it.copy(purchaseState = PurchaseState.Error(error.message ?: "Failed to start purchase"))
+                }
+            }
+        }
+    }
+
+    /**
+     * Handles purchase result callbacks from Google Play.
+     *
+     * Called when a PurchaseUpdate arrives on the purchaseUpdates SharedFlow.
+     * Only processes updates when a purchase is currently in [PurchaseState.Processing].
+     */
+    private fun handlePurchaseUpdate(update: PurchaseUpdate) {
+        val currentState = _uiState.value.purchaseState
+        if (currentState !is PurchaseState.Processing) return
+
+        val productId = currentState.sku
+
+        when (update.responseCode) {
+            BillingResponseCode.OK -> {
+                val purchaseToken = update.purchaseTokens.firstOrNull()
+                if (purchaseToken == null) {
+                    Log.e(TAG, "Purchase OK but no token received for $productId")
+                    analyticsManager.trackEvent(
+                        "purchase_failed",
+                        mapOf("product_id" to productId, "error_code" to "TOKEN_MISSING")
+                    )
+                    _uiState.update {
+                        it.copy(purchaseState = PurchaseState.Error("Purchase token missing"))
+                    }
+                    return
+                }
+                viewModelScope.launch {
+                    val credits = billingRepository.creditsForProduct(productId)
+                    if (credits == null) {
+                        Log.e(TAG, "Unknown product ID: $productId")
+                        analyticsManager.trackEvent(
+                            "purchase_failed",
+                            mapOf("product_id" to productId, "error_code" to "UNKNOWN_SKU")
+                        )
+                        _uiState.update {
+                            it.copy(purchaseState = PurchaseState.Error("Unknown product"))
+                        }
+                        return@launch
+                    }
+
+                    // Consume the purchase so it can be purchased again
+                    val consumeResult = billingRepository.consumePurchase(purchaseToken)
+                    consumeResult.onFailure { error ->
+                        Log.e(TAG, "Failed to consume purchase token for $productId", error)
+                    }
+
+                    // Deliver credits regardless of consumption result
+                    creditRepository.addCredits(credits)
+
+                    analyticsManager.trackEvent(
+                        "purchase_completed",
+                        mapOf("product_id" to productId, "credits_added" to credits.toString())
+                    )
+
+                    _uiState.update { it.copy(purchaseState = PurchaseState.Success(credits)) }
+
+                    // Auto-dismiss after success animation plays (1.5s)
+                    delay(1500)
+                    _events.send(PurchaseEvent.PurchaseSuccess(credits))
+                }
+            }
+
+            BillingResponseCode.USER_CANCELED -> {
+                analyticsManager.trackEvent(
+                    "purchase_failed",
+                    mapOf("product_id" to productId, "error_code" to "USER_CANCELED")
+                )
+                // Silent reset — no error shown to user
+                _uiState.update { it.copy(purchaseState = null) }
+            }
+
+            else -> {
+                analyticsManager.trackEvent(
+                    "purchase_failed",
+                    mapOf("product_id" to productId, "error_code" to update.responseCode.toString())
+                )
+                _uiState.update {
+                    it.copy(
+                        purchaseState = PurchaseState.Error(
+                            "Purchase failed (code: ${update.responseCode})"
+                        )
+                    )
+                }
+            }
+        }
     }
 
     /**
      * Handles user tapping the "Restore Purchases" button.
-     *
-     * This is a stub for Story 8.3. The actual restore logic will be
-     * implemented in Story 8.4.
      */
     fun onRestorePurchases() {
         Log.d(TAG, "Restore purchases tapped (stub - not implemented)")
         analyticsManager.trackEvent("paywall_restore_purchases_tapped")
-        // Story 8.4 will implement the actual restore logic
     }
 
     /**
@@ -144,6 +259,13 @@ class PurchaseViewModel(
             }
             _events.send(PurchaseEvent.Dismiss)
         }
+    }
+
+    /**
+     * Resets the purchase error state, allowing the user to retry.
+     */
+    fun onPurchaseErrorDismissed() {
+        _uiState.update { it.copy(purchaseState = null) }
     }
 
     override fun onCleared() {

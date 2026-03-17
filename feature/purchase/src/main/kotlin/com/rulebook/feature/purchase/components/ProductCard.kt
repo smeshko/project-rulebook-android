@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,6 +52,7 @@ private val BadgeOffsetY = (-12).dp
  * @param product The product data to display (id, title, price, credits).
  * @param badge Optional badge to overlay on the top-end corner of the card.
  * @param isElevated When true, applies an 8dp shadow for psychological anchoring (3-pack).
+ * @param enabled When false, the card is non-interactive and rendered at 40% opacity.
  * @param onClick Callback invoked when the card is tapped.
  * @param modifier Modifier to be applied to the card container.
  */
@@ -59,6 +61,7 @@ fun ProductCard(
     product: ProductInfo,
     badge: ProductBadge? = null,
     isElevated: Boolean = false,
+    enabled: Boolean = true,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -66,13 +69,14 @@ fun ProductCard(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) PressScaleTarget else NormalScaleTarget,
+        targetValue = if (isPressed && enabled) PressScaleTarget else NormalScaleTarget,
         animationSpec = tween(durationMillis = 100),
         label = "pressScale"
     )
 
     val shadowOffset by animateFloatAsState(
         targetValue = when {
+            !enabled -> CardShadowNormal.value
             isPressed -> CardShadowPressed.value
             isElevated -> CardShadowElevated.value
             else -> CardShadowNormal.value
@@ -84,13 +88,20 @@ fun ProductCard(
     Box(
         modifier = modifier
             .graphicsLayer(scaleX = scale, scaleY = scale)
+            .then(if (!enabled) Modifier.alpha(0.4f) else Modifier)
             .brutalistShadow(offset = shadowOffset.dp)
             .brutalistBorder()
             .background(MaterialTheme.colorScheme.surface)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = ripple(),
-                onClick = onClick
+            .then(
+                if (enabled) {
+                    Modifier.clickable(
+                        interactionSource = interactionSource,
+                        indication = ripple(),
+                        onClick = onClick
+                    )
+                } else {
+                    Modifier
+                }
             )
             .heightIn(min = CardMinHeight)
     ) {

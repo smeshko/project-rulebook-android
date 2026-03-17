@@ -1992,4 +1992,9 @@ class FakeCreditRepository : com.rulebook.core.data.repository.CreditRepository 
     override suspend fun hasCredits(): Boolean {
         return _creditBalance.value > 0
     }
+
+    override suspend fun addCredits(amount: Int): Boolean {
+        _creditBalance.value = _creditBalance.value + amount
+        return true
+    }
 }

@@ -32,4 +32,12 @@ interface CreditPreferencesSource {
      * @return true if a credit was deducted, false if balance was already 0.
      */
     suspend fun deductCredit(): Boolean
+
+    /**
+     * Adds credits to the current balance.
+     *
+     * @param amount The number of credits to add.
+     * @return true if credits were added successfully.
+     */
+    suspend fun addCredits(amount: Int): Boolean
 }
