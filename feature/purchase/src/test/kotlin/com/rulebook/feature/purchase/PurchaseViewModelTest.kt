@@ -5,6 +5,8 @@ import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.billing.PurchaseUpdate
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.billing.repository.PurchaseInfo
+import com.rulebook.core.billing.verification.PurchaseVerifier
+import com.rulebook.core.billing.verification.VerificationResult
 import com.rulebook.core.data.repository.CreditRepository
 import com.rulebook.core.model.ProductInfo
 import com.rulebook.core.model.PurchaseState
@@ -39,6 +41,7 @@ class PurchaseViewModelTest {
     private lateinit var fakeCreditRepository: FakeCreditRepository
     private lateinit var fakeBillingRepository: FakeBillingRepository
     private lateinit var fakeAnalyticsManager: FakeAnalyticsManager
+    private lateinit var fakePurchaseVerifier: FakePurchaseVerifier
 
     @Before
     fun setup() {
@@ -46,10 +49,12 @@ class PurchaseViewModelTest {
         fakeCreditRepository = FakeCreditRepository()
         fakeBillingRepository = FakeBillingRepository()
         fakeAnalyticsManager = FakeAnalyticsManager()
+        fakePurchaseVerifier = FakePurchaseVerifier()
         viewModel = PurchaseViewModel(
             creditRepository = fakeCreditRepository,
             billingRepository = fakeBillingRepository,
-            analyticsManager = fakeAnalyticsManager
+            analyticsManager = fakeAnalyticsManager,
+            purchaseVerifier = fakePurchaseVerifier
         )
     }
 
@@ -130,7 +135,8 @@ class PurchaseViewModelTest {
         val failingViewModel = PurchaseViewModel(
             creditRepository = fakeCreditRepository,
             billingRepository = fakeBillingRepository,
-            analyticsManager = fakeAnalyticsManager
+            analyticsManager = fakeAnalyticsManager,
+            purchaseVerifier = fakePurchaseVerifier
         )
         advanceUntilIdle()
 
@@ -140,7 +146,7 @@ class PurchaseViewModelTest {
     }
 
     // =====================================================================
-    // Task 8: Purchase Flow Tests
+    // Purchase Flow Tests
     // =====================================================================
 
     @Test
@@ -188,8 +194,8 @@ class PurchaseViewModelTest {
         // Credits should have been added (3 credits for credits_3)
         assertEquals(3, fakeCreditRepository.addedCreditsTotal)
 
-        // Purchase should have been consumed
-        assertEquals("test-token-abc", fakeBillingRepository.consumedTokens.first())
+        // Purchase should have been verified
+        assertEquals("test-token-abc", fakePurchaseVerifier.verifiedTokens.first())
 
         // State should show Success
         val state = viewModel.uiState.first()
@@ -220,10 +226,6 @@ class PurchaseViewModelTest {
         // State should be reset to null (no error shown)
         val state = viewModel.uiState.first()
         assertNull(state.purchaseState)
-
-        // No error events emitted
-        val events = mutableListOf<PurchaseEvent>()
-        // Events channel should be empty — no success or dismiss triggered
     }
 
     @Test
@@ -391,11 +393,112 @@ class PurchaseViewModelTest {
         assertEquals("credits_3", completedEvent!!.second["product_id"])
         assertEquals("3", completedEvent.second["credits_added"])
     }
+
+    // =====================================================================
+    // Story 8.7: PurchaseVerifier Integration Tests
+    // =====================================================================
+
+    @Test
+    fun `successful verification delivers credits and tracks purchase_completed with new_balance`() = runTest {
+        fakeCreditRepository.setCreditBalance(2) // start with 2 credits
+        advanceUntilIdle()
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("token-3"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        // Credits delivered after successful verification
+        assertEquals(3, fakeCreditRepository.addedCreditsTotal)
+
+        val events = fakeAnalyticsManager.getTrackedEvents()
+        val completedEvent = events.firstOrNull { it.first == "purchase_completed" }
+        assertTrue(completedEvent != null)
+        assertEquals("3", completedEvent!!.second["credits_added"])
+        // new_balance = 2 (initial) + 3 (added) = 5
+        assertEquals("5", completedEvent.second["new_balance"])
+    }
+
+    @Test
+    fun `failed verification sets PurchaseState Error and does NOT deliver credits`() = runTest {
+        fakePurchaseVerifier.shouldFail = true
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("token-fail"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        // Credits must NOT be delivered
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+
+        // State must be Error
+        val state = viewModel.uiState.first()
+        assertIs<PurchaseState.Error>(state.purchaseState)
+    }
+
+    @Test
+    fun `failed verification tracks purchase_failed with CONSUME_FAILED error code`() = runTest {
+        fakePurchaseVerifier.shouldFail = true
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("token-fail"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        val events = fakeAnalyticsManager.getTrackedEvents()
+        val failedEvent = events.firstOrNull { it.first == "purchase_failed" }
+        assertTrue(failedEvent != null)
+        assertEquals("CONSUME_FAILED", failedEvent!!.second["error_code"])
+        assertEquals("credits_3", failedEvent.second["product_id"])
+    }
 }
 
 // ======================================================================
-// Fake Repositories
+// Fake Repositories and Test Doubles
 // ======================================================================
+
+class FakePurchaseVerifier : PurchaseVerifier {
+    var shouldFail = false
+    val verifiedTokens = mutableListOf<String>()
+
+    override suspend fun verifyAndConsume(
+        purchaseToken: String,
+        productId: String
+    ): Result<VerificationResult> {
+        verifiedTokens.add(purchaseToken)
+        if (shouldFail) {
+            return Result.failure(RuntimeException("Consume failed"))
+        }
+        val credits = when (productId) {
+            "credits_1" -> 1
+            "credits_3" -> 3
+            "credits_10" -> 10
+            else -> return Result.failure(IllegalArgumentException("Unknown product: $productId"))
+        }
+        return Result.success(VerificationResult(credits))
+    }
+}
 
 class FakeCreditRepository : CreditRepository {
     private val _creditBalance = MutableStateFlow(0)
