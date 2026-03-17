@@ -143,6 +143,7 @@ open class RulebookPreferences(private val context: Context) : OnboardingPrefere
      * @return true if credits were added successfully.
      */
     override suspend fun addCredits(amount: Int): Boolean {
+        if (amount <= 0) return false
         context.dataStore.edit { preferences ->
             val currentBalance = preferences[Keys.CREDIT_BALANCE] ?: 0
             preferences[Keys.CREDIT_BALANCE] = currentBalance + amount
