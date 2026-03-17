@@ -91,3 +91,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When customizing product card styling or animations
     - When adding new product SKU types that need badges
     - When troubleshooting product card layout or shimmer animation behavior
+
+- `docs/features/purchase-verification-client-side-interim.md` - Purchase Verification & Credit Delivery (Client-Side — Interim) (RULE-230)
+  - Conditions:
+    - When implementing purchase verification logic with the consume-before-deliver pattern
+    - When replacing the interim client-side verifier with a server-side implementation (Epic 10)
+    - When injecting PurchaseVerifier into ViewModels or other components
+    - When designing swappable dependencies for purchase-related features
+    - When adding new SKU types and mapping them to credit amounts

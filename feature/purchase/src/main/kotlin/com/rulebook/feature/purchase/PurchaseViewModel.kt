@@ -8,6 +8,7 @@ import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.billing.BillingResponseCode
 import com.rulebook.core.billing.PurchaseUpdate
 import com.rulebook.core.billing.repository.BillingRepository
+import com.rulebook.core.billing.verification.PurchaseVerifier
 import com.rulebook.core.data.repository.CreditRepository
 import com.rulebook.core.model.PurchaseState
 import kotlinx.coroutines.channels.Channel
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -42,11 +44,13 @@ private const val TAG = "PurchaseViewModel"
  * @param creditRepository Repository for observing and modifying credit balance.
  * @param billingRepository Repository for billing operations and purchase updates.
  * @param analyticsManager Manager for tracking analytics events.
+ * @param purchaseVerifier Verifier that consumes the purchase and resolves credits.
  */
 class PurchaseViewModel(
     private val creditRepository: CreditRepository,
     private val billingRepository: BillingRepository,
-    private val analyticsManager: AnalyticsManager
+    private val analyticsManager: AnalyticsManager,
+    private val purchaseVerifier: PurchaseVerifier
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PurchaseUiState())
@@ -177,31 +181,33 @@ class PurchaseViewModel(
                     return
                 }
                 viewModelScope.launch {
-                    val credits = billingRepository.creditsForProduct(productId)
-                    if (credits == null) {
-                        Log.e(TAG, "Unknown product ID: $productId")
+                    val verifyResult = purchaseVerifier.verifyAndConsume(purchaseToken, productId)
+                    verifyResult.onFailure { error ->
+                        Log.e(TAG, "Failed to verify/consume purchase for $productId", error)
                         analyticsManager.trackEvent(
                             "purchase_failed",
-                            mapOf("product_id" to productId, "error_code" to "UNKNOWN_SKU")
+                            mapOf("product_id" to productId, "error_code" to "CONSUME_FAILED")
                         )
                         _uiState.update {
-                            it.copy(purchaseState = PurchaseState.Error("Unknown product"))
+                            it.copy(purchaseState = PurchaseState.Error("Purchase verification failed"))
                         }
                         return@launch
                     }
 
-                    // Consume the purchase so it can be purchased again
-                    val consumeResult = billingRepository.consumePurchase(purchaseToken)
-                    consumeResult.onFailure { error ->
-                        Log.e(TAG, "Failed to consume purchase token for $productId", error)
-                    }
+                    val credits = verifyResult.getOrThrow().credits
 
-                    // Deliver credits regardless of consumption result
+                    // Deliver credits only after successful consumption
                     creditRepository.addCredits(credits)
+
+                    val newBalance = creditRepository.creditBalance.first()
 
                     analyticsManager.trackEvent(
                         "purchase_completed",
-                        mapOf("product_id" to productId, "credits_added" to credits.toString())
+                        mapOf(
+                            "product_id" to productId,
+                            "credits_added" to credits.toString(),
+                            "new_balance" to newBalance.toString()
+                        )
                     )
 
                     _uiState.update { it.copy(purchaseState = PurchaseState.Success(credits)) }
