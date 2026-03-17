@@ -33,6 +33,7 @@ class FakeCreditPreferencesSource(
 
     override suspend fun awardInitialCreditsIfNeeded(amount: Int): Boolean = false
     override suspend fun deductCredit(): Boolean = false
+    override suspend fun addCredits(amount: Int): Boolean = false
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)

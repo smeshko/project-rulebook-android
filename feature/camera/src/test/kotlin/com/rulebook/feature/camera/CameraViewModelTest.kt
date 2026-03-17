@@ -822,6 +822,11 @@ class FakeCreditRepository : CreditRepository {
 
     override suspend fun hasCredits(): Boolean = _creditBalance.value > 0
 
+    override suspend fun addCredits(amount: Int): Boolean {
+        _creditBalance.value += amount
+        return true
+    }
+
     var hasCreditsWasCalled = false
         private set
 
