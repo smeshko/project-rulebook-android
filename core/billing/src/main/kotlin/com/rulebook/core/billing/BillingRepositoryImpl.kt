@@ -6,6 +6,7 @@ import com.rulebook.core.billing.repository.PurchaseInfo
 import com.rulebook.core.model.ProductInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
@@ -23,6 +24,7 @@ class BillingRepositoryImpl(
 
     private val _products = MutableStateFlow<List<ProductInfo>>(emptyList())
     override val products: Flow<List<ProductInfo>> = _products.asStateFlow()
+    override val purchaseUpdates: SharedFlow<PurchaseUpdate> = wrapper.purchaseUpdates
 
     override suspend fun queryProducts(): Result<List<ProductInfo>> {
         val connectResult = wrapper.ensureConnected()
@@ -62,6 +64,8 @@ class BillingRepositoryImpl(
         }
         return result
     }
+
+    override fun creditsForProduct(productId: String): Int? = SKU_CREDIT_MAP[productId]
 
     override suspend fun queryUnconsumedPurchases(): Result<List<PurchaseInfo>> {
         val connectResult = wrapper.ensureConnected()

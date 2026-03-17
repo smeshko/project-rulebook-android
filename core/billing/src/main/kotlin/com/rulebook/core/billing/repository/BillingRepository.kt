@@ -1,8 +1,10 @@
 package com.rulebook.core.billing.repository
 
 import android.app.Activity
+import com.rulebook.core.billing.PurchaseUpdate
 import com.rulebook.core.model.ProductInfo
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 
 /**
  * Repository interface for Google Play billing operations.
@@ -19,6 +21,14 @@ interface BillingRepository {
      * Empty list indicates products haven't been loaded yet or are unavailable.
      */
     val products: Flow<List<ProductInfo>>
+
+    /**
+     * SharedFlow of purchase update events from PurchasesUpdatedListener.
+     *
+     * Emits whenever a purchase result is received from Google Play.
+     * Used by the ViewModel to handle purchase completion, cancellation, or errors.
+     */
+    val purchaseUpdates: SharedFlow<PurchaseUpdate>
 
     /**
      * Queries Google Play for available product details.
@@ -62,6 +72,14 @@ interface BillingRepository {
      * @return Result containing list of unconsumed purchase info, or error.
      */
     suspend fun queryUnconsumedPurchases(): Result<List<PurchaseInfo>>
+
+    /**
+     * Returns the number of credits for a given product ID.
+     *
+     * @param productId The product SKU to look up.
+     * @return The credit count for the product, or null if unknown.
+     */
+    fun creditsForProduct(productId: String): Int?
 }
 
 /**
