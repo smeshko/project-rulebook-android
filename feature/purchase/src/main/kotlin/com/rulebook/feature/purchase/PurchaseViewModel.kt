@@ -4,8 +4,8 @@ import android.app.Activity
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.billingclient.api.BillingClient
 import com.rulebook.core.analytics.AnalyticsManager
+import com.rulebook.core.billing.BillingResponseCode
 import com.rulebook.core.billing.PurchaseUpdate
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.data.repository.CreditRepository
@@ -122,11 +122,18 @@ class PurchaseViewModel(
      * billing flow, and waits for the result via [handlePurchaseUpdate].
      *
      * @param activity The current Activity, required by BillingClient.launchBillingFlow.
+     *                 If null (e.g. in tests where Activity cannot be created), the billing
+     *                 flow is not launched but state and analytics are still updated.
      * @param productId The product identifier (SKU) to purchase.
      */
-    fun onProductSelected(activity: Activity, productId: String) {
+    fun onProductSelected(activity: Activity?, productId: String) {
         analyticsManager.trackEvent("purchase_started", mapOf("product_id" to productId))
         _uiState.update { it.copy(purchaseState = PurchaseState.Processing(productId)) }
+
+        if (activity == null) {
+            Log.w(TAG, "onProductSelected called with null activity — billing flow not launched")
+            return
+        }
 
         viewModelScope.launch {
             val result = billingRepository.launchPurchaseFlow(activity, productId)
@@ -156,7 +163,7 @@ class PurchaseViewModel(
         val productId = currentState.sku
 
         when (update.responseCode) {
-            BillingClient.BillingResponseCode.OK -> {
+            BillingResponseCode.OK -> {
                 val purchaseToken = update.purchaseTokens.firstOrNull()
                 if (purchaseToken == null) {
                     Log.e(TAG, "Purchase OK but no token received for $productId")
@@ -190,7 +197,7 @@ class PurchaseViewModel(
                 }
             }
 
-            BillingClient.BillingResponseCode.USER_CANCELED -> {
+            BillingResponseCode.USER_CANCELED -> {
                 analyticsManager.trackEvent(
                     "purchase_failed",
                     mapOf("product_id" to productId, "error_code" to "USER_CANCELED")

@@ -35,6 +35,24 @@ internal val SKU_CREDIT_MAP: Map<String, Int> = mapOf(
     "credits_10" to 10
 )
 
+/**
+ * Public constants for Google Play Billing response codes.
+ *
+ * Mirrors [com.android.billingclient.api.BillingClient.BillingResponseCode] to allow
+ * feature modules to handle purchase results without depending on the billing library directly.
+ */
+object BillingResponseCode {
+    const val OK = 0
+    const val USER_CANCELED = 1
+    const val SERVICE_UNAVAILABLE = 2
+    const val BILLING_UNAVAILABLE = 3
+    const val ITEM_UNAVAILABLE = 4
+    const val DEVELOPER_ERROR = 5
+    const val ERROR = 6
+    const val ITEM_ALREADY_OWNED = 7
+    const val ITEM_NOT_OWNED = 8
+}
+
 internal val SKU_LIST: List<String> = SKU_CREDIT_MAP.keys.toList()
 
 private const val MAX_RETRIES = 3
