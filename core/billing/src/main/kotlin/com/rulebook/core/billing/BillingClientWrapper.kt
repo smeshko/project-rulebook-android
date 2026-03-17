@@ -74,10 +74,12 @@ internal suspend fun <T> retryWithExponentialBackoff(
  *
  * @property responseCode The BillingClient response code.
  * @property purchaseTokens List of purchase tokens from the update.
+ * @property productIds List of product IDs (SKUs) from the update.
  */
 data class PurchaseUpdate(
     val responseCode: Int,
-    val purchaseTokens: List<String>
+    val purchaseTokens: List<String>,
+    val productIds: List<String> = emptyList()
 )
 
 /**
@@ -121,7 +123,8 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
 
     private val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
         val tokens = purchases?.map { it.purchaseToken } ?: emptyList()
-        _purchaseUpdates.tryEmit(PurchaseUpdate(billingResult.responseCode, tokens))
+        val productIds = purchases?.flatMap { it.products } ?: emptyList()
+        _purchaseUpdates.tryEmit(PurchaseUpdate(billingResult.responseCode, tokens, productIds))
     }
 
     private val billingClient: BillingClient = BillingClient.newBuilder(context)
