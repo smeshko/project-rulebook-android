@@ -17,5 +17,6 @@ data class PurchaseUiState(
     val currentBalance: Int = 0,
     val isLoading: Boolean = true,
     val purchaseState: PurchaseState? = null,
-    val error: String? = null
+    val error: String? = null,
+    val isRestoring: Boolean = false
 )
