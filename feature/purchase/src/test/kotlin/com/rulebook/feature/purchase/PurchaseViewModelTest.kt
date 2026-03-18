@@ -8,6 +8,7 @@ import com.rulebook.core.billing.repository.PurchaseInfo
 import com.rulebook.core.billing.verification.PurchaseVerifier
 import com.rulebook.core.billing.verification.VerificationResult
 import com.rulebook.core.data.repository.CreditRepository
+import com.rulebook.core.model.PendingPurchaseResolution
 import com.rulebook.core.model.ProductInfo
 import com.rulebook.core.model.PurchaseState
 import kotlinx.coroutines.Dispatchers
@@ -700,6 +701,8 @@ class FakeBillingRepository : BillingRepository {
     var shouldFailLaunchPurchaseFlow = false
     var unconsumedPurchases: List<PurchaseInfo> = emptyList()
     var shouldFailQueryUnconsumed = false
+    var pendingPurchaseResolution: PendingPurchaseResolution = PendingPurchaseResolution.NotFound
+    var shouldFailCheckPending = false
 
     override val products: Flow<List<ProductInfo>> = _products
     override val purchaseUpdates: SharedFlow<PurchaseUpdate> = _purchaseUpdates.asSharedFlow()
@@ -736,6 +739,13 @@ class FakeBillingRepository : BillingRepository {
             return Result.failure(RuntimeException("Failed to query unconsumed purchases"))
         }
         return Result.success(unconsumedPurchases)
+    }
+
+    override suspend fun checkPendingPurchases(pendingToken: String): Result<PendingPurchaseResolution> {
+        if (shouldFailCheckPending) {
+            return Result.failure(RuntimeException("Failed to check pending purchases"))
+        }
+        return Result.success(pendingPurchaseResolution)
     }
 
     override fun creditsForProduct(productId: String): Int? {
