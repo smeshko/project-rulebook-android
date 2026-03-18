@@ -21,11 +21,16 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
@@ -41,6 +46,7 @@ import com.rulebook.core.designsystem.modifier.brutalistShadow
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.core.model.ProductInfo
 import com.rulebook.core.model.PurchaseState
+import com.rulebook.feature.purchase.components.AnimatedDots
 import com.rulebook.feature.purchase.components.ProductCardsRow
 import org.koin.androidx.compose.koinViewModel
 
@@ -65,13 +71,36 @@ fun PurchaseScreen(
     val view = LocalView.current
     val context = LocalContext.current
     val activity = context as? Activity
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // Collect one-time dismiss events and forward to navigation callback
+    // Collect one-time events and forward to navigation callback or snackbar
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is PurchaseEvent.Dismiss -> onDismiss()
                 is PurchaseEvent.PurchaseSuccess -> onDismiss()
+                is PurchaseEvent.RestoreSuccess -> {
+                    snackbarHostState.showSnackbar(
+                        message = "${event.creditsRestored} credits restored!",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+                is PurchaseEvent.RestoreNoPurchases -> {
+                    snackbarHostState.showSnackbar(
+                        message = "No purchases to restore",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+                is PurchaseEvent.RestoreError -> {
+                    val result = snackbarHostState.showSnackbar(
+                        message = event.message,
+                        actionLabel = "Retry",
+                        duration = SnackbarDuration.Long
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.onRestorePurchases()
+                    }
+                }
             }
         }
     }
@@ -103,6 +132,7 @@ fun PurchaseScreen(
         onDismiss = viewModel::onDismiss,
         onRestorePurchases = viewModel::onRestorePurchases,
         onPurchaseErrorDismissed = viewModel::onPurchaseErrorDismissed,
+        snackbarHostState = snackbarHostState,
         modifier = modifier
     )
 }
@@ -127,6 +157,7 @@ internal fun PurchaseScreenContent(
     onDismiss: () -> Unit,
     onRestorePurchases: () -> Unit,
     onPurchaseErrorDismissed: () -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     modifier: Modifier = Modifier
 ) {
     val spacing = RulebookTheme.spacing
@@ -165,7 +196,7 @@ internal fun PurchaseScreenContent(
                 ProductCardsRow(
                     products = uiState.products,
                     isLoading = uiState.isLoading,
-                    purchaseState = uiState.purchaseState,
+                    purchaseState = if (uiState.isRestoring) PurchaseState.Processing("") else uiState.purchaseState,
                     onProductSelected = onProductSelected
                 )
             }
@@ -179,12 +210,16 @@ internal fun PurchaseScreenContent(
             ) {
                 TextButton(
                     onClick = onRestorePurchases,
-                    enabled = !isPurchaseActive
+                    enabled = !isPurchaseActive && !uiState.isRestoring
                 ) {
-                    Text(
-                        text = "Restore Purchases",
-                        style = RulebookTheme.typography.brutalistButtonText
-                    )
+                    if (uiState.isRestoring) {
+                        AnimatedDots()
+                    } else {
+                        Text(
+                            text = "Restore Purchases",
+                            style = RulebookTheme.typography.brutalistButtonText
+                        )
+                    }
                 }
                 TextButton(
                     onClick = onDismiss,
@@ -197,6 +232,11 @@ internal fun PurchaseScreenContent(
                 }
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
 
         // Success animation overlay — green checkmark shown during Success state
         AnimatedVisibility(
@@ -344,6 +384,27 @@ private fun PurchaseScreenSuccessLightPreview() {
                 ),
                 isLoading = false,
                 purchaseState = PurchaseState.Success(3)
+            ),
+            onProductSelected = {},
+            onDismiss = {},
+            onRestorePurchases = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Purchase Screen - Restoring Light")
+@Composable
+private fun PurchaseScreenRestoringLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        PurchaseScreenContent(
+            uiState = PurchaseUiState(
+                products = listOf(
+                    ProductInfo("credits_1", "1 Credit", "$0.99", 1),
+                    ProductInfo("credits_3", "3 Credits", "$2.49", 3),
+                    ProductInfo("credits_10", "10 Credits", "$6.99", 10)
+                ),
+                isLoading = false,
+                isRestoring = true
             ),
             onProductSelected = {},
             onDismiss = {},
