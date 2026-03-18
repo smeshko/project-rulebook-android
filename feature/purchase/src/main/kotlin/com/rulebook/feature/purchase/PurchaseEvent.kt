@@ -34,4 +34,12 @@ sealed class PurchaseEvent {
      * @property message The error message to display to the user.
      */
     data class RestoreError(val message: String) : PurchaseEvent()
+
+    /**
+     * A pending purchase (Ask-to-Buy) was approved and credits were delivered.
+     *
+     * @property creditsAdded The number of credits added to the user's balance.
+     * @property productId The product ID that was approved.
+     */
+    data class PendingPurchaseResolved(val creditsAdded: Int, val productId: String) : PurchaseEvent()
 }

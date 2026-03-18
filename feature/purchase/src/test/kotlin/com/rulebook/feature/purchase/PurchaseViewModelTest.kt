@@ -8,6 +8,7 @@ import com.rulebook.core.billing.repository.PurchaseInfo
 import com.rulebook.core.billing.verification.PurchaseVerifier
 import com.rulebook.core.billing.verification.VerificationResult
 import com.rulebook.core.data.repository.CreditRepository
+import com.rulebook.core.datastore.PendingPurchasePreferencesSource
 import com.rulebook.core.model.PendingPurchaseResolution
 import com.rulebook.core.model.ProductInfo
 import com.rulebook.core.model.PurchaseState
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -43,6 +45,7 @@ class PurchaseViewModelTest {
     private lateinit var fakeBillingRepository: FakeBillingRepository
     private lateinit var fakeAnalyticsManager: FakeAnalyticsManager
     private lateinit var fakePurchaseVerifier: FakePurchaseVerifier
+    private lateinit var fakePendingPrefs: FakePendingPurchasePreferencesSource
 
     @Before
     fun setup() {
@@ -51,11 +54,13 @@ class PurchaseViewModelTest {
         fakeBillingRepository = FakeBillingRepository()
         fakeAnalyticsManager = FakeAnalyticsManager()
         fakePurchaseVerifier = FakePurchaseVerifier()
+        fakePendingPrefs = FakePendingPurchasePreferencesSource()
         viewModel = PurchaseViewModel(
             creditRepository = fakeCreditRepository,
             billingRepository = fakeBillingRepository,
             analyticsManager = fakeAnalyticsManager,
-            purchaseVerifier = fakePurchaseVerifier
+            purchaseVerifier = fakePurchaseVerifier,
+            pendingPurchasePrefs = fakePendingPrefs
         )
     }
 
@@ -625,6 +630,146 @@ class PurchaseViewModelTest {
     }
 }
 
+    // =====================================================================
+    // Story 8.9: Pending Purchase Tests
+    // =====================================================================
+
+    @Test
+    fun `pending purchase update sets PurchaseState Pending and stores token in prefs`() = runTest {
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0, // BillingResponseCode.OK
+                purchaseTokens = emptyList(), // no completed purchases
+                productIds = emptyList(),
+                pendingPurchaseTokens = listOf("pending-token-abc"),
+                pendingProductIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.first()
+        assertIs<PurchaseState.Pending>(state.purchaseState)
+        assertEquals("pending-token-abc", fakePendingPrefs.storedToken)
+        assertEquals("credits_3", fakePendingPrefs.storedProductId)
+    }
+
+    @Test
+    fun `pending purchase update tracks purchase_pending analytics`() = runTest {
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = emptyList(),
+                pendingPurchaseTokens = listOf("pending-token"),
+                pendingProductIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        val events = fakeAnalyticsManager.getTrackedEvents()
+        val pendingEvent = events.firstOrNull { it.first == "purchase_pending" }
+        assertTrue(pendingEvent != null)
+        assertEquals("credits_3", pendingEvent!!.second["product_id"])
+    }
+
+    @Test
+    fun `onPendingDismissed resets purchaseState to null`() = runTest {
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = emptyList(),
+                pendingPurchaseTokens = listOf("pending-token"),
+                pendingProductIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        assertIs<PurchaseState.Pending>(viewModel.uiState.first().purchaseState)
+
+        viewModel.onPendingDismissed()
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.first().purchaseState)
+    }
+
+    @Test
+    fun `checkPendingPurchaseResolution with Purchased result delivers credits and clears token`() = runTest {
+        fakePendingPrefs.storedToken = "pending-token"
+        fakePendingPrefs.storedProductId = "credits_3"
+        fakeBillingRepository.pendingPurchaseResolution =
+            PendingPurchaseResolution.Purchased("pending-token", "credits_3")
+
+        val events = mutableListOf<PurchaseEvent>()
+        val job = launch { viewModel.events.collect { events.add(it) } }
+
+        viewModel.checkPendingPurchaseResolution()
+        advanceUntilIdle()
+
+        assertEquals(3, fakeCreditRepository.addedCreditsTotal)
+        assertNull(fakePendingPrefs.storedToken)
+        assertTrue(events.any { it is PurchaseEvent.PendingPurchaseResolved })
+        job.cancel()
+    }
+
+    @Test
+    fun `checkPendingPurchaseResolution with StillPending result leaves token in prefs`() = runTest {
+        fakePendingPrefs.storedToken = "pending-token"
+        fakePendingPrefs.storedProductId = "credits_3"
+        fakeBillingRepository.pendingPurchaseResolution = PendingPurchaseResolution.StillPending
+
+        viewModel.checkPendingPurchaseResolution()
+        advanceUntilIdle()
+
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+        assertEquals("pending-token", fakePendingPrefs.storedToken)
+    }
+
+    @Test
+    fun `checkPendingPurchaseResolution with NotFound result clears token`() = runTest {
+        fakePendingPrefs.storedToken = "pending-token"
+        fakePendingPrefs.storedProductId = "credits_3"
+        fakeBillingRepository.pendingPurchaseResolution = PendingPurchaseResolution.NotFound
+
+        viewModel.checkPendingPurchaseResolution()
+        advanceUntilIdle()
+
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+        assertNull(fakePendingPrefs.storedToken)
+    }
+
+    @Test
+    fun `checkPendingPurchaseResolution does nothing when no pending token stored`() = runTest {
+        // fakePendingPrefs has no stored token by default
+        viewModel.checkPendingPurchaseResolution()
+        advanceUntilIdle()
+
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+    }
+
+    @Test
+    fun `checkPendingPurchaseResolution tracks purchase_pending_resolved analytics on success`() = runTest {
+        fakePendingPrefs.storedToken = "pending-token"
+        fakePendingPrefs.storedProductId = "credits_3"
+        fakeBillingRepository.pendingPurchaseResolution =
+            PendingPurchaseResolution.Purchased("pending-token", "credits_3")
+
+        viewModel.checkPendingPurchaseResolution()
+        advanceUntilIdle()
+
+        val events = fakeAnalyticsManager.getTrackedEvents()
+        val resolvedEvent = events.firstOrNull { it.first == "purchase_pending_resolved" }
+        assertTrue(resolvedEvent != null)
+        assertEquals("credits_3", resolvedEvent!!.second["product_id"])
+    }
+
 // ======================================================================
 // Fake Repositories and Test Doubles
 // ======================================================================
@@ -769,5 +914,25 @@ class FakeAnalyticsManager : AnalyticsManager {
 
     override fun trackScreenView(screenName: String) {
         // No-op for tests
+    }
+}
+
+class FakePendingPurchasePreferencesSource : PendingPurchasePreferencesSource {
+    var storedToken: String? = null
+    var storedProductId: String? = null
+
+    override val pendingPurchaseToken: Flow<String?>
+        get() = flow { emit(storedToken) }
+    override val pendingPurchaseProductId: Flow<String?>
+        get() = flow { emit(storedProductId) }
+
+    override suspend fun setPendingPurchase(token: String, productId: String) {
+        storedToken = token
+        storedProductId = productId
+    }
+
+    override suspend fun clearPendingPurchase() {
+        storedToken = null
+        storedProductId = null
     }
 }
