@@ -233,7 +233,18 @@ class PurchaseViewModel(
                     val credits = verifyResult.getOrThrow().credits
 
                     // Deliver credits only after successful consumption
-                    creditRepository.addCredits(credits)
+                    val creditsSaved = creditRepository.addCredits(credits)
+                    if (!creditsSaved) {
+                        analyticsManager.trackPurchaseFailed(
+                            sku = productId,
+                            errorCode = "CREDIT_SAVE_FAILED",
+                            errorMessage = "Credits could not be saved after successful purchase"
+                        )
+                        _uiState.update {
+                            it.copy(purchaseState = PurchaseState.Error("Failed to save credits. Please restore purchases."))
+                        }
+                        return@launch
+                    }
 
                     val newBalance = creditRepository.creditBalance.first()
 
