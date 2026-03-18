@@ -142,7 +142,8 @@ class PurchaseViewModelTest {
             creditRepository = fakeCreditRepository,
             billingRepository = fakeBillingRepository,
             analyticsManager = fakeAnalyticsManager,
-            purchaseVerifier = fakePurchaseVerifier
+            purchaseVerifier = fakePurchaseVerifier,
+            pendingPurchasePrefs = fakePendingPrefs
         )
         advanceUntilIdle()
 
@@ -628,7 +629,6 @@ class PurchaseViewModelTest {
         assertEquals("CONSUME_FAILED", failedEvent!!.second["error_code"])
         assertEquals("credits_3", failedEvent.second["product_id"])
     }
-}
 
     // =====================================================================
     // Story 8.9: Pending Purchase Tests
@@ -769,6 +769,7 @@ class PurchaseViewModelTest {
         assertTrue(resolvedEvent != null)
         assertEquals("credits_3", resolvedEvent!!.second["product_id"])
     }
+}
 
 // ======================================================================
 // Fake Repositories and Test Doubles
