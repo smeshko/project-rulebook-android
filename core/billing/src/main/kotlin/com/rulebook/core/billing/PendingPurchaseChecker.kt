@@ -45,7 +45,12 @@ class PendingPurchaseChecker(
         val pendingToken = pendingPurchasePrefs.pendingPurchaseToken.first()
             ?: return PendingCheckResult.NoPendingPurchase
         val pendingProductId = pendingPurchasePrefs.pendingPurchaseProductId.first()
-            ?: return PendingCheckResult.NoPendingPurchase
+        if (pendingProductId == null) {
+            // Mismatched state: token exists but product ID doesn't — clear stale data
+            Log.w(TAG, "Pending token exists without product ID, clearing stale pending purchase")
+            pendingPurchasePrefs.clearPendingPurchase()
+            return PendingCheckResult.NoPendingPurchase
+        }
 
         val resolutionResult = billingRepository.checkPendingPurchases(pendingToken)
         resolutionResult.onFailure { error ->
@@ -62,7 +67,11 @@ class PendingPurchaseChecker(
                 }
 
                 val credits = verifyResult.getOrThrow().credits
-                creditRepository.addCredits(credits)
+                val creditsAdded = creditRepository.addCredits(credits)
+                if (!creditsAdded) {
+                    Log.e(TAG, "Failed to add credits after consuming pending purchase")
+                    return PendingCheckResult.CheckFailed
+                }
                 pendingPurchasePrefs.clearPendingPurchase()
 
                 PendingCheckResult.Resolved(credits, pendingProductId)

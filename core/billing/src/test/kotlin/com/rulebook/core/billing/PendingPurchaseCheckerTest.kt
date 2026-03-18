@@ -117,6 +117,30 @@ class PendingPurchaseCheckerTest {
         assertIs<PendingCheckResult.CheckFailed>(result)
         assertEquals(0, fakeCreditRepository.addedCredits)
     }
+
+    @Test
+    fun `checkAndResolve clears stale token when product ID missing`() = runTest {
+        fakePendingPrefs.storedToken = "pending-token"
+        fakePendingPrefs.storedProductId = null // missing product ID
+
+        val result = checker.checkAndResolve()
+
+        assertIs<PendingCheckResult.NoPendingPurchase>(result)
+        assertNull(fakePendingPrefs.storedToken)
+    }
+
+    @Test
+    fun `checkAndResolve returns CheckFailed when addCredits fails`() = runTest {
+        fakePendingPrefs.storedToken = "pending-token"
+        fakePendingPrefs.storedProductId = "credits_3"
+        fakeBillingRepository.resolution = PendingPurchaseResolution.Purchased("pending-token", "credits_3")
+        fakeCreditRepository.shouldFailAddCredits = true
+
+        val result = checker.checkAndResolve()
+
+        assertIs<PendingCheckResult.CheckFailed>(result)
+        assertEquals("pending-token", fakePendingPrefs.storedToken)
+    }
 }
 
 // ======================================================================
@@ -195,6 +219,7 @@ class FakeCheckerPurchaseVerifier : PurchaseVerifier {
 
 class FakeCheckerCreditRepository : CreditRepository {
     var addedCredits = 0
+    var shouldFailAddCredits = false
     private val _balance = MutableStateFlow(0)
     override val creditBalance: Flow<Int> = _balance
 
@@ -203,6 +228,7 @@ class FakeCheckerCreditRepository : CreditRepository {
     override suspend fun hasCredits(): Boolean = true
 
     override suspend fun addCredits(amount: Int): Boolean {
+        if (shouldFailAddCredits) return false
         addedCredits += amount
         _balance.value += amount
         return true

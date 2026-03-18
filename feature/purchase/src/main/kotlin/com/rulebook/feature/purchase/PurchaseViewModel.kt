@@ -411,7 +411,13 @@ class PurchaseViewModel(
      */
     suspend fun checkPendingPurchaseResolution() {
         val pendingToken = pendingPurchasePrefs.pendingPurchaseToken.first() ?: return
-        val pendingProductId = pendingPurchasePrefs.pendingPurchaseProductId.first() ?: return
+        val pendingProductId = pendingPurchasePrefs.pendingPurchaseProductId.first()
+        if (pendingProductId == null) {
+            // Mismatched state: token exists but product ID doesn't — clear stale data
+            Log.w(TAG, "Pending token exists without product ID, clearing stale pending purchase")
+            pendingPurchasePrefs.clearPendingPurchase()
+            return
+        }
 
         val resolutionResult = billingRepository.checkPendingPurchases(pendingToken)
         resolutionResult.onFailure { error ->
@@ -428,7 +434,11 @@ class PurchaseViewModel(
                 }
 
                 val credits = verifyResult.getOrThrow().credits
-                creditRepository.addCredits(credits)
+                val creditsAdded = creditRepository.addCredits(credits)
+                if (!creditsAdded) {
+                    Log.e(TAG, "Failed to add credits after consuming resolved pending purchase")
+                    return
+                }
                 pendingPurchasePrefs.clearPendingPurchase()
 
                 analyticsManager.trackEvent(
