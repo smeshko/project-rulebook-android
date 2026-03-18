@@ -48,7 +48,7 @@ class NavControllerExtensionsTest {
     @Test
     fun `navigateToPurchase uses Purchase route`() {
         // Extension navigates to Route.Purchase.route
-        assertEquals("purchase", Route.Purchase.route)
+        assertEquals("purchase?source={source}", Route.Purchase.route)
     }
 
     @Test

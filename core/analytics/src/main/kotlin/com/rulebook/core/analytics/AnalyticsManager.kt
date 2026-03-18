@@ -272,4 +272,98 @@ interface AnalyticsManager {
             )
         )
     }
+
+    /**
+     * Track when the paywall screen is displayed (Story 8.10).
+     * This is a convenience method that fires the "paywall_displayed" event.
+     * Aligns with iOS event naming for cross-platform consistency.
+     *
+     * @param source The navigation source that triggered the paywall (e.g., "scan_gate", "settings")
+     * @param currentBalance The user's current credit balance at the time of display
+     */
+    fun trackPaywallDisplayed(source: String, currentBalance: Int) {
+        trackEvent(
+            "paywall_displayed",
+            mapOf(
+                "source" to source,
+                "current_balance" to currentBalance.toString()
+            )
+        )
+    }
+
+    /**
+     * Track when a user taps a product card to initiate a purchase (Story 8.10).
+     * This is a convenience method that fires the "purchase_started" event.
+     * Aligns with iOS event naming for cross-platform consistency.
+     *
+     * @param sku The product SKU / identifier (e.g., "credits_3")
+     * @param credits The number of credits in this product pack
+     */
+    fun trackPurchaseStarted(sku: String, credits: Int) {
+        trackEvent(
+            "purchase_started",
+            mapOf(
+                "sku" to sku,
+                "credits" to credits.toString()
+            )
+        )
+    }
+
+    /**
+     * Track when a purchase completes successfully and credits are delivered (Story 8.10).
+     * This is a convenience method that fires the "purchase_completed" event.
+     * Aligns with iOS event naming for cross-platform consistency.
+     *
+     * @param sku The product SKU / identifier that was purchased
+     * @param creditsAdded The number of credits added by this purchase
+     * @param newBalance The user's credit balance after credits are delivered
+     */
+    fun trackPurchaseCompleted(sku: String, creditsAdded: Int, newBalance: Int) {
+        trackEvent(
+            "purchase_completed",
+            mapOf(
+                "sku" to sku,
+                "credits_added" to creditsAdded.toString(),
+                "new_balance" to newBalance.toString()
+            )
+        )
+    }
+
+    /**
+     * Track when a purchase fails for any reason (Story 8.10).
+     * This is a convenience method that fires the "purchase_failed" event.
+     * Aligns with iOS event naming for cross-platform consistency.
+     *
+     * @param sku The product SKU / identifier that failed
+     * @param errorCode A categorized error code (e.g., "USER_CANCELED", "CONSUME_FAILED")
+     * @param errorMessage A human-readable description of the error
+     */
+    fun trackPurchaseFailed(sku: String, errorCode: String, errorMessage: String) {
+        trackEvent(
+            "purchase_failed",
+            mapOf(
+                "sku" to sku,
+                "error_code" to errorCode,
+                "error_message" to errorMessage
+            )
+        )
+    }
+
+    /**
+     * Track when a restore purchases operation completes (Story 8.10).
+     * This is a convenience method that fires the "purchase_restored" event.
+     * Aligns with iOS event naming for cross-platform consistency.
+     *
+     * @param result The result of the restore operation ("success", "none", "error")
+     * @param creditsRestored The number of credits restored (0 if none or error)
+     */
+    fun trackPurchaseRestored(result: String, creditsRestored: Int) {
+        trackEvent(
+            "purchase_restored",
+            mapOf(
+                "result" to result,
+                "credits_restored" to creditsRestored.toString()
+            )
+        )
+    }
 }

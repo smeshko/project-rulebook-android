@@ -60,7 +60,8 @@ class PurchaseViewModelTest {
             billingRepository = fakeBillingRepository,
             analyticsManager = fakeAnalyticsManager,
             purchaseVerifier = fakePurchaseVerifier,
-            pendingPurchasePrefs = fakePendingPrefs
+            pendingPurchasePrefs = fakePendingPrefs,
+            source = "test_source"
         )
     }
 
@@ -143,13 +144,67 @@ class PurchaseViewModelTest {
             billingRepository = fakeBillingRepository,
             analyticsManager = fakeAnalyticsManager,
             purchaseVerifier = fakePurchaseVerifier,
-            pendingPurchasePrefs = fakePendingPrefs
+            pendingPurchasePrefs = fakePendingPrefs,
+            source = "test_source"
         )
         advanceUntilIdle()
 
         val state = failingViewModel.uiState.first()
         assertEquals("Failed to load products", state.error)
         assertFalse(state.isLoading)
+    }
+
+    // =====================================================================
+    // Story 8.10: Paywall Analytics Tests
+    // =====================================================================
+
+    @Test
+    fun `paywall_displayed event is tracked on init with source and current_balance`() = runTest {
+        fakeCreditRepository.setCreditBalance(5)
+        advanceUntilIdle()
+
+        // Clear events from @Before setup VM before creating test-specific VM
+        fakeAnalyticsManager.getTrackedEvents().clear()
+
+        // Create a new ViewModel to trigger init analytics
+        val vm = PurchaseViewModel(
+            creditRepository = fakeCreditRepository,
+            billingRepository = fakeBillingRepository,
+            analyticsManager = fakeAnalyticsManager,
+            purchaseVerifier = fakePurchaseVerifier,
+            pendingPurchasePrefs = fakePendingPrefs,
+            source = "scan_gate"
+        )
+        advanceUntilIdle()
+
+        val events = fakeAnalyticsManager.getTrackedEvents()
+        val displayedEvent = events.firstOrNull { it.first == "paywall_displayed" }
+        assertTrue(displayedEvent != null)
+        assertEquals("scan_gate", displayedEvent!!.second["source"])
+        assertEquals("5", displayedEvent.second["current_balance"])
+    }
+
+    @Test
+    fun `paywall_displayed tracks with zero balance when user has no credits`() = runTest {
+        // Clear events from @Before setup VM before creating test-specific VM
+        fakeAnalyticsManager.getTrackedEvents().clear()
+
+        // fakeCreditRepository starts with balance 0 by default
+        val vm = PurchaseViewModel(
+            creditRepository = fakeCreditRepository,
+            billingRepository = fakeBillingRepository,
+            analyticsManager = fakeAnalyticsManager,
+            purchaseVerifier = fakePurchaseVerifier,
+            pendingPurchasePrefs = fakePendingPrefs,
+            source = "settings"
+        )
+        advanceUntilIdle()
+
+        val events = fakeAnalyticsManager.getTrackedEvents()
+        val displayedEvent = events.firstOrNull { it.first == "paywall_displayed" }
+        assertTrue(displayedEvent != null)
+        assertEquals("settings", displayedEvent!!.second["source"])
+        assertEquals("0", displayedEvent.second["current_balance"])
     }
 
     // =====================================================================
@@ -168,13 +223,18 @@ class PurchaseViewModelTest {
 
     @Test
     fun `onProductSelected tracks purchase_started analytics`() = runTest {
+        val products = listOf(ProductInfo("credits_3", "3 Credits", "$2.49", 3))
+        fakeBillingRepository.setProducts(products)
+        advanceUntilIdle()
+
         viewModel.onProductSelected(null, "credits_3")
         advanceUntilIdle()
 
         val events = fakeAnalyticsManager.getTrackedEvents()
         assertTrue(events.any { it.first == "purchase_started" })
         val startEvent = events.first { it.first == "purchase_started" }
-        assertEquals("credits_3", startEvent.second["product_id"])
+        assertEquals("credits_3", startEvent.second["sku"])
+        assertEquals("3", startEvent.second["credits"])
     }
 
     @Test
@@ -252,7 +312,8 @@ class PurchaseViewModelTest {
         val failedEvent = events.firstOrNull { it.first == "purchase_failed" }
         assertTrue(failedEvent != null)
         assertEquals("USER_CANCELED", failedEvent!!.second["error_code"])
-        assertEquals("credits_1", failedEvent.second["product_id"])
+        assertEquals("credits_1", failedEvent.second["sku"])
+        assertTrue(failedEvent.second.containsKey("error_message"))
     }
 
     @Test
@@ -291,6 +352,8 @@ class PurchaseViewModelTest {
         val failedEvent = events.firstOrNull { it.first == "purchase_failed" }
         assertTrue(failedEvent != null)
         assertEquals("6", failedEvent!!.second["error_code"])
+        assertEquals("credits_1", failedEvent.second["sku"])
+        assertTrue(failedEvent.second.containsKey("error_message"))
     }
 
     @Test
@@ -397,8 +460,9 @@ class PurchaseViewModelTest {
         val events = fakeAnalyticsManager.getTrackedEvents()
         val completedEvent = events.firstOrNull { it.first == "purchase_completed" }
         assertTrue(completedEvent != null)
-        assertEquals("credits_3", completedEvent!!.second["product_id"])
+        assertEquals("credits_3", completedEvent!!.second["sku"])
         assertEquals("3", completedEvent.second["credits_added"])
+        assertTrue(completedEvent.second.containsKey("new_balance"))
     }
 
     // =====================================================================
@@ -470,7 +534,7 @@ class PurchaseViewModelTest {
     }
 
     @Test
-    fun `restore tracks purchase_restored analytics with correct result and credits_count`() = runTest {
+    fun `restore tracks purchase_restored analytics with correct result and credits_restored`() = runTest {
         fakeBillingRepository.unconsumedPurchases = listOf(
             PurchaseInfo("token-1", "credits_3", "order-1")
         )
@@ -482,7 +546,7 @@ class PurchaseViewModelTest {
         val restoredEvent = events.firstOrNull { it.first == "purchase_restored" }
         assertTrue(restoredEvent != null)
         assertEquals("success", restoredEvent!!.second["result"])
-        assertEquals("3", restoredEvent.second["credits_count"])
+        assertEquals("3", restoredEvent.second["credits_restored"])
     }
 
     @Test
@@ -578,7 +642,8 @@ class PurchaseViewModelTest {
         val events = fakeAnalyticsManager.getTrackedEvents()
         val completedEvent = events.firstOrNull { it.first == "purchase_completed" }
         assertTrue(completedEvent != null)
-        assertEquals("3", completedEvent!!.second["credits_added"])
+        assertEquals("credits_3", completedEvent!!.second["sku"])
+        assertEquals("3", completedEvent.second["credits_added"])
         // new_balance = 2 (initial) + 3 (added) = 5
         assertEquals("5", completedEvent.second["new_balance"])
     }
@@ -627,7 +692,8 @@ class PurchaseViewModelTest {
         val failedEvent = events.firstOrNull { it.first == "purchase_failed" }
         assertTrue(failedEvent != null)
         assertEquals("CONSUME_FAILED", failedEvent!!.second["error_code"])
-        assertEquals("credits_3", failedEvent.second["product_id"])
+        assertEquals("credits_3", failedEvent.second["sku"])
+        assertTrue(failedEvent.second.containsKey("error_message"))
     }
 
     // =====================================================================

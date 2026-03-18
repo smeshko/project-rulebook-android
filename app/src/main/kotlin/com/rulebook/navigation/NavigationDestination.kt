@@ -21,8 +21,21 @@ sealed class Route(val route: String) {
     /** Onboarding screen - first-time user experience */
     data object Onboarding : Route("onboarding")
 
-    /** Purchase screen - premium features and subscriptions */
-    data object Purchase : Route("purchase")
+    /**
+     * Purchase screen - premium features and subscriptions.
+     *
+     * Optional [source] argument identifies which entry point triggered the paywall
+     * (e.g., "scan_gate", "settings"). Defaults to "unknown" if not provided.
+     */
+    data object Purchase : Route("purchase?source={${RulebookNavArgs.PURCHASE_SOURCE}}") {
+        /**
+         * Creates the full route string with the provided source identifier.
+         *
+         * @param source The navigation source that triggered the paywall
+         * @return The complete route string for navigation
+         */
+        fun createRoute(source: String = "unknown"): String = "purchase?source=$source"
+    }
 
     /**
      * Generation screen - shows scan/generation progress with phase indicator.
@@ -68,4 +81,7 @@ object RulebookNavArgs {
 
     /** Argument key for image URI in Generation route */
     const val IMAGE_URI = "imageUri"
+
+    /** Argument key for paywall source in Purchase route */
+    const val PURCHASE_SOURCE = "source"
 }

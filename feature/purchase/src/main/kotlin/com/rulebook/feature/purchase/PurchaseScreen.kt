@@ -50,6 +50,7 @@ import com.rulebook.core.model.PurchaseState
 import com.rulebook.feature.purchase.components.AnimatedDots
 import com.rulebook.feature.purchase.components.ProductCardsRow
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 /**
  * PurchaseScreen - The paywall screen showing credit pack options.
@@ -58,14 +59,16 @@ import org.koin.androidx.compose.koinViewModel
  * Handles the [PurchaseEvent.Dismiss] and [PurchaseEvent.PurchaseSuccess] events by calling [onDismiss].
  * Triggers haptic feedback on purchase success and error states.
  *
+ * @param source The navigation source that triggered the paywall (e.g., "scan_gate", "settings").
  * @param onDismiss Callback invoked when the paywall should be closed (back navigation).
  * @param viewModel The ViewModel managing purchase state and events.
  * @param modifier Modifier to be applied to the screen container.
  */
 @Composable
 fun PurchaseScreen(
+    source: String = "unknown",
     onDismiss: () -> Unit = {},
-    viewModel: PurchaseViewModel = koinViewModel(),
+    viewModel: PurchaseViewModel = koinViewModel(parameters = { parametersOf(source) }),
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

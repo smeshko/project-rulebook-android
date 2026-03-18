@@ -63,10 +63,11 @@ fun NavController.navigateToOnboarding(navOptions: NavOptions? = null) {
 /**
  * Navigates to the Purchase screen.
  *
+ * @param source The navigation source that triggered the paywall (e.g., "scan_gate", "settings")
  * @param navOptions Optional navigation options for custom behavior
  */
-fun NavController.navigateToPurchase(navOptions: NavOptions? = null) {
-    navigate(Route.Purchase.route, navOptions)
+fun NavController.navigateToPurchase(source: String = "unknown", navOptions: NavOptions? = null) {
+    navigate(Route.Purchase.createRoute(source), navOptions)
 }
 
 /**
