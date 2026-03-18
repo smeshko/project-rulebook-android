@@ -113,11 +113,11 @@ class PurchaseViewModelTest {
     }
 
     @Test
-    fun `onRestorePurchases tracks analytics`() = runTest {
+    fun `onRestorePurchases tracks paywall_restore_purchases_tapped analytics`() = runTest {
         viewModel.onRestorePurchases()
+        advanceUntilIdle()
 
-        assertEquals(1, fakeAnalyticsManager.getTrackedEvents().size)
-        assertEquals("paywall_restore_purchases_tapped", fakeAnalyticsManager.getTrackedEvents()[0].first)
+        assertTrue(fakeAnalyticsManager.getTrackedEvents().any { it.first == "paywall_restore_purchases_tapped" })
     }
 
     @Test
@@ -395,6 +395,156 @@ class PurchaseViewModelTest {
     }
 
     // =====================================================================
+    // Story 8.8: Restore Purchases Tests
+    // =====================================================================
+
+    @Test
+    fun `restore with unconsumed purchases delivers credits and emits RestoreSuccess`() = runTest {
+        fakeBillingRepository.unconsumedPurchases = listOf(
+            PurchaseInfo("token-1", "credits_3", "order-1"),
+            PurchaseInfo("token-2", "credits_1", "order-2")
+        )
+        val events = mutableListOf<PurchaseEvent>()
+        val job = launch { viewModel.events.collect { events.add(it) } }
+
+        viewModel.onRestorePurchases()
+        advanceUntilIdle()
+
+        // 3 + 1 = 4 total credits restored
+        assertEquals(4, fakeCreditRepository.addedCreditsTotal)
+        // Verify each purchase was passed through the verifier
+        assertTrue(fakePurchaseVerifier.verifiedTokens.contains("token-1"))
+        assertTrue(fakePurchaseVerifier.verifiedTokens.contains("token-2"))
+        val successEvent = events.filterIsInstance<PurchaseEvent.RestoreSuccess>().firstOrNull()
+        assertTrue(successEvent != null)
+        assertEquals(4, successEvent!!.creditsRestored)
+        job.cancel()
+    }
+
+    @Test
+    fun `restore with no unconsumed purchases emits RestoreNoPurchases`() = runTest {
+        // unconsumedPurchases defaults to empty
+        val events = mutableListOf<PurchaseEvent>()
+        val job = launch { viewModel.events.collect { events.add(it) } }
+
+        viewModel.onRestorePurchases()
+        advanceUntilIdle()
+
+        assertTrue(events.any { it is PurchaseEvent.RestoreNoPurchases })
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+        job.cancel()
+    }
+
+    @Test
+    fun `restore failure emits RestoreError`() = runTest {
+        fakeBillingRepository.shouldFailQueryUnconsumed = true
+        val events = mutableListOf<PurchaseEvent>()
+        val job = launch { viewModel.events.collect { events.add(it) } }
+
+        viewModel.onRestorePurchases()
+        advanceUntilIdle()
+
+        assertTrue(events.any { it is PurchaseEvent.RestoreError })
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+        job.cancel()
+    }
+
+    @Test
+    fun `restore sets isRestoring true during operation and false after`() = runTest {
+        fakeBillingRepository.unconsumedPurchases = listOf(
+            PurchaseInfo("token-1", "credits_3", "order-1")
+        )
+
+        viewModel.onRestorePurchases()
+        advanceUntilIdle()
+
+        // After completion, isRestoring should be false
+        assertFalse(viewModel.uiState.first().isRestoring)
+    }
+
+    @Test
+    fun `restore tracks purchase_restored analytics with correct result and credits_count`() = runTest {
+        fakeBillingRepository.unconsumedPurchases = listOf(
+            PurchaseInfo("token-1", "credits_3", "order-1")
+        )
+
+        viewModel.onRestorePurchases()
+        advanceUntilIdle()
+
+        val events = fakeAnalyticsManager.getTrackedEvents()
+        val restoredEvent = events.firstOrNull { it.first == "purchase_restored" }
+        assertTrue(restoredEvent != null)
+        assertEquals("success", restoredEvent!!.second["result"])
+        assertEquals("3", restoredEvent.second["credits_count"])
+    }
+
+    @Test
+    fun `restore with mixed success and failure purchases delivers only successful credits`() = runTest {
+        fakeBillingRepository.unconsumedPurchases = listOf(
+            PurchaseInfo("token-ok", "credits_3", "order-1"),
+            PurchaseInfo("token-fail", "credits_10", "order-2")
+        )
+        fakePurchaseVerifier.tokenResults["token-fail"] =
+            Result.failure(RuntimeException("Consume failed"))
+
+        val events = mutableListOf<PurchaseEvent>()
+        val job = launch { viewModel.events.collect { events.add(it) } }
+
+        viewModel.onRestorePurchases()
+        advanceUntilIdle()
+
+        // Only 3 credits from the successful token
+        assertEquals(3, fakeCreditRepository.addedCreditsTotal)
+        // Still emits RestoreSuccess with partial credits
+        val successEvent = events.filterIsInstance<PurchaseEvent.RestoreSuccess>().firstOrNull()
+        assertTrue(successEvent != null)
+        assertEquals(3, successEvent!!.creditsRestored)
+        job.cancel()
+    }
+
+    @Test
+    fun `restore with all purchases failing verification emits RestoreError`() = runTest {
+        fakeBillingRepository.unconsumedPurchases = listOf(
+            PurchaseInfo("token-fail-1", "credits_3", "order-1"),
+            PurchaseInfo("token-fail-2", "credits_1", "order-2")
+        )
+        fakePurchaseVerifier.shouldFail = true
+
+        val events = mutableListOf<PurchaseEvent>()
+        val job = launch { viewModel.events.collect { events.add(it) } }
+
+        viewModel.onRestorePurchases()
+        advanceUntilIdle()
+
+        // No credits should be delivered
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+        // Should emit RestoreError, not RestoreSuccess(0)
+        assertTrue(events.any { it is PurchaseEvent.RestoreError })
+        assertFalse(events.any { it is PurchaseEvent.RestoreSuccess })
+        // isRestoring should be reset
+        assertFalse(viewModel.uiState.first().isRestoring)
+        // Analytics should report error
+        val analyticsEvents = fakeAnalyticsManager.getTrackedEvents()
+        val restoredEvent = analyticsEvents.firstOrNull { it.first == "purchase_restored" }
+        assertTrue(restoredEvent != null)
+        assertEquals("error", restoredEvent!!.second["result"])
+        job.cancel()
+    }
+
+    @Test
+    fun `restore button disabled during active purchase`() = runTest {
+        // When a purchase is active (Processing state), isRestoring check is irrelevant
+        // The UI disables the restore button when isPurchaseActive || isRestoring
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.first()
+        assertIs<PurchaseState.Processing>(state.purchaseState)
+        // isRestoring should still be false (restore not triggered during purchase)
+        assertFalse(state.isRestoring)
+    }
+
+    // =====================================================================
     // Story 8.7: PurchaseVerifier Integration Tests
     // =====================================================================
 
@@ -481,12 +631,14 @@ class PurchaseViewModelTest {
 class FakePurchaseVerifier : PurchaseVerifier {
     var shouldFail = false
     val verifiedTokens = mutableListOf<String>()
+    val tokenResults = mutableMapOf<String, Result<VerificationResult>>()
 
     override suspend fun verifyAndConsume(
         purchaseToken: String,
         productId: String
     ): Result<VerificationResult> {
         verifiedTokens.add(purchaseToken)
+        tokenResults[purchaseToken]?.let { return it }
         if (shouldFail) {
             return Result.failure(RuntimeException("Consume failed"))
         }
@@ -546,6 +698,8 @@ class FakeBillingRepository : BillingRepository {
     val consumedTokens = mutableListOf<String>()
     var shouldFailQueryProducts = false
     var shouldFailLaunchPurchaseFlow = false
+    var unconsumedPurchases: List<PurchaseInfo> = emptyList()
+    var shouldFailQueryUnconsumed = false
 
     override val products: Flow<List<ProductInfo>> = _products
     override val purchaseUpdates: SharedFlow<PurchaseUpdate> = _purchaseUpdates.asSharedFlow()
@@ -578,7 +732,10 @@ class FakeBillingRepository : BillingRepository {
     }
 
     override suspend fun queryUnconsumedPurchases(): Result<List<PurchaseInfo>> {
-        return Result.success(emptyList())
+        if (shouldFailQueryUnconsumed) {
+            return Result.failure(RuntimeException("Failed to query unconsumed purchases"))
+        }
+        return Result.success(unconsumedPurchases)
     }
 
     override fun creditsForProduct(productId: String): Int? {

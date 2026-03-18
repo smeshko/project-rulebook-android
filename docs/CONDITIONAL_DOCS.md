@@ -99,3 +99,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When injecting PurchaseVerifier into ViewModels or other components
     - When designing swappable dependencies for purchase-related features
     - When adding new SKU types and mapping them to credit amounts
+
+- `docs/features/restore-purchases-with-partial-success.md` - Restore Purchases with Partial Success Handling (RULE-231)
+  - Conditions:
+    - When implementing restore purchases functionality for in-app purchases
+    - When handling mixed success/failure scenarios where some operations succeed and others fail
+    - When querying unconsumed purchases from Google Play Billing API
+    - When designing loading indicators that replace button text (AnimatedDots pattern)
+    - When implementing snackbar feedback with retry actions for purchase-related errors
