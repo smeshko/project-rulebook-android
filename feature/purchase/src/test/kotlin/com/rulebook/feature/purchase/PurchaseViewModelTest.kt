@@ -500,6 +500,35 @@ class PurchaseViewModelTest {
     }
 
     @Test
+    fun `restore with all purchases failing verification emits RestoreError`() = runTest {
+        fakeBillingRepository.unconsumedPurchases = listOf(
+            PurchaseInfo("token-fail-1", "credits_3", "order-1"),
+            PurchaseInfo("token-fail-2", "credits_1", "order-2")
+        )
+        fakePurchaseVerifier.shouldFail = true
+
+        val events = mutableListOf<PurchaseEvent>()
+        val job = launch { viewModel.events.collect { events.add(it) } }
+
+        viewModel.onRestorePurchases()
+        advanceUntilIdle()
+
+        // No credits should be delivered
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+        // Should emit RestoreError, not RestoreSuccess(0)
+        assertTrue(events.any { it is PurchaseEvent.RestoreError })
+        assertFalse(events.any { it is PurchaseEvent.RestoreSuccess })
+        // isRestoring should be reset
+        assertFalse(viewModel.uiState.first().isRestoring)
+        // Analytics should report error
+        val analyticsEvents = fakeAnalyticsManager.getTrackedEvents()
+        val restoredEvent = analyticsEvents.firstOrNull { it.first == "purchase_restored" }
+        assertTrue(restoredEvent != null)
+        assertEquals("error", restoredEvent!!.second["result"])
+        job.cancel()
+    }
+
+    @Test
     fun `restore button disabled during active purchase`() = runTest {
         // When a purchase is active (Processing state), isRestoring check is irrelevant
         // The UI disables the restore button when isPurchaseActive || isRestoring

@@ -291,12 +291,21 @@ class PurchaseViewModel(
                 }
             }
 
-            analyticsManager.trackEvent(
-                "purchase_restored",
-                mapOf("result" to "success", "credits_count" to totalCreditsRestored.toString())
-            )
             _uiState.update { it.copy(isRestoring = false) }
-            _events.send(PurchaseEvent.RestoreSuccess(totalCreditsRestored))
+
+            if (totalCreditsRestored > 0) {
+                analyticsManager.trackEvent(
+                    "purchase_restored",
+                    mapOf("result" to "success", "credits_count" to totalCreditsRestored.toString())
+                )
+                _events.send(PurchaseEvent.RestoreSuccess(totalCreditsRestored))
+            } else {
+                analyticsManager.trackEvent(
+                    "purchase_restored",
+                    mapOf("result" to "error")
+                )
+                _events.send(PurchaseEvent.RestoreError("Failed to restore purchases"))
+            }
         }
     }
 
