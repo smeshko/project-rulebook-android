@@ -11,6 +11,7 @@ import com.rulebook.core.model.PurchaseState
  * @property isLoading Whether products are being loaded from the billing service.
  * @property purchaseState Current state of any active purchase operation.
  * @property error Error message to display to the user, if any.
+ * @property isRestoring Whether a restore purchases operation is in progress.
  */
 data class PurchaseUiState(
     val products: List<ProductInfo> = emptyList(),
