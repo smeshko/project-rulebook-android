@@ -88,6 +88,12 @@ class PurchaseViewModel(
             }
             .launchIn(viewModelScope)
 
+        // Track paywall_displayed after loading the initial credit balance
+        viewModelScope.launch {
+            val currentBalance = creditRepository.creditBalance.catch { emit(0) }.first()
+            analyticsManager.trackPaywallDisplayed(source, currentBalance)
+        }
+
         // Observe billing products and update UI state
         billingRepository.products
             .catch {
