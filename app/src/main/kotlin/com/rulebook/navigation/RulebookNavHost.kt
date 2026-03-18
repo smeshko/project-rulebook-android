@@ -84,7 +84,7 @@ fun RulebookNavHost(
             exitTransition = { fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
             SettingsScreen(
-                onNavigateToPaywall = { navController.navigate(Route.Purchase.route) }
+                onNavigateToPaywall = { navController.navigate(Route.Purchase.createRoute("settings")) }
             )
         }
 
@@ -114,7 +114,7 @@ fun RulebookNavHost(
                 onNavigateToPaywall = {
                     // Navigate to paywall when user has no credits (Story 5.1)
                     // Actual paywall UI implemented in Epic 8
-                    navController.navigate(Route.Purchase.route)
+                    navController.navigate(Route.Purchase.createRoute("scan_gate"))
                 }
             )
         }
@@ -169,12 +169,20 @@ fun RulebookNavHost(
         // Uses slide transition for detail screen
         composable(
             route = Route.Purchase.route,
+            arguments = listOf(
+                navArgument(RulebookNavArgs.PURCHASE_SOURCE) {
+                    type = NavType.StringType
+                    defaultValue = "unknown"
+                }
+            ),
             enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
             exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
             popExitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) }
-        ) {
+        ) { backStackEntry ->
+            val source = backStackEntry.arguments?.getString(RulebookNavArgs.PURCHASE_SOURCE) ?: "unknown"
             PurchaseScreen(
+                source = source,
                 onDismiss = { navController.popBackStack() }
             )
         }

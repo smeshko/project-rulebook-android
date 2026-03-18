@@ -48,13 +48,15 @@ private const val TAG = "PurchaseViewModel"
  * @param analyticsManager Manager for tracking analytics events.
  * @param purchaseVerifier Verifier that consumes the purchase and resolves credits.
  * @param pendingPurchasePrefs DataStore preferences for pending purchase token storage.
+ * @param source The navigation source that triggered the paywall (e.g., "scan_gate", "settings").
  */
 class PurchaseViewModel(
     private val creditRepository: CreditRepository,
     private val billingRepository: BillingRepository,
     private val analyticsManager: AnalyticsManager,
     private val purchaseVerifier: PurchaseVerifier,
-    private val pendingPurchasePrefs: PendingPurchasePreferencesSource
+    private val pendingPurchasePrefs: PendingPurchasePreferencesSource,
+    private val source: String = "unknown"
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PurchaseUiState())
