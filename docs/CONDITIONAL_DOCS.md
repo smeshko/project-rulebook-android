@@ -115,3 +115,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When checking for asynchronous approval resolution on app resume
     - When implementing pause-and-retry patterns for user approval workflows
     - When designing lifecycle-aware checks that run on app foreground
+
+- `docs/features/purchase-analytics-events.md` - Purchase Analytics Events (RULE-233)
+  - Conditions:
+    - When tracking purchase funnel metrics through paywall and purchase flow
+    - When implementing cross-platform analytics with iOS event name alignment
+    - When adding convenience methods to AnalyticsManager for domain-specific events
+    - When propagating user context (source) through navigation arguments to ViewModels
+    - When implementing privacy-compliant analytics that excludes PII (prices, payment methods)
