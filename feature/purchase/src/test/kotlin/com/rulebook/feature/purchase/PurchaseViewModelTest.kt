@@ -163,6 +163,9 @@ class PurchaseViewModelTest {
         fakeCreditRepository.setCreditBalance(5)
         advanceUntilIdle()
 
+        // Clear events from @Before setup VM before creating test-specific VM
+        fakeAnalyticsManager.getTrackedEvents().clear()
+
         // Create a new ViewModel to trigger init analytics
         val vm = PurchaseViewModel(
             creditRepository = fakeCreditRepository,
@@ -183,6 +186,9 @@ class PurchaseViewModelTest {
 
     @Test
     fun `paywall_displayed tracks with zero balance when user has no credits`() = runTest {
+        // Clear events from @Before setup VM before creating test-specific VM
+        fakeAnalyticsManager.getTrackedEvents().clear()
+
         // fakeCreditRepository starts with balance 0 by default
         val vm = PurchaseViewModel(
             creditRepository = fakeCreditRepository,

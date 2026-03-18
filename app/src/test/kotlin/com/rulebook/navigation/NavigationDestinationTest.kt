@@ -27,7 +27,7 @@ class NavigationDestinationTest {
 
     @Test
     fun `Purchase route has correct route string`() {
-        assertEquals("purchase", Route.Purchase.route)
+        assertEquals("purchase?source={source}", Route.Purchase.route)
     }
 
     @Test
