@@ -245,10 +245,59 @@ class PurchaseViewModel(
 
     /**
      * Handles user tapping the "Restore Purchases" button.
+     *
+     * Queries unconsumed purchases, verifies and consumes each one, delivers credits,
+     * and emits a one-time event with the result.
      */
     fun onRestorePurchases() {
-        Log.d(TAG, "Restore purchases tapped (stub - not implemented)")
         analyticsManager.trackEvent("paywall_restore_purchases_tapped")
+        _uiState.update { it.copy(isRestoring = true) }
+
+        viewModelScope.launch {
+            val queryResult = billingRepository.queryUnconsumedPurchases()
+
+            queryResult.onFailure { error ->
+                Log.e(TAG, "Failed to query unconsumed purchases", error)
+                analyticsManager.trackEvent(
+                    "purchase_restored",
+                    mapOf("result" to "error")
+                )
+                _uiState.update { it.copy(isRestoring = false) }
+                _events.send(PurchaseEvent.RestoreError(error.message ?: "Failed to restore purchases"))
+                return@launch
+            }
+
+            val purchases = queryResult.getOrThrow()
+
+            if (purchases.isEmpty()) {
+                analyticsManager.trackEvent(
+                    "purchase_restored",
+                    mapOf("result" to "none")
+                )
+                _uiState.update { it.copy(isRestoring = false) }
+                _events.send(PurchaseEvent.RestoreNoPurchases)
+                return@launch
+            }
+
+            var totalCreditsRestored = 0
+            for (purchase in purchases) {
+                val verifyResult = purchaseVerifier.verifyAndConsume(purchase.purchaseToken, purchase.productId)
+                verifyResult.onSuccess { verificationResult ->
+                    creditRepository.addCredits(verificationResult.credits)
+                    totalCreditsRestored += verificationResult.credits
+                }
+                verifyResult.onFailure { error ->
+                    Log.w(TAG, "Failed to verify/consume restored purchase ${purchase.purchaseToken}", error)
+                }
+            }
+
+            analyticsManager.trackEvent(
+                "purchase_restored",
+                mapOf("result" to "success", "credits_count" to totalCreditsRestored.toString())
+            )
+            _uiState.update { it.copy(isRestoring = false) }
+            _events.send(PurchaseEvent.RestoreSuccess(totalCreditsRestored))
+        }
     }
 
     /**
