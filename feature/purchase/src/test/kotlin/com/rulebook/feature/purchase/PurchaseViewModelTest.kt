@@ -412,6 +412,9 @@ class PurchaseViewModelTest {
 
         // 3 + 1 = 4 total credits restored
         assertEquals(4, fakeCreditRepository.addedCreditsTotal)
+        // Verify each purchase was passed through the verifier
+        assertTrue(fakePurchaseVerifier.verifiedTokens.contains("token-1"))
+        assertTrue(fakePurchaseVerifier.verifiedTokens.contains("token-2"))
         val successEvent = events.filterIsInstance<PurchaseEvent.RestoreSuccess>().firstOrNull()
         assertTrue(successEvent != null)
         assertEquals(4, successEvent!!.creditsRestored)
