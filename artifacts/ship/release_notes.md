@@ -1,19 +1,19 @@
 ## [Unreleased] - 2026-03-18
 
 ### Added
-- Add SnackbarHost and restore loading state to PurchaseScreen
-- Add AnimatedDots composable component
-- Implement onRestorePurchases in PurchaseViewModel
-- Add restore events to PurchaseEvent
-- Add isRestoring field to PurchaseUiState
+- Purchase analytics convenience methods to AnalyticsManager
+- Source navigation argument to Purchase route
+- Fire paywall_displayed event on PurchaseViewModel init
+- Replace raw trackEvent calls with purchase analytics convenience methods
 
 ### Fixed
-- Add restore concurrency guard and error safety net
-- Handle all-fail restore scenario with error event
+- Handle addCredits failure after successful purchase
+- Fix failing tests for paywall analytics and purchase route
 
 ### Documentation
-- Document restore purchases feature with partial success pattern (RULE-231)
+- Add purchase analytics events feature documentation
+- Register purchase analytics events in conditional docs guide
 
 ### Other
-- Add restore purchases unit tests
-- Update FakeBillingRepository and FakePurchaseVerifier for restore testing
+- Update PurchaseViewModelTest for new analytics property names
+- Add unit tests for purchase analytics convenience methods
