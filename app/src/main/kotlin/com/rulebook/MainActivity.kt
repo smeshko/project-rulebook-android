@@ -1,14 +1,20 @@
 package com.rulebook
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import com.rulebook.core.billing.PendingCheckResult
+import com.rulebook.core.billing.PendingPurchaseChecker
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.startup.StartupViewModel
+import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 /**
@@ -23,6 +29,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class MainActivity : ComponentActivity() {
 
     private val startupViewModel: StartupViewModel by viewModel()
+    private val pendingPurchaseChecker: PendingPurchaseChecker by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Install splash screen BEFORE super.onCreate()
@@ -47,6 +54,22 @@ class MainActivity : ComponentActivity() {
                 startupDestination?.let { destination ->
                     RulebookApp(startDestination = destination)
                 }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Check if a pending purchase was resolved while app was in background.
+        // This is a best-effort check — failures are logged and retried on next resume.
+        lifecycleScope.launch {
+            val result = pendingPurchaseChecker.checkAndResolve()
+            if (result is PendingCheckResult.Resolved) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Purchase approved! ${result.creditsAdded} credits added",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
