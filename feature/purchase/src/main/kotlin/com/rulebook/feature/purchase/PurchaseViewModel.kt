@@ -148,7 +148,8 @@ class PurchaseViewModel(
      * @param productId The product identifier (SKU) to purchase.
      */
     fun onProductSelected(activity: Activity?, productId: String) {
-        analyticsManager.trackEvent("purchase_started", mapOf("product_id" to productId))
+        val credits = _uiState.value.products.find { it.productId == productId }?.credits ?: 0
+        analyticsManager.trackPurchaseStarted(sku = productId, credits = credits)
         _uiState.update { it.copy(purchaseState = PurchaseState.Processing(productId)) }
 
         if (activity == null) {
@@ -160,9 +161,10 @@ class PurchaseViewModel(
             val result = billingRepository.launchPurchaseFlow(activity, productId)
             result.onFailure { error ->
                 Log.e(TAG, "Failed to launch purchase flow for $productId", error)
-                analyticsManager.trackEvent(
-                    "purchase_failed",
-                    mapOf("product_id" to productId, "error_code" to "LAUNCH_FAILED")
+                analyticsManager.trackPurchaseFailed(
+                    sku = productId,
+                    errorCode = "LAUNCH_FAILED",
+                    errorMessage = error.message ?: "Failed to start purchase"
                 )
                 _uiState.update {
                     it.copy(purchaseState = PurchaseState.Error(error.message ?: "Failed to start purchase"))
@@ -203,9 +205,10 @@ class PurchaseViewModel(
                 val purchaseToken = update.purchaseTokens.firstOrNull()
                 if (purchaseToken == null) {
                     Log.e(TAG, "Purchase OK but no token received for $productId")
-                    analyticsManager.trackEvent(
-                        "purchase_failed",
-                        mapOf("product_id" to productId, "error_code" to "TOKEN_MISSING")
+                    analyticsManager.trackPurchaseFailed(
+                        sku = productId,
+                        errorCode = "TOKEN_MISSING",
+                        errorMessage = "Purchase token missing"
                     )
                     _uiState.update {
                         it.copy(purchaseState = PurchaseState.Error("Purchase token missing"))
@@ -216,9 +219,10 @@ class PurchaseViewModel(
                     val verifyResult = purchaseVerifier.verifyAndConsume(purchaseToken, productId)
                     verifyResult.onFailure { error ->
                         Log.e(TAG, "Failed to verify/consume purchase for $productId", error)
-                        analyticsManager.trackEvent(
-                            "purchase_failed",
-                            mapOf("product_id" to productId, "error_code" to "CONSUME_FAILED")
+                        analyticsManager.trackPurchaseFailed(
+                            sku = productId,
+                            errorCode = "CONSUME_FAILED",
+                            errorMessage = error.message ?: "Purchase verification failed"
                         )
                         _uiState.update {
                             it.copy(purchaseState = PurchaseState.Error("Purchase verification failed"))
@@ -233,13 +237,10 @@ class PurchaseViewModel(
 
                     val newBalance = creditRepository.creditBalance.first()
 
-                    analyticsManager.trackEvent(
-                        "purchase_completed",
-                        mapOf(
-                            "product_id" to productId,
-                            "credits_added" to credits.toString(),
-                            "new_balance" to newBalance.toString()
-                        )
+                    analyticsManager.trackPurchaseCompleted(
+                        sku = productId,
+                        creditsAdded = credits,
+                        newBalance = newBalance
                     )
 
                     _uiState.update { it.copy(purchaseState = PurchaseState.Success(credits)) }
@@ -251,18 +252,20 @@ class PurchaseViewModel(
             }
 
             BillingResponseCode.USER_CANCELED -> {
-                analyticsManager.trackEvent(
-                    "purchase_failed",
-                    mapOf("product_id" to productId, "error_code" to "USER_CANCELED")
+                analyticsManager.trackPurchaseFailed(
+                    sku = productId,
+                    errorCode = "USER_CANCELED",
+                    errorMessage = "Purchase cancelled"
                 )
                 // Silent reset — no error shown to user
                 _uiState.update { it.copy(purchaseState = null) }
             }
 
             else -> {
-                analyticsManager.trackEvent(
-                    "purchase_failed",
-                    mapOf("product_id" to productId, "error_code" to update.responseCode.toString())
+                analyticsManager.trackPurchaseFailed(
+                    sku = productId,
+                    errorCode = update.responseCode.toString(),
+                    errorMessage = "Purchase failed (code: ${update.responseCode})"
                 )
                 _uiState.update {
                     it.copy(
@@ -317,10 +320,7 @@ class PurchaseViewModel(
 
                 queryResult.onFailure { error ->
                     Log.e(TAG, "Failed to query unconsumed purchases", error)
-                    analyticsManager.trackEvent(
-                        "purchase_restored",
-                        mapOf("result" to "error")
-                    )
+                    analyticsManager.trackPurchaseRestored(result = "error", creditsRestored = 0)
                     _uiState.update { it.copy(isRestoring = false) }
                     _events.send(PurchaseEvent.RestoreError(error.message ?: "Failed to restore purchases"))
                     return@launch
@@ -329,10 +329,7 @@ class PurchaseViewModel(
                 val purchases = queryResult.getOrThrow()
 
                 if (purchases.isEmpty()) {
-                    analyticsManager.trackEvent(
-                        "purchase_restored",
-                        mapOf("result" to "none")
-                    )
+                    analyticsManager.trackPurchaseRestored(result = "none", creditsRestored = 0)
                     _uiState.update { it.copy(isRestoring = false) }
                     _events.send(PurchaseEvent.RestoreNoPurchases)
                     return@launch
@@ -353,16 +350,10 @@ class PurchaseViewModel(
                 _uiState.update { it.copy(isRestoring = false) }
 
                 if (totalCreditsRestored > 0) {
-                    analyticsManager.trackEvent(
-                        "purchase_restored",
-                        mapOf("result" to "success", "credits_count" to totalCreditsRestored.toString())
-                    )
+                    analyticsManager.trackPurchaseRestored(result = "success", creditsRestored = totalCreditsRestored)
                     _events.send(PurchaseEvent.RestoreSuccess(totalCreditsRestored))
                 } else {
-                    analyticsManager.trackEvent(
-                        "purchase_restored",
-                        mapOf("result" to "error")
-                    )
+                    analyticsManager.trackPurchaseRestored(result = "error", creditsRestored = 0)
                     _events.send(PurchaseEvent.RestoreError("Failed to restore purchases"))
                 }
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
