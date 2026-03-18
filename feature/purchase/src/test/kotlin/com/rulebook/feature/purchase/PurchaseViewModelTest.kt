@@ -481,12 +481,14 @@ class PurchaseViewModelTest {
 class FakePurchaseVerifier : PurchaseVerifier {
     var shouldFail = false
     val verifiedTokens = mutableListOf<String>()
+    val tokenResults = mutableMapOf<String, Result<VerificationResult>>()
 
     override suspend fun verifyAndConsume(
         purchaseToken: String,
         productId: String
     ): Result<VerificationResult> {
         verifiedTokens.add(purchaseToken)
+        tokenResults[purchaseToken]?.let { return it }
         if (shouldFail) {
             return Result.failure(RuntimeException("Consume failed"))
         }
@@ -546,6 +548,8 @@ class FakeBillingRepository : BillingRepository {
     val consumedTokens = mutableListOf<String>()
     var shouldFailQueryProducts = false
     var shouldFailLaunchPurchaseFlow = false
+    var unconsumedPurchases: List<PurchaseInfo> = emptyList()
+    var shouldFailQueryUnconsumed = false
 
     override val products: Flow<List<ProductInfo>> = _products
     override val purchaseUpdates: SharedFlow<PurchaseUpdate> = _purchaseUpdates.asSharedFlow()
@@ -578,7 +582,10 @@ class FakeBillingRepository : BillingRepository {
     }
 
     override suspend fun queryUnconsumedPurchases(): Result<List<PurchaseInfo>> {
-        return Result.success(emptyList())
+        if (shouldFailQueryUnconsumed) {
+            return Result.failure(RuntimeException("Failed to query unconsumed purchases"))
+        }
+        return Result.success(unconsumedPurchases)
     }
 
     override fun creditsForProduct(productId: String): Int? {
