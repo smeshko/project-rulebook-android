@@ -10,6 +10,8 @@ import com.rulebook.core.billing.PurchaseUpdate
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.billing.verification.PurchaseVerifier
 import com.rulebook.core.data.repository.CreditRepository
+import com.rulebook.core.datastore.PendingPurchasePreferencesSource
+import com.rulebook.core.model.PendingPurchaseResolution
 import com.rulebook.core.model.PurchaseState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -45,12 +47,14 @@ private const val TAG = "PurchaseViewModel"
  * @param billingRepository Repository for billing operations and purchase updates.
  * @param analyticsManager Manager for tracking analytics events.
  * @param purchaseVerifier Verifier that consumes the purchase and resolves credits.
+ * @param pendingPurchasePrefs DataStore preferences for pending purchase token storage.
  */
 class PurchaseViewModel(
     private val creditRepository: CreditRepository,
     private val billingRepository: BillingRepository,
     private val analyticsManager: AnalyticsManager,
-    private val purchaseVerifier: PurchaseVerifier
+    private val purchaseVerifier: PurchaseVerifier,
+    private val pendingPurchasePrefs: PendingPurchasePreferencesSource
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PurchaseUiState())
@@ -100,6 +104,11 @@ class PurchaseViewModel(
 
         // Query products from Play Store
         queryProducts()
+
+        // Check if a pending purchase was resolved since last launch
+        viewModelScope.launch {
+            checkPendingPurchaseResolution()
+        }
     }
 
     /**
@@ -168,6 +177,21 @@ class PurchaseViewModel(
 
         when (update.responseCode) {
             BillingResponseCode.OK -> {
+                // Check for pending purchases (Ask-to-Buy / family approval)
+                val pendingToken = update.pendingPurchaseTokens.firstOrNull()
+                if (pendingToken != null) {
+                    val pendingProductId = update.pendingProductIds.firstOrNull() ?: productId
+                    analyticsManager.trackEvent(
+                        "purchase_pending",
+                        mapOf("product_id" to pendingProductId)
+                    )
+                    viewModelScope.launch {
+                        pendingPurchasePrefs.setPendingPurchase(pendingToken, pendingProductId)
+                    }
+                    _uiState.update { it.copy(purchaseState = PurchaseState.Pending) }
+                    return
+                }
+
                 val purchaseToken = update.purchaseTokens.firstOrNull()
                 if (purchaseToken == null) {
                     Log.e(TAG, "Purchase OK but no token received for $productId")
@@ -364,6 +388,76 @@ class PurchaseViewModel(
      */
     fun onPurchaseErrorDismissed() {
         _uiState.update { it.copy(purchaseState = null) }
+    }
+
+    /**
+     * Dismisses the pending purchase dialog and resets purchase state.
+     *
+     * The pending token remains in DataStore so the app can check for resolution
+     * on the next resume or ViewModel init.
+     */
+    fun onPendingDismissed() {
+        _uiState.update { it.copy(purchaseState = null) }
+    }
+
+    /**
+     * Checks if a previously pending purchase has been resolved.
+     *
+     * Called on ViewModel init. If a pending token exists in DataStore, queries
+     * the billing service for resolution:
+     * - [PendingPurchaseResolution.Purchased]: consume, deliver credits, clear token, emit event
+     * - [PendingPurchaseResolution.StillPending]: no-op, token remains for next check
+     * - [PendingPurchaseResolution.NotFound]: clear token (purchase was cancelled)
+     */
+    suspend fun checkPendingPurchaseResolution() {
+        val pendingToken = pendingPurchasePrefs.pendingPurchaseToken.first() ?: return
+        val pendingProductId = pendingPurchasePrefs.pendingPurchaseProductId.first()
+        if (pendingProductId == null) {
+            // Mismatched state: token exists but product ID doesn't — clear stale data
+            Log.w(TAG, "Pending token exists without product ID, clearing stale pending purchase")
+            pendingPurchasePrefs.clearPendingPurchase()
+            return
+        }
+
+        val resolutionResult = billingRepository.checkPendingPurchases(pendingToken)
+        resolutionResult.onFailure { error ->
+            Log.w(TAG, "Failed to check pending purchase resolution", error)
+            return
+        }
+
+        when (val resolution = resolutionResult.getOrThrow()) {
+            is PendingPurchaseResolution.Purchased -> {
+                val verifyResult = purchaseVerifier.verifyAndConsume(resolution.token, resolution.productId)
+                verifyResult.onFailure { error ->
+                    Log.e(TAG, "Failed to verify/consume resolved pending purchase", error)
+                    return
+                }
+
+                val credits = verifyResult.getOrThrow().credits
+                val creditsAdded = creditRepository.addCredits(credits)
+                if (!creditsAdded) {
+                    Log.e(TAG, "Failed to add credits after consuming resolved pending purchase")
+                    return
+                }
+                pendingPurchasePrefs.clearPendingPurchase()
+
+                analyticsManager.trackEvent(
+                    "purchase_pending_resolved",
+                    mapOf("product_id" to pendingProductId)
+                )
+
+                _events.send(PurchaseEvent.PendingPurchaseResolved(credits, pendingProductId))
+            }
+
+            is PendingPurchaseResolution.StillPending -> {
+                // No-op: purchase still awaiting approval, token remains for next check
+            }
+
+            is PendingPurchaseResolution.NotFound -> {
+                // Purchase was cancelled by approver — clear stored token
+                pendingPurchasePrefs.clearPendingPurchase()
+            }
+        }
     }
 
     override fun onCleared() {

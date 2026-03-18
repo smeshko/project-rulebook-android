@@ -16,6 +16,7 @@ import com.android.billingclient.api.consumePurchase
 import com.android.billingclient.api.queryProductDetails
 import com.android.billingclient.api.queryPurchasesAsync
 import com.rulebook.core.billing.repository.PurchaseInfo
+import com.rulebook.core.billing.repository.PurchaseInfoWithState
 import com.rulebook.core.model.ProductInfo
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -91,13 +92,17 @@ internal suspend fun <T> retryWithExponentialBackoff(
  * Represents a purchase result received from the PurchasesUpdatedListener.
  *
  * @property responseCode The BillingClient response code.
- * @property purchaseTokens List of purchase tokens from the update.
- * @property productIds List of product IDs (SKUs) from the update.
+ * @property purchaseTokens List of purchase tokens for completed (PURCHASED) purchases.
+ * @property productIds List of product IDs (SKUs) for completed purchases.
+ * @property pendingPurchaseTokens List of purchase tokens for pending (Ask-to-Buy) purchases.
+ * @property pendingProductIds List of product IDs (SKUs) for pending purchases.
  */
 data class PurchaseUpdate(
     val responseCode: Int,
     val purchaseTokens: List<String>,
-    val productIds: List<String> = emptyList()
+    val productIds: List<String> = emptyList(),
+    val pendingPurchaseTokens: List<String> = emptyList(),
+    val pendingProductIds: List<String> = emptyList()
 )
 
 /**
@@ -115,6 +120,17 @@ interface BillingClientWrapper {
     fun launchBillingFlow(activity: Activity, productId: String): Result<Unit>
     suspend fun consumePurchase(purchaseToken: String): Result<Unit>
     suspend fun queryPurchases(): Result<List<PurchaseInfo>>
+
+    /**
+     * Queries all in-app purchases regardless of purchase state.
+     *
+     * Unlike [queryPurchases] which only returns PURCHASED state purchases,
+     * this returns all purchases including PENDING ones. Used to check if a
+     * pending purchase has been resolved.
+     *
+     * @return Result containing list of all purchase info (including state), or error.
+     */
+    suspend fun queryAllPurchases(): Result<List<PurchaseInfoWithState>>
     fun disconnect()
 }
 
@@ -140,14 +156,28 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
     private val cachedProductDetails = mutableMapOf<String, com.android.billingclient.api.ProductDetails>()
 
     private val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
-        // Only include purchases that have completed (PURCHASED state).
-        // Pending purchases (e.g. family approval) are handled by Story 8.9.
         val completedPurchases = purchases?.filter {
             it.purchaseState == Purchase.PurchaseState.PURCHASED
         }
         val tokens = completedPurchases?.map { it.purchaseToken } ?: emptyList()
         val productIds = completedPurchases?.flatMap { it.products } ?: emptyList()
-        _purchaseUpdates.tryEmit(PurchaseUpdate(billingResult.responseCode, tokens, productIds))
+
+        // Detect pending purchases (Ask-to-Buy / family approval required).
+        val pendingPurchases = purchases?.filter {
+            it.purchaseState == Purchase.PurchaseState.PENDING
+        }
+        val pendingTokens = pendingPurchases?.map { it.purchaseToken } ?: emptyList()
+        val pendingProductIds = pendingPurchases?.flatMap { it.products } ?: emptyList()
+
+        _purchaseUpdates.tryEmit(
+            PurchaseUpdate(
+                responseCode = billingResult.responseCode,
+                purchaseTokens = tokens,
+                productIds = productIds,
+                pendingPurchaseTokens = pendingTokens,
+                pendingProductIds = pendingProductIds
+            )
+        )
     }
 
     private val billingClient: BillingClient = BillingClient.newBuilder(context)
@@ -325,6 +355,40 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
                 updateConnectionStateOnError(result.billingResult.responseCode)
                 Result.failure(
                     Exception("Query purchases failed: ${result.billingResult.debugMessage}")
+                )
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun queryAllPurchases(): Result<List<PurchaseInfoWithState>> {
+        val params = QueryPurchasesParams.newBuilder()
+            .setProductType(BillingClient.ProductType.INAPP)
+            .build()
+
+        return try {
+            val result = billingClient.queryPurchasesAsync(params)
+            if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                val purchases = result.purchasesList
+                    .filter {
+                        it.purchaseState == Purchase.PurchaseState.PURCHASED ||
+                            it.purchaseState == Purchase.PurchaseState.PENDING
+                    }
+                    .filter { it.products.isNotEmpty() }
+                    .map { purchase ->
+                        PurchaseInfoWithState(
+                            purchaseToken = purchase.purchaseToken,
+                            productId = purchase.products.first(),
+                            orderId = purchase.orderId ?: "",
+                            isPurchased = purchase.purchaseState == Purchase.PurchaseState.PURCHASED
+                        )
+                    }
+                Result.success(purchases)
+            } else {
+                updateConnectionStateOnError(result.billingResult.responseCode)
+                Result.failure(
+                    Exception("Query all purchases failed: ${result.billingResult.debugMessage}")
                 )
             }
         } catch (e: Exception) {

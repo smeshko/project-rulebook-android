@@ -4,10 +4,18 @@ plugins {
 
 android {
     namespace = "com.rulebook.core.billing"
+
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
     implementation(project(":core:model"))
+    implementation(project(":core:data"))
+    implementation(project(":core:datastore"))
 
     implementation(libs.play.billing)
     implementation(libs.androidx.core.ktx)

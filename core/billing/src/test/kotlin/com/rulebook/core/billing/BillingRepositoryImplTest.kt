@@ -2,6 +2,8 @@ package com.rulebook.core.billing
 
 import android.app.Activity
 import com.rulebook.core.billing.repository.PurchaseInfo
+import com.rulebook.core.billing.repository.PurchaseInfoWithState
+import com.rulebook.core.model.PendingPurchaseResolution
 import com.rulebook.core.model.ProductInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -15,6 +17,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlin.test.assertIs
 
 class BillingRepositoryImplTest {
 
@@ -171,6 +174,64 @@ class BillingRepositoryImplTest {
         assertEquals("No connection", result.exceptionOrNull()?.message)
     }
 
+    // ==================== checkPendingPurchases Tests ====================
+
+    @Test
+    fun `checkPendingPurchases returns Purchased when token found with isPurchased true`() = runTest {
+        fakeWrapper.allPurchasesResult = Result.success(
+            listOf(PurchaseInfoWithState("pending-token", "credits_3", "order-1", isPurchased = true))
+        )
+
+        val result = repository.checkPendingPurchases("pending-token")
+
+        assertTrue(result.isSuccess)
+        val resolution = result.getOrThrow()
+        assertIs<PendingPurchaseResolution.Purchased>(resolution)
+        assertEquals("pending-token", resolution.token)
+        assertEquals("credits_3", resolution.productId)
+    }
+
+    @Test
+    fun `checkPendingPurchases returns StillPending when token found with isPurchased false`() = runTest {
+        fakeWrapper.allPurchasesResult = Result.success(
+            listOf(PurchaseInfoWithState("pending-token", "credits_3", "order-1", isPurchased = false))
+        )
+
+        val result = repository.checkPendingPurchases("pending-token")
+
+        assertTrue(result.isSuccess)
+        assertIs<PendingPurchaseResolution.StillPending>(result.getOrThrow())
+    }
+
+    @Test
+    fun `checkPendingPurchases returns NotFound when token not in purchase list`() = runTest {
+        fakeWrapper.allPurchasesResult = Result.success(emptyList())
+
+        val result = repository.checkPendingPurchases("missing-token")
+
+        assertTrue(result.isSuccess)
+        assertIs<PendingPurchaseResolution.NotFound>(result.getOrThrow())
+    }
+
+    @Test
+    fun `checkPendingPurchases returns failure when connection fails`() = runTest {
+        fakeWrapper.connectionResult = Result.failure(Exception("No connection"))
+
+        val result = repository.checkPendingPurchases("pending-token")
+
+        assertTrue(result.isFailure)
+        assertEquals("No connection", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `checkPendingPurchases returns failure when wrapper queryAllPurchases fails`() = runTest {
+        fakeWrapper.allPurchasesResult = Result.failure(Exception("Query failed"))
+
+        val result = repository.checkPendingPurchases("pending-token")
+
+        assertTrue(result.isFailure)
+    }
+
     // ==================== Retry-on-Disconnect Tests ====================
 
     @Test
@@ -232,6 +293,7 @@ open class FakeBillingClientWrapper : BillingClientWrapper {
     var productsToReturn: Result<List<ProductInfo>> = Result.success(emptyList())
     var consumeResult: Result<Unit> = Result.success(Unit)
     var purchasesResult: Result<List<PurchaseInfo>> = Result.success(emptyList())
+    var allPurchasesResult: Result<List<PurchaseInfoWithState>> = Result.success(emptyList())
 
     var lastConsumedToken: String? = null
 
@@ -258,6 +320,8 @@ open class FakeBillingClientWrapper : BillingClientWrapper {
     }
 
     override suspend fun queryPurchases(): Result<List<PurchaseInfo>> = purchasesResult
+
+    override suspend fun queryAllPurchases(): Result<List<PurchaseInfoWithState>> = allPurchasesResult
 
     override fun disconnect() {
         _connectionState.value = false

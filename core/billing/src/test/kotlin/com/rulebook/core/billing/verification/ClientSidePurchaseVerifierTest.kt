@@ -4,6 +4,7 @@ import android.app.Activity
 import com.rulebook.core.billing.PurchaseUpdate
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.billing.repository.PurchaseInfo
+import com.rulebook.core.model.PendingPurchaseResolution
 import com.rulebook.core.model.ProductInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -128,6 +129,9 @@ class FakeVerifierBillingRepository(
 
     override suspend fun queryUnconsumedPurchases(): Result<List<PurchaseInfo>> =
         Result.success(emptyList())
+
+    override suspend fun checkPendingPurchases(pendingToken: String): Result<PendingPurchaseResolution> =
+        Result.success(PendingPurchaseResolution.NotFound)
 
     override fun creditsForProduct(productId: String): Int? {
         creditsLookupCount++

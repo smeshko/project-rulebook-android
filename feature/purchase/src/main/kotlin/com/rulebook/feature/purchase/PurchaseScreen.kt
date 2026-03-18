@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -101,6 +102,12 @@ fun PurchaseScreen(
                         viewModel.onRestorePurchases()
                     }
                 }
+                is PurchaseEvent.PendingPurchaseResolved -> {
+                    snackbarHostState.showSnackbar(
+                        message = "Purchase approved! ${event.creditsAdded} credits added",
+                        duration = SnackbarDuration.Short
+                    )
+                }
             }
         }
     }
@@ -132,6 +139,7 @@ fun PurchaseScreen(
         onDismiss = viewModel::onDismiss,
         onRestorePurchases = viewModel::onRestorePurchases,
         onPurchaseErrorDismissed = viewModel::onPurchaseErrorDismissed,
+        onPendingDismissed = viewModel::onPendingDismissed,
         snackbarHostState = snackbarHostState,
         modifier = modifier
     )
@@ -157,6 +165,7 @@ internal fun PurchaseScreenContent(
     onDismiss: () -> Unit,
     onRestorePurchases: () -> Unit,
     onPurchaseErrorDismissed: () -> Unit = {},
+    onPendingDismissed: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     modifier: Modifier = Modifier
 ) {
@@ -291,6 +300,51 @@ internal fun PurchaseScreenContent(
                 .brutalistBorder()
         )
     }
+
+    // Pending dialog — shown when purchase requires Ask-to-Buy family approval
+    if (uiState.purchaseState is PurchaseState.Pending) {
+        AlertDialog(
+            onDismissRequest = onPendingDismissed,
+            confirmButton = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(spacing.sm)
+                ) {
+                    RulebookButton(
+                        text = "OK",
+                        onClick = onPendingDismissed,
+                        variant = ButtonVariant.Secondary,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.HourglassEmpty,
+                    contentDescription = null,
+                    tint = RulebookTheme.colors.orange,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Purchase Pending",
+                    style = RulebookTheme.typography.brutalistTitle
+                )
+            },
+            text = {
+                Text(
+                    text = "Your purchase is waiting for approval. Credits will be added automatically once approved.",
+                    style = RulebookTheme.typography.body
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RectangleShape,
+            modifier = Modifier
+                .brutalistShadow(offset = RulebookTheme.spacing.shadowOffsetMedium)
+                .brutalistBorder()
+        )
+    }
 }
 
 // =============================================================================
@@ -405,6 +459,27 @@ private fun PurchaseScreenRestoringLightPreview() {
                 ),
                 isLoading = false,
                 isRestoring = true
+            ),
+            onProductSelected = {},
+            onDismiss = {},
+            onRestorePurchases = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Purchase Screen - Pending Light")
+@Composable
+private fun PurchaseScreenPendingLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        PurchaseScreenContent(
+            uiState = PurchaseUiState(
+                products = listOf(
+                    ProductInfo("credits_1", "1 Credit", "$0.99", 1),
+                    ProductInfo("credits_3", "3 Credits", "$2.49", 3),
+                    ProductInfo("credits_10", "10 Credits", "$6.99", 10)
+                ),
+                isLoading = false,
+                purchaseState = PurchaseState.Pending
             ),
             onProductSelected = {},
             onDismiss = {},

@@ -2,6 +2,7 @@ package com.rulebook.core.billing.repository
 
 import android.app.Activity
 import com.rulebook.core.billing.PurchaseUpdate
+import com.rulebook.core.model.PendingPurchaseResolution
 import com.rulebook.core.model.ProductInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
@@ -74,6 +75,17 @@ interface BillingRepository {
     suspend fun queryUnconsumedPurchases(): Result<List<PurchaseInfo>>
 
     /**
+     * Checks whether a pending purchase (Ask-to-Buy) has been resolved.
+     *
+     * Queries all in-app purchases to find a pending purchase and determine
+     * if it has been approved (PURCHASED) or is still waiting (PENDING).
+     *
+     * @param pendingToken The purchase token that was previously stored as pending.
+     * @return Result containing [PendingPurchaseResolution] indicating the current state.
+     */
+    suspend fun checkPendingPurchases(pendingToken: String): Result<PendingPurchaseResolution>
+
+    /**
      * Returns the number of credits for a given product ID.
      *
      * @param productId The product SKU to look up.
@@ -93,4 +105,22 @@ data class PurchaseInfo(
     val purchaseToken: String,
     val productId: String,
     val orderId: String
+)
+
+/**
+ * Represents a purchase with its current purchase state.
+ *
+ * Used by [BillingClientWrapper.queryAllPurchases] to return purchases
+ * regardless of state (including PENDING state for Ask-to-Buy).
+ *
+ * @property purchaseToken The unique token identifying this purchase.
+ * @property productId The product identifier (SKU) that was purchased.
+ * @property orderId The Google Play order ID.
+ * @property isPurchased True if the purchase state is PURCHASED (approved), false if PENDING.
+ */
+data class PurchaseInfoWithState(
+    val purchaseToken: String,
+    val productId: String,
+    val orderId: String,
+    val isPurchased: Boolean
 )
