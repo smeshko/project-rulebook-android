@@ -303,4 +303,80 @@ class AnalyticsManagerTest {
         assertEquals("Catan", analyticsManager.trackedEvents[0].properties["game_name"])
         assertEquals("2", analyticsManager.trackedEvents[0].properties["new_credit_balance"])
     }
+
+    @Test
+    fun `trackPaywallDisplayed fires paywall_displayed event with source and current_balance`() {
+        analyticsManager.trackPaywallDisplayed(source = "scan_gate", currentBalance = 3)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("paywall_displayed", analyticsManager.trackedEvents[0].name)
+        assertEquals("scan_gate", analyticsManager.trackedEvents[0].properties["source"])
+        assertEquals("3", analyticsManager.trackedEvents[0].properties["current_balance"])
+    }
+
+    @Test
+    fun `trackPaywallDisplayed fires event with zero balance`() {
+        analyticsManager.trackPaywallDisplayed(source = "settings", currentBalance = 0)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("paywall_displayed", analyticsManager.trackedEvents[0].name)
+        assertEquals("settings", analyticsManager.trackedEvents[0].properties["source"])
+        assertEquals("0", analyticsManager.trackedEvents[0].properties["current_balance"])
+    }
+
+    @Test
+    fun `trackPurchaseStarted fires purchase_started event with sku and credits`() {
+        analyticsManager.trackPurchaseStarted(sku = "credits_3", credits = 3)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("purchase_started", analyticsManager.trackedEvents[0].name)
+        assertEquals("credits_3", analyticsManager.trackedEvents[0].properties["sku"])
+        assertEquals("3", analyticsManager.trackedEvents[0].properties["credits"])
+    }
+
+    @Test
+    fun `trackPurchaseCompleted fires purchase_completed event with sku, credits_added, and new_balance`() {
+        analyticsManager.trackPurchaseCompleted(sku = "credits_10", creditsAdded = 10, newBalance = 15)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("purchase_completed", analyticsManager.trackedEvents[0].name)
+        assertEquals("credits_10", analyticsManager.trackedEvents[0].properties["sku"])
+        assertEquals("10", analyticsManager.trackedEvents[0].properties["credits_added"])
+        assertEquals("15", analyticsManager.trackedEvents[0].properties["new_balance"])
+    }
+
+    @Test
+    fun `trackPurchaseFailed fires purchase_failed event with sku, error_code, and error_message`() {
+        analyticsManager.trackPurchaseFailed(
+            sku = "credits_1",
+            errorCode = "USER_CANCELED",
+            errorMessage = "User cancelled the purchase"
+        )
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("purchase_failed", analyticsManager.trackedEvents[0].name)
+        assertEquals("credits_1", analyticsManager.trackedEvents[0].properties["sku"])
+        assertEquals("USER_CANCELED", analyticsManager.trackedEvents[0].properties["error_code"])
+        assertEquals("User cancelled the purchase", analyticsManager.trackedEvents[0].properties["error_message"])
+    }
+
+    @Test
+    fun `trackPurchaseRestored fires purchase_restored event with result and credits_restored`() {
+        analyticsManager.trackPurchaseRestored(result = "success", creditsRestored = 4)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("purchase_restored", analyticsManager.trackedEvents[0].name)
+        assertEquals("success", analyticsManager.trackedEvents[0].properties["result"])
+        assertEquals("4", analyticsManager.trackedEvents[0].properties["credits_restored"])
+    }
+
+    @Test
+    fun `trackPurchaseRestored fires event with zero credits when none restored`() {
+        analyticsManager.trackPurchaseRestored(result = "none", creditsRestored = 0)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("purchase_restored", analyticsManager.trackedEvents[0].name)
+        assertEquals("none", analyticsManager.trackedEvents[0].properties["result"])
+        assertEquals("0", analyticsManager.trackedEvents[0].properties["credits_restored"])
+    }
 }
