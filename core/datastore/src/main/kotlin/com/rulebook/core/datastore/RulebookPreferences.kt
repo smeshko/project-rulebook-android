@@ -29,7 +29,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  * @param context Application context for DataStore access. Must be Application context
  *                to avoid memory leaks.
  */
-open class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource, SortPreferencesSource {
+open class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource, SortPreferencesSource, PendingPurchasePreferencesSource {
 
     /**
      * Preference keys used for DataStore storage.
@@ -41,6 +41,8 @@ open class RulebookPreferences(private val context: Context) : OnboardingPrefere
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
         val SORT_ORDER = stringPreferencesKey("sort_order")
+        val PENDING_PURCHASE_TOKEN = stringPreferencesKey("pending_purchase_token")
+        val PENDING_PURCHASE_PRODUCT_ID = stringPreferencesKey("pending_purchase_product_id")
     }
 
     /**
@@ -149,6 +151,38 @@ open class RulebookPreferences(private val context: Context) : OnboardingPrefere
             preferences[Keys.CREDIT_BALANCE] = currentBalance + amount
         }
         return true
+    }
+
+    /**
+     * Flow of the pending purchase token, or null if no purchase is pending.
+     */
+    override val pendingPurchaseToken: Flow<String?> = context.dataStore.data
+        .map { preferences -> preferences[Keys.PENDING_PURCHASE_TOKEN] }
+
+    /**
+     * Flow of the pending purchase product ID, or null if no purchase is pending.
+     */
+    override val pendingPurchaseProductId: Flow<String?> = context.dataStore.data
+        .map { preferences -> preferences[Keys.PENDING_PURCHASE_PRODUCT_ID] }
+
+    /**
+     * Stores the pending purchase token and product ID atomically.
+     */
+    override suspend fun setPendingPurchase(token: String, productId: String) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.PENDING_PURCHASE_TOKEN] = token
+            preferences[Keys.PENDING_PURCHASE_PRODUCT_ID] = productId
+        }
+    }
+
+    /**
+     * Clears the pending purchase token and product ID atomically.
+     */
+    override suspend fun clearPendingPurchase() {
+        context.dataStore.edit { preferences ->
+            preferences.remove(Keys.PENDING_PURCHASE_TOKEN)
+            preferences.remove(Keys.PENDING_PURCHASE_PRODUCT_ID)
+        }
     }
 
     /**
