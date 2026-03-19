@@ -30,14 +30,15 @@ import com.rulebook.startup.StartupDestination
  * - Provides the RulebookScaffold structure with bottom bar, FAB, and navigation
  *
  * @param startDestination The initial navigation destination based on onboarding status.
+ * @param darkTheme Whether the app is currently in dark theme, resolved at MainActivity level.
  * @param modifier Optional modifier for the root composable
  */
 @Composable
 fun RulebookApp(
     startDestination: StartupDestination,
+    darkTheme: Boolean = isSystemInDarkTheme(),
     modifier: Modifier = Modifier
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
     val navController = rememberNavController()
 
     // Map StartupDestination to navigation route
@@ -48,7 +49,7 @@ fun RulebookApp(
 
     // Configure status bar and navigation bar icon colors based on theme
     // Note: enableEdgeToEdge() in MainActivity handles transparent bars
-    ConfigureSystemBars(isDarkTheme = isDarkTheme)
+    ConfigureSystemBars(isDarkTheme = darkTheme)
 
     Surface(
         modifier = modifier.fillMaxSize(),
