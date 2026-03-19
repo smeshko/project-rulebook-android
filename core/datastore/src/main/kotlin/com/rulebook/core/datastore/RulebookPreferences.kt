@@ -29,7 +29,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  * @param context Application context for DataStore access. Must be Application context
  *                to avoid memory leaks.
  */
-open class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource, SortPreferencesSource, PendingPurchasePreferencesSource {
+open class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource, SortPreferencesSource, PendingPurchasePreferencesSource, ThemePreferencesSource {
 
     /**
      * Preference keys used for DataStore storage.
@@ -189,7 +189,7 @@ open class RulebookPreferences(private val context: Context) : OnboardingPrefere
      * Flow of current theme mode setting.
      * Default: [ThemeMode.SYSTEM]
      */
-    open val themeMode: Flow<ThemeMode> = context.dataStore.data
+    override val themeMode: Flow<ThemeMode> = context.dataStore.data
         .map { preferences ->
             ThemeMode.fromString(preferences[Keys.THEME_MODE])
         }
@@ -197,7 +197,7 @@ open class RulebookPreferences(private val context: Context) : OnboardingPrefere
     /**
      * Sets the theme mode.
      */
-    open suspend fun setThemeMode(mode: ThemeMode) {
+    override suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { preferences ->
             preferences[Keys.THEME_MODE] = mode.name
         }

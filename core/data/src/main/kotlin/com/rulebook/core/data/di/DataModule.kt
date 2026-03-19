@@ -15,6 +15,7 @@ import com.rulebook.core.datastore.OnboardingPreferencesSource
 import com.rulebook.core.datastore.PendingPurchasePreferencesSource
 import com.rulebook.core.datastore.RulebookPreferences
 import com.rulebook.core.datastore.SortPreferencesSource
+import com.rulebook.core.datastore.ThemePreferencesSource
 import org.koin.dsl.module
 
 val dataModule = module {
@@ -31,6 +32,7 @@ val dataModule = module {
     single<CreditPreferencesSource> { get<RulebookPreferences>() }
     single<CreditRepository> { CreditRepositoryImpl(get()) }
     single<SortPreferencesSource> { get<RulebookPreferences>() }
+    single<ThemePreferencesSource> { get<RulebookPreferences>() }
     single<PendingPurchasePreferencesSource> { get<RulebookPreferences>() }
     single<ScanRepository> { ScanRepositoryImpl(api = get(), context = get()) }
 }
