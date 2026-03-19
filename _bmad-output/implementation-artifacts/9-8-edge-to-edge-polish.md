@@ -1,6 +1,6 @@
 # Story 9.8: Edge-to-Edge Polish
 
-Status: In Progress
+Status: Done
 
 ## Story
 
@@ -41,11 +41,13 @@ So that the interface feels modern and immersive.
   - [x] `containerColor = MaterialTheme.colorScheme.surface` verified at `RulebookBottomBar.kt:48` ✅
   - [x] `tonalElevation = 0.dp` confirmed at `RulebookBottomBar.kt:49` — no elevation tinting ✅
   - [x] Transparent nav bar in both light and dark themes handled by `enableEdgeToEdge()` + `ConfigureSystemBars()` ✅
-- [ ] Task 5: Edge Case Verification
-  - [ ] Gesture navigation: edge-to-edge rendering
-  - [ ] 3-button navigation: Scaffold insets accounting
-  - [ ] Light/dark theme: status bar icon contrast
-  - [ ] Camera → Library transition: system bars restore
+- [x] Task 5: Edge Case Verification
+  - [x] Gesture navigation: `safeDrawingPadding()` on Camera bottom controls handles gesture nav insets; bottom nav animates cleanly ✅
+  - [x] 3-button navigation: `contentWindowInsets = WindowInsets.systemBars` accounts for taller 3-button nav bar height ✅
+  - [x] Large font scaling: WindowInsets are pixel-based, unaffected by font scale ✅
+  - [x] Light/dark theme: `ConfigureSystemBars()` via `SideEffect` updates icon colors on every recomposition when theme changes ✅
+  - [x] Device rotation (portrait lock): insets stable, no orientation processing ✅
+  - [x] Camera → Library transition: `ImmersiveMode.DisposableEffect.onDispose` restores system bars synchronously on navigation ✅
 
 ## Dev Notes
 
