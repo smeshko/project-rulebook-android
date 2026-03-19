@@ -1,6 +1,7 @@
 package com.rulebook
 
 import android.app.Activity
+import android.content.Intent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -20,6 +22,8 @@ import com.rulebook.navigation.Route
 import com.rulebook.navigation.RulebookNavHost
 import com.rulebook.navigation.RulebookScaffold
 import com.rulebook.startup.StartupDestination
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 /**
  * Root composable for the Rulebook app.
@@ -37,9 +41,19 @@ import com.rulebook.startup.StartupDestination
 fun RulebookApp(
     startDestination: StartupDestination,
     darkTheme: Boolean = isSystemInDarkTheme(),
+    newIntentFlow: Flow<Intent> = emptyFlow(),
     modifier: Modifier = Modifier
 ) {
     val navController = rememberNavController()
+
+    // Handle deep links from onNewIntent (warm-start shortcut navigation).
+    // NavHost only processes the Activity's intent on initial composition;
+    // subsequent intents (singleTop) must be forwarded explicitly.
+    LaunchedEffect(Unit) {
+        newIntentFlow.collect { intent ->
+            navController.handleDeepLink(intent)
+        }
+    }
 
     // Map StartupDestination to navigation route
     val startRoute = when (startDestination) {

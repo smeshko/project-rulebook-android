@@ -154,3 +154,12 @@ This guide helps you find relevant documentation based on what you're working on
     - When clearing database tables and resetting user preferences in Android apps
     - When deciding between interface abstractions vs lambda patterns for Room dependencies
     - When implementing dialogs that preserve certain data during reset operations
+
+- `docs/features/app-shortcuts-deep-link-mvi-pattern.md` - App Shortcuts: Deep Link Navigation with MVI Preference Pattern (RULE-239)
+  - Conditions:
+    - When implementing app shortcuts with deep link navigation to screens
+    - When observing user preferences (haptics, theme, language) in ViewModels for MVI pattern compliance
+    - When handling warm-start deep link navigation with singleTop launch mode
+    - When creating preference source implementations with DataStore error handling patterns
+    - When writing unit tests for ViewModels that observe multiple preference flows
+    - When designing lifecycle-safe state management for preference-dependent UI features

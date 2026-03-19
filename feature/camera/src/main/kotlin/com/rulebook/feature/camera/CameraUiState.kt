@@ -59,6 +59,7 @@ data class FocusPoint(
  * @param permissionState Current state of camera permission. Default is [CameraPermissionState.NOT_DETERMINED].
  * @param hasRequestedPermission True if permission request has been launched this session.
  *                               Used to distinguish first-time users from permanently denied.
+ * @param hapticsEnabled Whether haptic feedback is enabled per user preference (Story 9.2).
  */
 data class CameraUiState(
     val isCameraReady: Boolean = false,
@@ -76,5 +77,6 @@ data class CameraUiState(
     val lastGalleryThumbnailUri: String? = null,
     val creditBalance: Int = 0,
     val permissionState: CameraPermissionState = CameraPermissionState.NOT_DETERMINED,
-    val hasRequestedPermission: Boolean = false
+    val hasRequestedPermission: Boolean = false,
+    val hapticsEnabled: Boolean = true
 )

@@ -1,5 +1,6 @@
 package com.rulebook
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -16,6 +17,8 @@ import com.rulebook.core.datastore.RulebookPreferences
 import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.startup.StartupViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -35,6 +38,8 @@ class MainActivity : ComponentActivity() {
     private val startupViewModel: StartupViewModel by viewModel()
     private val pendingPurchaseChecker: PendingPurchaseChecker by inject()
     private val preferences: RulebookPreferences by inject()
+    private val _newIntentFlow = MutableSharedFlow<Intent>(extraBufferCapacity = 1)
+    val newIntentFlow = _newIntentFlow.asSharedFlow()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Install splash screen BEFORE super.onCreate()
@@ -66,10 +71,22 @@ class MainActivity : ComponentActivity() {
                 // Only render app once startup destination is determined
                 // Splash screen is held until this point, so no flash occurs
                 startupDestination?.let { destination ->
-                    RulebookApp(startDestination = destination, darkTheme = darkTheme)
+                    RulebookApp(
+                        startDestination = destination,
+                        darkTheme = darkTheme,
+                        newIntentFlow = newIntentFlow
+                    )
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        // Emit the new intent so RulebookApp can call navController.handleDeepLink
+        // for warm-start deep link navigation (singleTop from app shortcut).
+        _newIntentFlow.tryEmit(intent)
     }
 
     override fun onResume() {

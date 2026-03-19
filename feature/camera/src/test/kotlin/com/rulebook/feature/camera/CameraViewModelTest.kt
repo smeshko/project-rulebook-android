@@ -2,6 +2,7 @@ package com.rulebook.feature.camera
 
 import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.data.repository.CreditRepository
+import com.rulebook.core.datastore.HapticsPreferencesSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -31,15 +32,18 @@ class CameraViewModelTest {
     private lateinit var viewModel: CameraViewModel
     private lateinit var fakeCreditRepository: FakeCreditRepository
     private lateinit var fakeAnalyticsManager: FakeAnalyticsManager
+    private lateinit var fakeHapticsPreferencesSource: FakeHapticsPreferencesSource
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         fakeCreditRepository = FakeCreditRepository()
         fakeAnalyticsManager = FakeAnalyticsManager()
+        fakeHapticsPreferencesSource = FakeHapticsPreferencesSource()
         viewModel = CameraViewModel(
             creditRepository = fakeCreditRepository,
-            analyticsManager = fakeAnalyticsManager
+            analyticsManager = fakeAnalyticsManager,
+            hapticsPreferencesSource = fakeHapticsPreferencesSource
         )
     }
 
@@ -481,6 +485,61 @@ class CameraViewModelTest {
     }
 
     // =========================================================================
+    // Haptics Preference Tests (Story 9.2)
+    // =========================================================================
+
+    @Test
+    fun `initial state has hapticsEnabled true by default`() = runTest {
+        val state = viewModel.uiState.first()
+
+        assertTrue(state.hapticsEnabled)
+    }
+
+    @Test
+    fun `hapticsEnabled updates when preference changes to false`() = runTest {
+        fakeHapticsPreferencesSource.setHapticsEnabled(false)
+        advanceUntilIdle()
+        val state = viewModel.uiState.first()
+
+        assertFalse(state.hapticsEnabled)
+    }
+
+    @Test
+    fun `hapticsEnabled updates reactively on preference change`() = runTest {
+        // Initially enabled
+        assertTrue(viewModel.uiState.first().hapticsEnabled)
+
+        // Disable haptics
+        fakeHapticsPreferencesSource.setHapticsEnabled(false)
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.first().hapticsEnabled)
+
+        // Re-enable haptics
+        fakeHapticsPreferencesSource.setHapticsEnabled(true)
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.first().hapticsEnabled)
+    }
+
+    @Test
+    fun `hapticsEnabled defaults to true when preference source throws`() = runTest {
+        // Create a ViewModel with an error-throwing haptics source
+        val errorHapticsSource = object : HapticsPreferencesSource {
+            override val hapticsEnabled: Flow<Boolean> =
+                kotlinx.coroutines.flow.flow { throw RuntimeException("DataStore error") }
+            override suspend fun setHapticsEnabled(enabled: Boolean) {}
+        }
+        val errorViewModel = CameraViewModel(
+            creditRepository = fakeCreditRepository,
+            analyticsManager = fakeAnalyticsManager,
+            hapticsPreferencesSource = errorHapticsSource
+        )
+        advanceUntilIdle()
+
+        // Should default to true (haptics on) when DataStore fails
+        assertTrue(errorViewModel.uiState.first().hapticsEnabled)
+    }
+
+    // =========================================================================
     // Credit Balance Tests (Story 4.8)
     // =========================================================================
 
@@ -873,5 +932,21 @@ class FakeAnalyticsManager : AnalyticsManager {
         _trackedEvents.clear()
         _trackedScreenViews.clear()
         shouldThrowOnTrackEvent = false
+    }
+}
+
+/**
+ * Fake implementation of [HapticsPreferencesSource] for testing.
+ */
+class FakeHapticsPreferencesSource(
+    initialEnabled: Boolean = true
+) : HapticsPreferencesSource {
+
+    private val _hapticsEnabled = MutableStateFlow(initialEnabled)
+
+    override val hapticsEnabled: Flow<Boolean> = _hapticsEnabled
+
+    override suspend fun setHapticsEnabled(enabled: Boolean) {
+        _hapticsEnabled.value = enabled
     }
 }
