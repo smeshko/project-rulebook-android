@@ -86,6 +86,8 @@ class SettingsViewModel(
      * Updates local UI state immediately and persists to DataStore.
      */
     fun onThemeSelected(mode: ThemeMode) {
+        val previousTheme = _uiState.value.themeMode
+        analyticsManager.trackSettingsThemeChanged(mode.name.lowercase(), previousTheme.name.lowercase())
         _uiState.update { it.copy(themeMode = mode) }
         viewModelScope.launch {
             themePreferencesSource.setThemeMode(mode)
@@ -97,6 +99,7 @@ class SettingsViewModel(
      * Updates local UI state immediately and persists to DataStore.
      */
     fun onHapticsToggle(enabled: Boolean) {
+        analyticsManager.trackSettingsHapticsChanged(enabled)
         _uiState.update { it.copy(isHapticsEnabled = enabled) }
         viewModelScope.launch {
             hapticsPreferencesSource.setHapticsEnabled(enabled)
@@ -138,6 +141,10 @@ class SettingsViewModel(
     fun onClearData() {
         _uiState.update { it.copy(showClearConfirmation = false) }
         viewModelScope.launch {
+            val gamesCount = when (val result = gameRepository.getGames()) {
+                is Result.Success -> result.data.size
+                is Result.Error -> 0
+            }
             try {
                 clearDatabase()
             } catch (_: Exception) {
@@ -149,6 +156,7 @@ class SettingsViewModel(
             } catch (_: Exception) {
                 // Database already cleared — proceed to onboarding despite preferences error
             }
+            analyticsManager.trackSettingsDataCleared(gamesCount)
             _events.send(SettingsEvent.ShowSnackbar("All data cleared"))
             _events.send(SettingsEvent.NavigateToOnboarding)
         }
@@ -158,6 +166,7 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.ContactSupport] event to open the email composer.
      */
     fun onContactUs() {
+        analyticsManager.trackSettingsSupportTapped("contact")
         viewModelScope.launch {
             _events.send(SettingsEvent.ContactSupport)
         }
@@ -167,6 +176,7 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.ReportBug] event to open the bug report email composer.
      */
     fun onReportBug() {
+        analyticsManager.trackSettingsSupportTapped("bug")
         viewModelScope.launch {
             _events.send(SettingsEvent.ReportBug)
         }
@@ -176,6 +186,7 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.RateApp] event to open the Play Store listing.
      */
     fun onRateApp() {
+        analyticsManager.trackSettingsSupportTapped("rate")
         viewModelScope.launch {
             _events.send(SettingsEvent.RateApp)
         }
@@ -185,6 +196,7 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.OpenPrivacyPolicy] event to open the privacy policy in the browser.
      */
     fun onPrivacyPolicy() {
+        analyticsManager.trackSettingsSupportTapped("privacy")
         viewModelScope.launch {
             _events.send(SettingsEvent.OpenPrivacyPolicy)
         }
@@ -194,6 +206,7 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.OpenTermsOfService] event to open the terms of service in the browser.
      */
     fun onTermsOfService() {
+        analyticsManager.trackSettingsSupportTapped("terms")
         viewModelScope.launch {
             _events.send(SettingsEvent.OpenTermsOfService)
         }
