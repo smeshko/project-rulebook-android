@@ -98,9 +98,15 @@ fun RulebookNavHost(
         // Predictive back handled automatically by NavHost - shows preview during gesture
         // Close button and system back navigate to previous screen (Story 4.10)
         // Credit check before proceeding to scan (Story 5.1)
+        // Deep link: rulebook://camera — used by app shortcut (Story 9.6)
         // Uses slide transition for detail screen
         composable(
             route = Route.Camera.route,
+            deepLinks = listOf(
+                navDeepLink {
+                    uriPattern = "${DeepLinkConfig.SCHEME}://${DeepLinkConfig.HOST_CAMERA}"
+                }
+            ),
             enterTransition = { slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
             exitTransition = { slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(TRANSITION_DURATION_MS)) },
             popEnterTransition = { slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(TRANSITION_DURATION_MS)) },

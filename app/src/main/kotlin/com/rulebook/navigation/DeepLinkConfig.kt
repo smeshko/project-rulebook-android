@@ -16,16 +16,17 @@ package com.rulebook.navigation
  *    - Example: rulebook://rules/chess-classic
  *    - Opens the rules viewer for the specified game
  *
+ * 2. Camera Screen:
+ *    - Pattern: rulebook://camera
+ *    - Opens the camera for capturing rulebook pages
+ *    - Used by the "Scan Game" app shortcut (Story 9.6)
+ *
  * Future Deep Links (to be implemented):
  * --------------------------------------
  *
- * 2. Library Screen:
+ * 3. Library Screen:
  *    - Pattern: rulebook://library
  *    - Opens the main library screen
- *
- * 3. Camera Screen:
- *    - Pattern: rulebook://camera
- *    - Opens the camera for capturing rulebook pages
  *
  * 4. Settings Screen:
  *    - Pattern: rulebook://settings
@@ -71,8 +72,9 @@ object DeepLinkConfig {
     const val HOST_LIBRARY = "library"
 
     /**
-     * Host path for camera deep links (future use).
+     * Host path for camera deep links.
      * Full pattern: rulebook://camera
+     * Used by the "Scan Game" app shortcut (Story 9.6).
      */
     const val HOST_CAMERA = "camera"
 
