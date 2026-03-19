@@ -30,12 +30,14 @@ Ensures all screens support Android's predictive back gesture, providing users w
 **Solution:** Add a conditional `BackHandler` that is only enabled when on page 1+:
 
 ```kotlin
-BackHandler(enabled = pagerState.currentPage > 0) {
+BackHandler(enabled = pagerState.targetPage > 0) {
     coroutineScope.launch {
-        pagerState.animateScrollToPage(pagerState.currentPage - 1)
+        pagerState.animateScrollToPage(pagerState.targetPage - 1)
     }
 }
 ```
+
+Uses `targetPage` (not `currentPage`) to correctly handle in-flight pager animations — during a programmatic scroll from page 0→1, `currentPage` is still 0 until settled.
 
 When `enabled = false` (page 0), the system handles back and exits the app. When `enabled = true` (page 1+), the handler animates back to the previous page.
 

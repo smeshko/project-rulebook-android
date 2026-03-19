@@ -112,7 +112,7 @@ class PredictiveBackConfigTest {
         assertTrue(onboardingRoute.isNotEmpty())
 
         // Documents the page-back behavior (not testable in unit tests without Compose)
-        // Verified by BackHandler(enabled = pagerState.currentPage > 0)
+        // Verified by BackHandler(enabled = pagerState.targetPage > 0)
         assertTrue("Onboarding page-back requires conditional BackHandler", true)
     }
 
