@@ -87,8 +87,12 @@ class SettingsViewModel(
      */
     fun onThemeSelected(mode: ThemeMode) {
         val previousTheme = _uiState.value.themeMode
-        analyticsManager.trackSettingsThemeChanged(mode.name.lowercase(), previousTheme.name.lowercase())
         _uiState.update { it.copy(themeMode = mode) }
+        try {
+            analyticsManager.trackSettingsThemeChanged(mode.name.lowercase(), previousTheme.name.lowercase())
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             themePreferencesSource.setThemeMode(mode)
         }
@@ -99,8 +103,12 @@ class SettingsViewModel(
      * Updates local UI state immediately and persists to DataStore.
      */
     fun onHapticsToggle(enabled: Boolean) {
-        analyticsManager.trackSettingsHapticsChanged(enabled)
         _uiState.update { it.copy(isHapticsEnabled = enabled) }
+        try {
+            analyticsManager.trackSettingsHapticsChanged(enabled)
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             hapticsPreferencesSource.setHapticsEnabled(enabled)
         }
@@ -156,9 +164,13 @@ class SettingsViewModel(
             } catch (_: Exception) {
                 // Database already cleared — proceed to onboarding despite preferences error
             }
-            analyticsManager.trackSettingsDataCleared(gamesCount)
             _events.send(SettingsEvent.ShowSnackbar("All data cleared"))
             _events.send(SettingsEvent.NavigateToOnboarding)
+            try {
+                analyticsManager.trackSettingsDataCleared(gamesCount)
+            } catch (_: Exception) {
+                // Analytics must never block user actions
+            }
         }
     }
 
@@ -166,7 +178,11 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.ContactSupport] event to open the email composer.
      */
     fun onContactUs() {
-        analyticsManager.trackSettingsSupportTapped("contact")
+        try {
+            analyticsManager.trackSettingsSupportTapped("contact")
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             _events.send(SettingsEvent.ContactSupport)
         }
@@ -176,7 +192,11 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.ReportBug] event to open the bug report email composer.
      */
     fun onReportBug() {
-        analyticsManager.trackSettingsSupportTapped("bug")
+        try {
+            analyticsManager.trackSettingsSupportTapped("bug")
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             _events.send(SettingsEvent.ReportBug)
         }
@@ -186,7 +206,11 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.RateApp] event to open the Play Store listing.
      */
     fun onRateApp() {
-        analyticsManager.trackSettingsSupportTapped("rate")
+        try {
+            analyticsManager.trackSettingsSupportTapped("rate")
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             _events.send(SettingsEvent.RateApp)
         }
@@ -196,7 +220,11 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.OpenPrivacyPolicy] event to open the privacy policy in the browser.
      */
     fun onPrivacyPolicy() {
-        analyticsManager.trackSettingsSupportTapped("privacy")
+        try {
+            analyticsManager.trackSettingsSupportTapped("privacy")
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             _events.send(SettingsEvent.OpenPrivacyPolicy)
         }
@@ -206,7 +234,11 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.OpenTermsOfService] event to open the terms of service in the browser.
      */
     fun onTermsOfService() {
-        analyticsManager.trackSettingsSupportTapped("terms")
+        try {
+            analyticsManager.trackSettingsSupportTapped("terms")
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             _events.send(SettingsEvent.OpenTermsOfService)
         }

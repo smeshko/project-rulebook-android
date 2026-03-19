@@ -98,13 +98,16 @@ class FakeResettablePreferences(
  * Fake implementation of AnalyticsManager for testing.
  * Records all tracked events for verification in tests.
  */
-class FakeAnalyticsManager : AnalyticsManager {
+class FakeAnalyticsManager(
+    private val shouldThrow: Boolean = false
+) : AnalyticsManager {
     data class TrackedEvent(val name: String, val properties: Map<String, String>)
 
     private val _trackedEvents = mutableListOf<TrackedEvent>()
     val trackedEvents: List<TrackedEvent> get() = _trackedEvents.toList()
 
     override fun trackEvent(name: String, properties: Map<String, String>) {
+        if (shouldThrow) throw RuntimeException("Analytics error")
         _trackedEvents.add(TrackedEvent(name, properties))
     }
 
@@ -708,5 +711,68 @@ class SettingsViewModelTest {
         val event = fakeAnalytics.trackedEvents.firstOrNull { it.name == "settings_support_tapped" }
         assertTrue("settings_support_tapped should be tracked", event != null)
         assertEquals("link property should be 'terms'", "terms", event?.properties?.get("link"))
+    }
+
+    // =========================================================================
+    // Analytics Failure Resilience Tests
+    // =========================================================================
+
+    @Test
+    fun `analytics failure does not block theme change`() = runTest(testDispatcher) {
+        val throwingAnalytics = FakeAnalyticsManager(shouldThrow = true)
+        val viewModel = createViewModel(analyticsManager = throwingAnalytics)
+        advanceUntilIdle()
+
+        viewModel.onThemeSelected(ThemeMode.DARK)
+        advanceUntilIdle()
+
+        assertEquals("Theme should still update to DARK", ThemeMode.DARK, viewModel.uiState.value.themeMode)
+    }
+
+    @Test
+    fun `analytics failure does not block haptics toggle`() = runTest(testDispatcher) {
+        val throwingAnalytics = FakeAnalyticsManager(shouldThrow = true)
+        val viewModel = createViewModel(analyticsManager = throwingAnalytics)
+        advanceUntilIdle()
+
+        viewModel.onHapticsToggle(false)
+        advanceUntilIdle()
+
+        assertFalse("Haptics should still be disabled", viewModel.uiState.value.isHapticsEnabled)
+    }
+
+    @Test
+    fun `analytics failure does not block support events`() = runTest(testDispatcher) {
+        val throwingAnalytics = FakeAnalyticsManager(shouldThrow = true)
+        val viewModel = createViewModel(analyticsManager = throwingAnalytics)
+        advanceUntilIdle()
+
+        viewModel.onContactUs()
+        advanceUntilIdle()
+
+        val event = withTimeout(1000) { viewModel.events.first() }
+        assertEquals("ContactSupport event should still be emitted", SettingsEvent.ContactSupport, event)
+    }
+
+    @Test
+    fun `analytics failure does not block clear data flow`() = runTest(testDispatcher) {
+        val throwingAnalytics = FakeAnalyticsManager(shouldThrow = true)
+        val viewModel = createViewModel(analyticsManager = throwingAnalytics)
+        advanceUntilIdle()
+
+        val events = mutableListOf<SettingsEvent>()
+        val job = launch {
+            viewModel.events.collect { events.add(it) }
+        }
+
+        viewModel.onClearData()
+        advanceUntilIdle()
+
+        assertTrue("ShowSnackbar should still be emitted",
+            events.any { it is SettingsEvent.ShowSnackbar })
+        assertTrue("NavigateToOnboarding should still be emitted",
+            events.any { it is SettingsEvent.NavigateToOnboarding })
+
+        job.cancel()
     }
 }
