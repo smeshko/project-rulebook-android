@@ -1,10 +1,16 @@
 package com.rulebook.feature.settings
 
+import com.rulebook.core.analytics.AnalyticsManager
+import com.rulebook.core.common.Result
+import com.rulebook.core.data.repository.GameRepository
 import com.rulebook.core.datastore.CreditPreferencesSource
 import com.rulebook.core.datastore.HapticsPreferencesSource
 import com.rulebook.core.datastore.ResettablePreferences
 import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.datastore.ThemePreferencesSource
+import com.rulebook.core.model.Game
+import com.rulebook.core.model.Rules
+import com.rulebook.core.model.SortOrder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -88,6 +94,42 @@ class FakeResettablePreferences(
     }
 }
 
+/**
+ * Fake implementation of AnalyticsManager for testing.
+ * Records all tracked events for verification in tests.
+ */
+class FakeAnalyticsManager : AnalyticsManager {
+    data class TrackedEvent(val name: String, val properties: Map<String, String>)
+
+    private val _trackedEvents = mutableListOf<TrackedEvent>()
+    val trackedEvents: List<TrackedEvent> get() = _trackedEvents.toList()
+
+    override fun trackEvent(name: String, properties: Map<String, String>) {
+        _trackedEvents.add(TrackedEvent(name, properties))
+    }
+
+    override fun trackScreenView(screenName: String) {}
+}
+
+/**
+ * Fake implementation of GameRepository for testing.
+ */
+class FakeGameRepository(
+    private val games: List<Game> = emptyList(),
+    private val shouldFailGetGames: Boolean = false
+) : GameRepository {
+    override suspend fun getGames(): Result<List<Game>> =
+        if (shouldFailGetGames) Result.Error("error") else Result.Success(games)
+
+    override suspend fun getGameById(id: String): Result<Game> = Result.Error("not implemented")
+    override suspend fun saveGame(game: Game): Result<Unit> = Result.Error("not implemented")
+    override suspend fun deleteGame(id: String): Result<Unit> = Result.Error("not implemented")
+    override suspend fun getRulesForGame(gameId: String): Result<Rules> = Result.Error("not implemented")
+    override suspend fun saveGameWithRules(game: Game, rules: Rules, rawJson: String): Result<String> = Result.Error("not implemented")
+    override suspend fun updateLastAccessed(gameId: String): Result<Unit> = Result.Error("not implemented")
+    override fun getGamesSorted(sortOrder: SortOrder): Flow<List<Game>> = MutableStateFlow(emptyList())
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
 
@@ -108,15 +150,25 @@ class SettingsViewModelTest {
         themePreferences: FakeThemePreferencesSource = FakeThemePreferencesSource(),
         hapticsPreferences: FakeHapticsPreferencesSource = FakeHapticsPreferencesSource(),
         clearDatabase: suspend () -> Unit = {},
-        resettablePreferences: FakeResettablePreferences = FakeResettablePreferences()
-    ) = SettingsViewModel(creditPreferences, themePreferences, hapticsPreferences, clearDatabase, resettablePreferences)
+        resettablePreferences: FakeResettablePreferences = FakeResettablePreferences(),
+        gameRepository: FakeGameRepository = FakeGameRepository(),
+        analyticsManager: FakeAnalyticsManager = FakeAnalyticsManager()
+    ) = SettingsViewModel(
+        creditPreferences,
+        themePreferences,
+        hapticsPreferences,
+        clearDatabase,
+        resettablePreferences,
+        gameRepository,
+        analyticsManager
+    )
 
     @Test
     fun `initial state has expected default values`() = runTest(testDispatcher) {
         val fakeCreditPreferences = FakeCreditPreferencesSource(initialBalance = 5)
         val fakeThemePreferences = FakeThemePreferencesSource(initialMode = ThemeMode.SYSTEM)
         val fakeHapticsPreferences = FakeHapticsPreferencesSource(initialEnabled = true)
-        val viewModel = SettingsViewModel(fakeCreditPreferences, fakeThemePreferences, fakeHapticsPreferences, {}, FakeResettablePreferences())
+        val viewModel = SettingsViewModel(fakeCreditPreferences, fakeThemePreferences, fakeHapticsPreferences, {}, FakeResettablePreferences(), FakeGameRepository(), FakeAnalyticsManager())
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -480,5 +532,181 @@ class SettingsViewModelTest {
             events.any { it is SettingsEvent.NavigateToOnboarding })
 
         job.cancel()
+    }
+
+    // =========================================================================
+    // Analytics Tests
+    // =========================================================================
+
+    @Test
+    fun `onThemeSelected tracks settings_theme_changed with correct theme and previous_theme`() = runTest(testDispatcher) {
+        val fakeAnalytics = FakeAnalyticsManager()
+        val fakeTheme = FakeThemePreferencesSource(initialMode = ThemeMode.SYSTEM)
+        val viewModel = createViewModel(themePreferences = fakeTheme, analyticsManager = fakeAnalytics)
+        advanceUntilIdle()
+
+        viewModel.onThemeSelected(ThemeMode.DARK)
+        advanceUntilIdle()
+
+        val event = fakeAnalytics.trackedEvents.firstOrNull { it.name == "settings_theme_changed" }
+        assertTrue("settings_theme_changed should be tracked", event != null)
+        assertEquals("theme property should be 'dark'", "dark", event?.properties?.get("theme"))
+        assertEquals("previous_theme property should be 'system'", "system", event?.properties?.get("previous_theme"))
+    }
+
+    @Test
+    fun `onHapticsToggle tracks settings_haptics_changed with enabled value`() = runTest(testDispatcher) {
+        val fakeAnalytics = FakeAnalyticsManager()
+        val viewModel = createViewModel(analyticsManager = fakeAnalytics)
+        advanceUntilIdle()
+
+        viewModel.onHapticsToggle(false)
+        advanceUntilIdle()
+
+        val event = fakeAnalytics.trackedEvents.firstOrNull { it.name == "settings_haptics_changed" }
+        assertTrue("settings_haptics_changed should be tracked", event != null)
+        assertEquals("enabled property should be 'false'", "false", event?.properties?.get("enabled"))
+    }
+
+    @Test
+    fun `onHapticsToggle tracks enabled true when toggled on`() = runTest(testDispatcher) {
+        val fakeAnalytics = FakeAnalyticsManager()
+        val fakeHaptics = FakeHapticsPreferencesSource(initialEnabled = false)
+        val viewModel = createViewModel(hapticsPreferences = fakeHaptics, analyticsManager = fakeAnalytics)
+        advanceUntilIdle()
+
+        viewModel.onHapticsToggle(true)
+        advanceUntilIdle()
+
+        val event = fakeAnalytics.trackedEvents.firstOrNull { it.name == "settings_haptics_changed" }
+        assertTrue("settings_haptics_changed should be tracked", event != null)
+        assertEquals("enabled property should be 'true'", "true", event?.properties?.get("enabled"))
+    }
+
+    @Test
+    fun `onClearData tracks settings_data_cleared with games_count`() = runTest(testDispatcher) {
+        val fakeAnalytics = FakeAnalyticsManager()
+        val fakeGames = listOf(
+            Game(id = "1", title = "Chess", thumbnailUrl = null, createdAt = 0L, lastAccessedAt = 0L),
+            Game(id = "2", title = "Checkers", thumbnailUrl = null, createdAt = 0L, lastAccessedAt = 0L),
+            Game(id = "3", title = "Go", thumbnailUrl = null, createdAt = 0L, lastAccessedAt = 0L)
+        )
+        val viewModel = createViewModel(
+            gameRepository = FakeGameRepository(games = fakeGames),
+            analyticsManager = fakeAnalytics
+        )
+        advanceUntilIdle()
+
+        viewModel.onClearData()
+        advanceUntilIdle()
+
+        val event = fakeAnalytics.trackedEvents.firstOrNull { it.name == "settings_data_cleared" }
+        assertTrue("settings_data_cleared should be tracked", event != null)
+        assertEquals("games_count property should be '3'", "3", event?.properties?.get("games_count"))
+    }
+
+    @Test
+    fun `onClearData tracks games_count as 0 when gameRepository fails`() = runTest(testDispatcher) {
+        val fakeAnalytics = FakeAnalyticsManager()
+        val viewModel = createViewModel(
+            gameRepository = FakeGameRepository(shouldFailGetGames = true),
+            analyticsManager = fakeAnalytics
+        )
+        advanceUntilIdle()
+
+        viewModel.onClearData()
+        advanceUntilIdle()
+
+        val event = fakeAnalytics.trackedEvents.firstOrNull { it.name == "settings_data_cleared" }
+        assertTrue("settings_data_cleared should be tracked", event != null)
+        assertEquals("games_count should default to '0' on error", "0", event?.properties?.get("games_count"))
+    }
+
+    @Test
+    fun `onClearData does not track analytics when clearDatabase throws`() = runTest(testDispatcher) {
+        val fakeAnalytics = FakeAnalyticsManager()
+        val viewModel = createViewModel(
+            clearDatabase = { throw RuntimeException("Database error") },
+            analyticsManager = fakeAnalytics
+        )
+        advanceUntilIdle()
+
+        viewModel.onClearData()
+        advanceUntilIdle()
+
+        assertFalse(
+            "settings_data_cleared should NOT be tracked on clearDatabase failure",
+            fakeAnalytics.trackedEvents.any { it.name == "settings_data_cleared" }
+        )
+    }
+
+    @Test
+    fun `onContactUs tracks settings_support_tapped with link contact`() = runTest(testDispatcher) {
+        val fakeAnalytics = FakeAnalyticsManager()
+        val viewModel = createViewModel(analyticsManager = fakeAnalytics)
+        advanceUntilIdle()
+
+        viewModel.onContactUs()
+        advanceUntilIdle()
+
+        val event = fakeAnalytics.trackedEvents.firstOrNull { it.name == "settings_support_tapped" }
+        assertTrue("settings_support_tapped should be tracked", event != null)
+        assertEquals("link property should be 'contact'", "contact", event?.properties?.get("link"))
+    }
+
+    @Test
+    fun `onReportBug tracks settings_support_tapped with link bug`() = runTest(testDispatcher) {
+        val fakeAnalytics = FakeAnalyticsManager()
+        val viewModel = createViewModel(analyticsManager = fakeAnalytics)
+        advanceUntilIdle()
+
+        viewModel.onReportBug()
+        advanceUntilIdle()
+
+        val event = fakeAnalytics.trackedEvents.firstOrNull { it.name == "settings_support_tapped" }
+        assertTrue("settings_support_tapped should be tracked", event != null)
+        assertEquals("link property should be 'bug'", "bug", event?.properties?.get("link"))
+    }
+
+    @Test
+    fun `onRateApp tracks settings_support_tapped with link rate`() = runTest(testDispatcher) {
+        val fakeAnalytics = FakeAnalyticsManager()
+        val viewModel = createViewModel(analyticsManager = fakeAnalytics)
+        advanceUntilIdle()
+
+        viewModel.onRateApp()
+        advanceUntilIdle()
+
+        val event = fakeAnalytics.trackedEvents.firstOrNull { it.name == "settings_support_tapped" }
+        assertTrue("settings_support_tapped should be tracked", event != null)
+        assertEquals("link property should be 'rate'", "rate", event?.properties?.get("link"))
+    }
+
+    @Test
+    fun `onPrivacyPolicy tracks settings_support_tapped with link privacy`() = runTest(testDispatcher) {
+        val fakeAnalytics = FakeAnalyticsManager()
+        val viewModel = createViewModel(analyticsManager = fakeAnalytics)
+        advanceUntilIdle()
+
+        viewModel.onPrivacyPolicy()
+        advanceUntilIdle()
+
+        val event = fakeAnalytics.trackedEvents.firstOrNull { it.name == "settings_support_tapped" }
+        assertTrue("settings_support_tapped should be tracked", event != null)
+        assertEquals("link property should be 'privacy'", "privacy", event?.properties?.get("link"))
+    }
+
+    @Test
+    fun `onTermsOfService tracks settings_support_tapped with link terms`() = runTest(testDispatcher) {
+        val fakeAnalytics = FakeAnalyticsManager()
+        val viewModel = createViewModel(analyticsManager = fakeAnalytics)
+        advanceUntilIdle()
+
+        viewModel.onTermsOfService()
+        advanceUntilIdle()
+
+        val event = fakeAnalytics.trackedEvents.firstOrNull { it.name == "settings_support_tapped" }
+        assertTrue("settings_support_tapped should be tracked", event != null)
+        assertEquals("link property should be 'terms'", "terms", event?.properties?.get("link"))
     }
 }
