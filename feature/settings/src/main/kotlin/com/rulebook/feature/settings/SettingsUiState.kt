@@ -8,11 +8,13 @@ import com.rulebook.core.datastore.ThemeMode
  * @param creditBalance The user's current credit balance.
  * @param themeMode The current theme mode selection.
  * @param isHapticsEnabled Whether haptic feedback is enabled (placeholder).
- * @param appVersion The current app version string.
+ * @param appVersion The current app version name string.
+ * @param appVersionCode The current app version code string.
  */
 data class SettingsUiState(
     val creditBalance: Int = 0,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val isHapticsEnabled: Boolean = true,
-    val appVersion: String = "1.0.0"
+    val appVersion: String = "1.0.0",
+    val appVersionCode: String = "1"
 )

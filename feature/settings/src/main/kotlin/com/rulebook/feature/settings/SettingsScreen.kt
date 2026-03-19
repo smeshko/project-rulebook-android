@@ -61,27 +61,36 @@ fun SettingsScreen(
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
-            val appVersion = viewModel.uiState.value.appVersion
+            val state = viewModel.uiState.value
+            val versionSubject = "Rulebook Android v${state.appVersion} (${state.appVersionCode})"
             when (event) {
                 SettingsEvent.ContactSupport -> {
                     val intent = Intent(Intent.ACTION_SENDTO).apply {
                         data = Uri.parse("mailto:support@rulebook.app")
                         putExtra(
                             Intent.EXTRA_SUBJECT,
-                            "Rulebook Android v$appVersion - Support"
+                            "$versionSubject - Support"
                         )
                     }
-                    context.startActivity(intent)
+                    try {
+                        context.startActivity(intent)
+                    } catch (_: ActivityNotFoundException) {
+                        // No email client available — silently ignore
+                    }
                 }
                 SettingsEvent.ReportBug -> {
                     val intent = Intent(Intent.ACTION_SENDTO).apply {
                         data = Uri.parse("mailto:support@rulebook.app")
                         putExtra(
                             Intent.EXTRA_SUBJECT,
-                            "Rulebook Android v$appVersion - Bug"
+                            "$versionSubject - Bug"
                         )
                     }
-                    context.startActivity(intent)
+                    try {
+                        context.startActivity(intent)
+                    } catch (_: ActivityNotFoundException) {
+                        // No email client available — silently ignore
+                    }
                 }
                 SettingsEvent.RateApp -> {
                     val packageName = context.packageName
@@ -89,7 +98,7 @@ fun SettingsScreen(
                         context.startActivity(
                             Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
                         )
-                    } catch (e: ActivityNotFoundException) {
+                    } catch (_: ActivityNotFoundException) {
                         context.startActivity(
                             Intent(
                                 Intent.ACTION_VIEW,
