@@ -65,9 +65,11 @@ fun OnboardingScreen(
 
     // Handle back gesture: on page 1+, animate back to previous page.
     // On page 0, BackHandler is disabled so system back exits the app naturally.
-    BackHandler(enabled = pagerState.currentPage > 0) {
+    // Uses targetPage (not currentPage) to correctly handle in-flight pager animations —
+    // during a programmatic scroll from page 0→1, currentPage is still 0 until settled.
+    BackHandler(enabled = pagerState.targetPage > 0) {
         coroutineScope.launch {
-            pagerState.animateScrollToPage(pagerState.currentPage - 1)
+            pagerState.animateScrollToPage(pagerState.targetPage - 1)
         }
     }
 
