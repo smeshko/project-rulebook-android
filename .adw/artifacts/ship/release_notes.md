@@ -1,10 +1,15 @@
 ## [Unreleased] - 2026-03-19
 
+### Added
+- Instrument settings analytics events in SettingsViewModel
+- Add GameRepository and AnalyticsManager dependencies to SettingsViewModel
+- Add settings analytics convenience methods to AnalyticsManager
+
 ### Fixed
-- Use safeDrawingPadding for camera top controls to handle display cutout (notch) in immersive mode
+- Guard analytics calls with try-catch, add failure resilience tests
 
 ### Documentation
-- Add edge-to-edge display cutout handling feature documentation (RULE-241)
-- Complete edge case verification for edge-to-edge polish
-- Verify navigation bar blending configuration
-- Audit edge-to-edge WindowInsets architecture
+- Add settings analytics events feature documentation and update conditional docs guide
+
+### Other
+- Add analytics unit tests to SettingsViewModelTest
