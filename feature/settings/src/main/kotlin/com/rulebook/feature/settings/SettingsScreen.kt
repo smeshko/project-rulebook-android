@@ -285,7 +285,7 @@ internal fun SettingsScreenContent(
             item {
                 SettingsInfoRow(
                     label = "Version",
-                    value = uiState.appVersion
+                    value = "${uiState.appVersion} (build ${uiState.appVersionCode})"
                 )
             }
             item {
