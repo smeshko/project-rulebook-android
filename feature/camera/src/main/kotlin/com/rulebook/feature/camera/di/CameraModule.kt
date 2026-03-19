@@ -15,5 +15,5 @@ import org.koin.dsl.module
  * - AnalyticsManager (from :core:analytics) for tracking events
  */
 val cameraModule = module {
-    viewModel { CameraViewModel(creditRepository = get(), analyticsManager = get()) }
+    viewModel { CameraViewModel(creditRepository = get(), analyticsManager = get(), hapticsPreferencesSource = get()) }
 }

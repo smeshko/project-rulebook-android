@@ -59,7 +59,6 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import android.net.Uri
-import com.rulebook.core.datastore.HapticsPreferencesSource
 import com.rulebook.core.designsystem.component.CreditsDisplay
 import com.rulebook.feature.camera.components.CameraPreview
 import com.rulebook.feature.camera.components.CaptureButton
@@ -72,9 +71,7 @@ import com.rulebook.feature.camera.components.PermissionRationale
 import com.rulebook.feature.camera.components.ZoomIndicator
 import com.rulebook.feature.camera.util.getLastPhotoThumbnailUri
 import com.rulebook.feature.camera.util.rememberCaptureHapticFeedback
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinInject
 import org.koin.androidx.compose.koinViewModel
 
 /**
@@ -113,10 +110,7 @@ fun CameraScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
-    val hapticsPreferencesSource = koinInject<HapticsPreferencesSource>()
-    val hapticsEnabled by hapticsPreferencesSource.hapticsEnabled.catch { emit(true) }
-        .collectAsStateWithLifecycle(initialValue = true)
-    val hapticFeedback = rememberCaptureHapticFeedback(hapticsEnabled = hapticsEnabled)
+    val hapticFeedback = rememberCaptureHapticFeedback(hapticsEnabled = uiState.hapticsEnabled)
 
     // Store the capture function when CameraPreview provides it
     val capturePhotoState = remember { mutableStateOf<(() -> Unit)?>(null) }

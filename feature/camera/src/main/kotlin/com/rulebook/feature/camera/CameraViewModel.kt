@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.data.repository.CreditRepository
+import com.rulebook.core.datastore.HapticsPreferencesSource
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,10 +41,12 @@ private const val TAG = "CameraViewModel"
  *
  * @param creditRepository Repository for observing credit balance.
  * @param analyticsManager Manager for tracking analytics events (Story 5.1).
+ * @param hapticsPreferencesSource Source for observing haptics enabled preference (Story 9.2).
  */
 class CameraViewModel(
     private val creditRepository: CreditRepository,
-    private val analyticsManager: AnalyticsManager
+    private val analyticsManager: AnalyticsManager,
+    private val hapticsPreferencesSource: HapticsPreferencesSource
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CameraUiState())
@@ -71,6 +74,15 @@ class CameraViewModel(
             .catch { emit(0) }
             .onEach { balance ->
                 _uiState.update { it.copy(creditBalance = balance) }
+            }
+            .launchIn(viewModelScope)
+
+        // Observe haptics preference and update UI state (Story 9.2)
+        // catch emits true (enabled) on DataStore IOException to default to haptics on
+        hapticsPreferencesSource.hapticsEnabled
+            .catch { emit(true) }
+            .onEach { enabled ->
+                _uiState.update { it.copy(hapticsEnabled = enabled) }
             }
             .launchIn(viewModelScope)
     }

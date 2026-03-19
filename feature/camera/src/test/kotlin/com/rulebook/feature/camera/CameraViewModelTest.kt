@@ -2,6 +2,7 @@ package com.rulebook.feature.camera
 
 import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.data.repository.CreditRepository
+import com.rulebook.core.datastore.HapticsPreferencesSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -31,15 +32,18 @@ class CameraViewModelTest {
     private lateinit var viewModel: CameraViewModel
     private lateinit var fakeCreditRepository: FakeCreditRepository
     private lateinit var fakeAnalyticsManager: FakeAnalyticsManager
+    private lateinit var fakeHapticsPreferencesSource: FakeHapticsPreferencesSource
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         fakeCreditRepository = FakeCreditRepository()
         fakeAnalyticsManager = FakeAnalyticsManager()
+        fakeHapticsPreferencesSource = FakeHapticsPreferencesSource()
         viewModel = CameraViewModel(
             creditRepository = fakeCreditRepository,
-            analyticsManager = fakeAnalyticsManager
+            analyticsManager = fakeAnalyticsManager,
+            hapticsPreferencesSource = fakeHapticsPreferencesSource
         )
     }
 
@@ -873,5 +877,21 @@ class FakeAnalyticsManager : AnalyticsManager {
         _trackedEvents.clear()
         _trackedScreenViews.clear()
         shouldThrowOnTrackEvent = false
+    }
+}
+
+/**
+ * Fake implementation of [HapticsPreferencesSource] for testing.
+ */
+class FakeHapticsPreferencesSource(
+    initialEnabled: Boolean = true
+) : HapticsPreferencesSource {
+
+    private val _hapticsEnabled = MutableStateFlow(initialEnabled)
+
+    override val hapticsEnabled: Flow<Boolean> = _hapticsEnabled
+
+    override suspend fun setHapticsEnabled(enabled: Boolean) {
+        _hapticsEnabled.value = enabled
     }
 }
