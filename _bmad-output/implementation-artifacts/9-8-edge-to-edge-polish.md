@@ -37,10 +37,10 @@ So that the interface feels modern and immersive.
 - [x] Task 3: Camera Display Cutout (Notch) Handling
   - [x] Replace `statusBarsPadding()` on top controls Row with `safeDrawingPadding()` — ensures controls visible on notched devices in immersive mode where `statusBarsPadding()` returns 0 but display cutout insets remain
   - [x] Verify `safeDrawingPadding()` on bottom controls (line 372) handles cutout for bottom region ✅
-- [ ] Task 4: Navigation Bar Blending Verification
-  - [ ] `containerColor = MaterialTheme.colorScheme.surface` at `RulebookBottomBar.kt:48`
-  - [ ] `tonalElevation = 0.dp` at `RulebookBottomBar.kt:49` — no elevation tinting
-  - [ ] Transparent nav bar in both light and dark themes
+- [x] Task 4: Navigation Bar Blending Verification
+  - [x] `containerColor = MaterialTheme.colorScheme.surface` verified at `RulebookBottomBar.kt:48` ✅
+  - [x] `tonalElevation = 0.dp` confirmed at `RulebookBottomBar.kt:49` — no elevation tinting ✅
+  - [x] Transparent nav bar in both light and dark themes handled by `enableEdgeToEdge()` + `ConfigureSystemBars()` ✅
 - [ ] Task 5: Edge Case Verification
   - [ ] Gesture navigation: edge-to-edge rendering
   - [ ] 3-button navigation: Scaffold insets accounting
