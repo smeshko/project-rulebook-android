@@ -7,6 +7,8 @@ import com.rulebook.core.data.repository.GameRepository
 import com.rulebook.core.data.repository.GameRepositoryImpl
 import com.rulebook.core.data.repository.OnboardingRepository
 import com.rulebook.core.data.repository.OnboardingRepositoryImpl
+import com.rulebook.core.data.repository.ReceiptRepository
+import com.rulebook.core.data.repository.ReceiptRepositoryImpl
 import com.rulebook.core.data.repository.ScanRepository
 import com.rulebook.core.data.repository.ScanRepositoryImpl
 import com.rulebook.core.database.RulebookDatabase
@@ -37,4 +39,5 @@ val dataModule = module {
     single<HapticsPreferencesSource> { get<RulebookPreferences>() }
     single<PendingPurchasePreferencesSource> { get<RulebookPreferences>() }
     single<ScanRepository> { ScanRepositoryImpl(api = get(), context = get()) }
+    single<ReceiptRepository> { ReceiptRepositoryImpl(api = get(), context = get()) }
 }
