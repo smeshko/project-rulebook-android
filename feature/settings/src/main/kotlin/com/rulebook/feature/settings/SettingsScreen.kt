@@ -17,8 +17,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BrightnessAuto
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,9 +39,8 @@ import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.feature.settings.components.SettingsCreditRow
+import com.rulebook.feature.settings.components.SettingsIconInfoRow
 import com.rulebook.feature.settings.components.SettingsIconLinkRow
-import com.rulebook.feature.settings.components.SettingsInfoRow
-import com.rulebook.feature.settings.components.SettingsLinkRow
 import com.rulebook.feature.settings.components.SettingsSectionHeader
 import com.rulebook.feature.settings.components.SettingsThemeRow
 import com.rulebook.feature.settings.components.SettingsToggleRow
@@ -283,20 +285,26 @@ internal fun SettingsScreenContent(
                 )
             }
             item {
-                SettingsInfoRow(
+                SettingsIconInfoRow(
                     label = "Version",
-                    value = "${uiState.appVersion} (build ${uiState.appVersionCode})"
+                    value = "${uiState.appVersion} (build ${uiState.appVersionCode})",
+                    icon = Icons.Outlined.Info,
+                    iconTint = RulebookTheme.colors.contentSecondary
                 )
             }
             item {
-                SettingsLinkRow(
+                SettingsIconLinkRow(
                     label = "Privacy Policy",
+                    icon = Icons.Outlined.Shield,
+                    iconTint = RulebookTheme.colors.blue,
                     onClick = onPrivacyPolicy
                 )
             }
             item {
-                SettingsLinkRow(
+                SettingsIconLinkRow(
                     label = "Terms of Service",
+                    icon = Icons.Outlined.Description,
+                    iconTint = RulebookTheme.colors.blue,
                     onClick = onTermsOfService
                 )
             }
