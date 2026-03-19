@@ -46,6 +46,9 @@ import com.rulebook.feature.settings.components.SettingsThemeRow
 import com.rulebook.feature.settings.components.SettingsToggleRow
 import org.koin.androidx.compose.koinViewModel
 
+private const val PRIVACY_POLICY_URL = "https://rulebook.app/privacy"
+private const val TERMS_OF_SERVICE_URL = "https://rulebook.app/terms"
+
 /**
  * Settings screen displaying app configuration options.
  *
@@ -137,6 +140,24 @@ fun SettingsScreen(
                         } catch (_: ActivityNotFoundException) {
                             // No Play Store or browser available — silently ignore
                         }
+                    }
+                }
+                SettingsEvent.OpenPrivacyPolicy -> {
+                    try {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL))
+                        )
+                    } catch (_: ActivityNotFoundException) {
+                        // No browser available — silently ignore
+                    }
+                }
+                SettingsEvent.OpenTermsOfService -> {
+                    try {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse(TERMS_OF_SERVICE_URL))
+                        )
+                    } catch (_: ActivityNotFoundException) {
+                        // No browser available — silently ignore
                     }
                 }
             }
