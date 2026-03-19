@@ -9,12 +9,11 @@ import com.rulebook.core.common.HapticUtils
  * Composable function that provides a haptic feedback trigger for photo capture.
  *
  * Returns a lambda that, when invoked, performs haptic feedback
- * suitable for capture actions. The feedback automatically respects
- * system haptic settings.
+ * suitable for capture actions, respecting the user's haptic preference.
  *
  * Usage:
  * ```kotlin
- * val hapticFeedback = rememberCaptureHapticFeedback()
+ * val hapticFeedback = rememberCaptureHapticFeedback(hapticsEnabled = uiState.hapticsEnabled)
  *
  * CaptureButton(onClick = {
  *     hapticFeedback()
@@ -22,12 +21,13 @@ import com.rulebook.core.common.HapticUtils
  * })
  * ```
  *
+ * @param hapticsEnabled Whether haptic feedback is enabled per user preference.
  * @return A lambda that performs capture haptic feedback when invoked.
  */
 @Composable
-fun rememberCaptureHapticFeedback(): () -> Unit {
+fun rememberCaptureHapticFeedback(hapticsEnabled: Boolean = true): () -> Unit {
     val view = LocalView.current
-    return remember(view) {
-        { HapticUtils.performCaptureHaptic(view) }
+    return remember(view, hapticsEnabled) {
+        { HapticUtils.performCaptureHaptic(view, hapticsEnabled) }
     }
 }
