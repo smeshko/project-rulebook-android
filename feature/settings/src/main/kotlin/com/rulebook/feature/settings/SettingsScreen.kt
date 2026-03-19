@@ -102,7 +102,10 @@ internal fun SettingsScreenContent(
                 )
             }
             item {
-                Column(Modifier.selectableGroup()) {
+                Column(
+                    modifier = Modifier.selectableGroup(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     SettingsThemeRow(
                         label = "Light",
                         icon = Icons.Outlined.LightMode,
