@@ -2,6 +2,7 @@ package com.rulebook.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -101,28 +102,26 @@ internal fun SettingsScreenContent(
                 )
             }
             item {
-                SettingsThemeRow(
-                    label = "Light",
-                    icon = Icons.Outlined.LightMode,
-                    isSelected = uiState.themeMode == ThemeMode.LIGHT,
-                    onClick = { onThemeSelected(ThemeMode.LIGHT) }
-                )
-            }
-            item {
-                SettingsThemeRow(
-                    label = "Dark",
-                    icon = Icons.Outlined.DarkMode,
-                    isSelected = uiState.themeMode == ThemeMode.DARK,
-                    onClick = { onThemeSelected(ThemeMode.DARK) }
-                )
-            }
-            item {
-                SettingsThemeRow(
-                    label = "System",
-                    icon = Icons.Outlined.BrightnessAuto,
-                    isSelected = uiState.themeMode == ThemeMode.SYSTEM,
-                    onClick = { onThemeSelected(ThemeMode.SYSTEM) }
-                )
+                Column(Modifier.selectableGroup()) {
+                    SettingsThemeRow(
+                        label = "Light",
+                        icon = Icons.Outlined.LightMode,
+                        isSelected = uiState.themeMode == ThemeMode.LIGHT,
+                        onClick = { onThemeSelected(ThemeMode.LIGHT) }
+                    )
+                    SettingsThemeRow(
+                        label = "Dark",
+                        icon = Icons.Outlined.DarkMode,
+                        isSelected = uiState.themeMode == ThemeMode.DARK,
+                        onClick = { onThemeSelected(ThemeMode.DARK) }
+                    )
+                    SettingsThemeRow(
+                        label = "System",
+                        icon = Icons.Outlined.BrightnessAuto,
+                        isSelected = uiState.themeMode == ThemeMode.SYSTEM,
+                        onClick = { onThemeSelected(ThemeMode.SYSTEM) }
+                    )
+                }
             }
 
             // Feedback Section

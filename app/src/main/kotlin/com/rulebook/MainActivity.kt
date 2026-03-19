@@ -16,6 +16,7 @@ import com.rulebook.core.datastore.RulebookPreferences
 import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.startup.StartupViewModel
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -51,7 +52,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val startupDestination by startupViewModel.startupDestination.collectAsStateWithLifecycle()
-            val themeMode by preferences.themeMode.collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
+            val themeMode by preferences.themeMode
+                .catch { emit(ThemeMode.SYSTEM) }
+                .collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
 
             val darkTheme = when (themeMode) {
                 ThemeMode.SYSTEM -> isSystemInDarkTheme()

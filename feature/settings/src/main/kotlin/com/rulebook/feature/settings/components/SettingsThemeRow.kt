@@ -1,7 +1,6 @@
 package com.rulebook.feature.settings.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -20,6 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rulebook.core.designsystem.modifier.brutalistBorder
@@ -51,7 +52,11 @@ fun SettingsThemeRow(
             .fillMaxWidth()
             .brutalistBorder()
             .background(MaterialTheme.colorScheme.surface)
-            .clickable(onClick = onClick)
+            .selectable(
+                selected = isSelected,
+                onClick = onClick,
+                role = Role.RadioButton
+            )
             .padding(16.dp)
             .heightIn(min = 64.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
