@@ -1,5 +1,7 @@
 package com.rulebook.feature.onboarding
 
+import androidx.activity.compose.BackHandler
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
@@ -17,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -55,9 +58,18 @@ fun OnboardingScreen(
     val currentPage by viewModel.currentPage.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = { OnboardingPage.entries.size })
     val haptic = LocalHapticFeedback.current
+    val coroutineScope = rememberCoroutineScope()
 
     // Track previous page to detect actual page changes vs initial composition
     val previousPage = remember { mutableIntStateOf(-1) }
+
+    // Handle back gesture: on page 1+, animate back to previous page.
+    // On page 0, BackHandler is disabled so system back exits the app naturally.
+    BackHandler(enabled = pagerState.currentPage > 0) {
+        coroutineScope.launch {
+            pagerState.animateScrollToPage(pagerState.currentPage - 1)
+        }
+    }
 
     // Handle navigation events from ViewModel
     LaunchedEffect(Unit) {
