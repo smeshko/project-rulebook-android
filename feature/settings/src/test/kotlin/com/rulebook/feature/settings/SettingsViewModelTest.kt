@@ -1,11 +1,12 @@
 package com.rulebook.feature.settings
 
 import com.rulebook.core.datastore.CreditPreferencesSource
+import com.rulebook.core.datastore.ThemeMode
+import com.rulebook.core.datastore.ThemePreferencesSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -36,6 +37,22 @@ class FakeCreditPreferencesSource(
     override suspend fun addCredits(amount: Int): Boolean = false
 }
 
+/**
+ * Fake implementation of ThemePreferencesSource for testing.
+ */
+class FakeThemePreferencesSource(
+    initialMode: ThemeMode = ThemeMode.SYSTEM
+) : ThemePreferencesSource {
+    private val _themeMode = MutableStateFlow(initialMode)
+    override val themeMode: Flow<ThemeMode> = _themeMode
+
+    override suspend fun setThemeMode(mode: ThemeMode) {
+        _themeMode.value = mode
+    }
+
+    fun getCurrentThemeMode(): ThemeMode = _themeMode.value
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
 
@@ -54,12 +71,13 @@ class SettingsViewModelTest {
     @Test
     fun `initial state has expected default values`() = runTest(testDispatcher) {
         val fakeCreditPreferences = FakeCreditPreferencesSource(initialBalance = 5)
-        val viewModel = SettingsViewModel(fakeCreditPreferences)
+        val fakeThemePreferences = FakeThemePreferencesSource(initialMode = ThemeMode.SYSTEM)
+        val viewModel = SettingsViewModel(fakeCreditPreferences, fakeThemePreferences)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
         assertEquals("Credit balance should be 5", 5, state.creditBalance)
-        assertFalse("Dark theme should be false by default", state.isDarkTheme)
+        assertEquals("Theme mode should be SYSTEM by default", ThemeMode.SYSTEM, state.themeMode)
         assertTrue("Haptics should be enabled by default", state.isHapticsEnabled)
         assertEquals("Version should be 1.0.0", "1.0.0", state.appVersion)
     }
@@ -67,7 +85,8 @@ class SettingsViewModelTest {
     @Test
     fun `uiState exposes immutable state flow`() = runTest(testDispatcher) {
         val fakeCreditPreferences = FakeCreditPreferencesSource()
-        val viewModel = SettingsViewModel(fakeCreditPreferences)
+        val fakeThemePreferences = FakeThemePreferencesSource()
+        val viewModel = SettingsViewModel(fakeCreditPreferences, fakeThemePreferences)
         advanceUntilIdle()
 
         val state1 = viewModel.uiState.value
@@ -78,7 +97,8 @@ class SettingsViewModelTest {
     @Test
     fun `credit balance updates when preference changes`() = runTest(testDispatcher) {
         val fakeCreditPreferences = FakeCreditPreferencesSource(initialBalance = 5)
-        val viewModel = SettingsViewModel(fakeCreditPreferences)
+        val fakeThemePreferences = FakeThemePreferencesSource()
+        val viewModel = SettingsViewModel(fakeCreditPreferences, fakeThemePreferences)
         advanceUntilIdle()
 
         var state = viewModel.uiState.value
@@ -92,22 +112,58 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `onThemeToggle updates isDarkTheme state`() = runTest(testDispatcher) {
+    fun `onThemeSelected updates themeMode state for all three modes`() = runTest(testDispatcher) {
         val fakeCreditPreferences = FakeCreditPreferencesSource()
-        val viewModel = SettingsViewModel(fakeCreditPreferences)
+        val fakeThemePreferences = FakeThemePreferencesSource()
+        val viewModel = SettingsViewModel(fakeCreditPreferences, fakeThemePreferences)
         advanceUntilIdle()
 
-        viewModel.onThemeToggle(true)
-        assertTrue("Dark theme should be enabled", viewModel.uiState.value.isDarkTheme)
+        viewModel.onThemeSelected(ThemeMode.LIGHT)
+        advanceUntilIdle()
+        assertEquals("Theme should be LIGHT", ThemeMode.LIGHT, viewModel.uiState.value.themeMode)
 
-        viewModel.onThemeToggle(false)
-        assertFalse("Dark theme should be disabled", viewModel.uiState.value.isDarkTheme)
+        viewModel.onThemeSelected(ThemeMode.DARK)
+        advanceUntilIdle()
+        assertEquals("Theme should be DARK", ThemeMode.DARK, viewModel.uiState.value.themeMode)
+
+        viewModel.onThemeSelected(ThemeMode.SYSTEM)
+        advanceUntilIdle()
+        assertEquals("Theme should be SYSTEM", ThemeMode.SYSTEM, viewModel.uiState.value.themeMode)
+    }
+
+    @Test
+    fun `theme mode updates when preference changes externally`() = runTest(testDispatcher) {
+        val fakeCreditPreferences = FakeCreditPreferencesSource()
+        val fakeThemePreferences = FakeThemePreferencesSource(initialMode = ThemeMode.SYSTEM)
+        val viewModel = SettingsViewModel(fakeCreditPreferences, fakeThemePreferences)
+        advanceUntilIdle()
+
+        assertEquals("Initial theme should be SYSTEM", ThemeMode.SYSTEM, viewModel.uiState.value.themeMode)
+
+        fakeThemePreferences.setThemeMode(ThemeMode.DARK)
+        advanceUntilIdle()
+
+        assertEquals("Theme should update to DARK", ThemeMode.DARK, viewModel.uiState.value.themeMode)
+    }
+
+    @Test
+    fun `onThemeSelected persists to preferences source`() = runTest(testDispatcher) {
+        val fakeCreditPreferences = FakeCreditPreferencesSource()
+        val fakeThemePreferences = FakeThemePreferencesSource()
+        val viewModel = SettingsViewModel(fakeCreditPreferences, fakeThemePreferences)
+        advanceUntilIdle()
+
+        viewModel.onThemeSelected(ThemeMode.DARK)
+        advanceUntilIdle()
+
+        assertEquals("Preference source should have DARK mode", ThemeMode.DARK, fakeThemePreferences.getCurrentThemeMode())
     }
 
     @Test
     fun `onHapticsToggle updates isHapticsEnabled state`() = runTest(testDispatcher) {
         val fakeCreditPreferences = FakeCreditPreferencesSource()
-        val viewModel = SettingsViewModel(fakeCreditPreferences)
+        val fakeThemePreferences = FakeThemePreferencesSource()
+        val viewModel = SettingsViewModel(fakeCreditPreferences, fakeThemePreferences)
         advanceUntilIdle()
 
         viewModel.onHapticsToggle(false)
