@@ -11,6 +11,7 @@ import com.rulebook.core.data.repository.ScanRepository
 import com.rulebook.core.data.repository.ScanRepositoryImpl
 import com.rulebook.core.database.RulebookDatabase
 import com.rulebook.core.datastore.CreditPreferencesSource
+import com.rulebook.core.datastore.HapticsPreferencesSource
 import com.rulebook.core.datastore.OnboardingPreferencesSource
 import com.rulebook.core.datastore.PendingPurchasePreferencesSource
 import com.rulebook.core.datastore.RulebookPreferences
@@ -33,6 +34,7 @@ val dataModule = module {
     single<CreditRepository> { CreditRepositoryImpl(get()) }
     single<SortPreferencesSource> { get<RulebookPreferences>() }
     single<ThemePreferencesSource> { get<RulebookPreferences>() }
+    single<HapticsPreferencesSource> { get<RulebookPreferences>() }
     single<PendingPurchasePreferencesSource> { get<RulebookPreferences>() }
     single<ScanRepository> { ScanRepositoryImpl(api = get(), context = get()) }
 }
