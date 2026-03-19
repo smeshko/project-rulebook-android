@@ -6,17 +6,20 @@ import com.rulebook.core.datastore.CreditPreferencesSource
 import com.rulebook.core.datastore.HapticsPreferencesSource
 import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.datastore.ThemePreferencesSource
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
  * ViewModel for the Settings screen.
  *
- * Manages UI state for settings options.
+ * Manages UI state for settings options and emits one-shot [SettingsEvent]s
+ * for actions that require Android platform context (e.g., launching intents).
  *
  * @param creditPreferencesSource Preferences source for reading credit balance.
  * @param themePreferencesSource Preferences source for reading and writing theme mode.
@@ -30,6 +33,9 @@ class SettingsViewModel(
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    private val _events = Channel<SettingsEvent>(Channel.BUFFERED)
+    val events = _events.receiveAsFlow()
 
     init {
         // Collect credit balance from preferences
@@ -86,6 +92,13 @@ class SettingsViewModel(
     }
 
     /**
+     * Updates the app version information displayed in the UI and used in email subjects.
+     */
+    fun updateVersionInfo(versionName: String, versionCode: String) {
+        _uiState.update { it.copy(appVersion = versionName, appVersionCode = versionCode) }
+    }
+
+    /**
      * Clears all user data.
      * Placeholder - will be implemented in Epic 9.
      */
@@ -94,27 +107,30 @@ class SettingsViewModel(
     }
 
     /**
-     * Opens the contact support flow.
-     * Placeholder - will be implemented in Epic 9.
+     * Emits a [SettingsEvent.ContactSupport] event to open the email composer.
      */
     fun onContactUs() {
-        // TODO: Implement in Epic 9
+        viewModelScope.launch {
+            _events.send(SettingsEvent.ContactSupport)
+        }
     }
 
     /**
-     * Opens the app store rating page.
-     * Placeholder - will be implemented in Epic 9.
+     * Emits a [SettingsEvent.ReportBug] event to open the bug report email composer.
+     */
+    fun onReportBug() {
+        viewModelScope.launch {
+            _events.send(SettingsEvent.ReportBug)
+        }
+    }
+
+    /**
+     * Emits a [SettingsEvent.RateApp] event to open the Play Store listing.
      */
     fun onRateApp() {
-        // TODO: Implement in Epic 9
-    }
-
-    /**
-     * Opens the share app dialog.
-     * Placeholder - will be implemented in Epic 9.
-     */
-    fun onShareApp() {
-        // TODO: Implement in Epic 9
+        viewModelScope.launch {
+            _events.send(SettingsEvent.RateApp)
+        }
     }
 
     /**

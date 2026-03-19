@@ -1,5 +1,10 @@
 package com.rulebook.feature.settings
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.selection.selectableGroup
@@ -10,11 +15,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BrightnessAuto
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,6 +36,7 @@ import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.feature.settings.components.SettingsCreditRow
+import com.rulebook.feature.settings.components.SettingsIconLinkRow
 import com.rulebook.feature.settings.components.SettingsInfoRow
 import com.rulebook.feature.settings.components.SettingsLinkRow
 import com.rulebook.feature.settings.components.SettingsSectionHeader
@@ -48,6 +59,87 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val view = LocalView.current
+    val context = LocalContext.current
+
+    // Read version info from PackageManager and populate UI state
+    LaunchedEffect(Unit) {
+        val packageInfo = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(context.packageName, 0)
+            }
+        } catch (_: PackageManager.NameNotFoundException) {
+            null
+        }
+        if (packageInfo != null) {
+            val versionName = packageInfo.versionName ?: "1.0.0"
+            val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageInfo.longVersionCode.toString()
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.versionCode.toString()
+            }
+            viewModel.updateVersionInfo(versionName, versionCode)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            val state = viewModel.uiState.value
+            val versionSubject = "Rulebook Android v${state.appVersion} (${state.appVersionCode})"
+            when (event) {
+                SettingsEvent.ContactSupport -> {
+                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                        data = Uri.parse("mailto:support@rulebook.app")
+                        putExtra(
+                            Intent.EXTRA_SUBJECT,
+                            "$versionSubject - Support"
+                        )
+                    }
+                    try {
+                        context.startActivity(intent)
+                    } catch (_: ActivityNotFoundException) {
+                        // No email client available — silently ignore
+                    }
+                }
+                SettingsEvent.ReportBug -> {
+                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                        data = Uri.parse("mailto:support@rulebook.app")
+                        putExtra(
+                            Intent.EXTRA_SUBJECT,
+                            "$versionSubject - Bug"
+                        )
+                    }
+                    try {
+                        context.startActivity(intent)
+                    } catch (_: ActivityNotFoundException) {
+                        // No email client available — silently ignore
+                    }
+                }
+                SettingsEvent.RateApp -> {
+                    val packageName = context.packageName
+                    try {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
+                        )
+                    } catch (_: ActivityNotFoundException) {
+                        try {
+                            context.startActivity(
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
+                                )
+                            )
+                        } catch (_: ActivityNotFoundException) {
+                            // No Play Store or browser available — silently ignore
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     SettingsScreenContent(
         uiState = uiState,
@@ -62,8 +154,8 @@ fun SettingsScreen(
         },
         onClearData = viewModel::onClearData,
         onContactUs = viewModel::onContactUs,
+        onReportBug = viewModel::onReportBug,
         onRateApp = viewModel::onRateApp,
-        onShareApp = viewModel::onShareApp,
         onPrivacyPolicy = viewModel::onPrivacyPolicy,
         onTermsOfService = viewModel::onTermsOfService,
         modifier = modifier
@@ -78,8 +170,8 @@ internal fun SettingsScreenContent(
     onHapticsToggle: (Boolean) -> Unit,
     onClearData: () -> Unit,
     onContactUs: () -> Unit,
+    onReportBug: () -> Unit,
     onRateApp: () -> Unit,
-    onShareApp: () -> Unit,
     onPrivacyPolicy: () -> Unit,
     onTermsOfService: () -> Unit,
     modifier: Modifier = Modifier,
@@ -159,21 +251,27 @@ internal fun SettingsScreenContent(
                 )
             }
             item {
-                SettingsLinkRow(
+                SettingsIconLinkRow(
                     label = "Contact Us",
+                    icon = Icons.Outlined.Email,
+                    iconTint = RulebookTheme.colors.blue,
                     onClick = onContactUs
                 )
             }
             item {
-                SettingsLinkRow(
-                    label = "Rate the App",
-                    onClick = onRateApp
+                SettingsIconLinkRow(
+                    label = "Report a Bug",
+                    icon = Icons.Outlined.BugReport,
+                    iconTint = RulebookTheme.colors.orange,
+                    onClick = onReportBug
                 )
             }
             item {
-                SettingsLinkRow(
-                    label = "Share",
-                    onClick = onShareApp
+                SettingsIconLinkRow(
+                    label = "Rate the App",
+                    icon = Icons.Outlined.Star,
+                    iconTint = RulebookTheme.colors.yellow,
+                    onClick = onRateApp
                 )
             }
 
@@ -237,8 +335,8 @@ private fun SettingsScreenLightPreview() {
             onHapticsToggle = {},
             onClearData = {},
             onContactUs = {},
+            onReportBug = {},
             onRateApp = {},
-            onShareApp = {},
             onPrivacyPolicy = {},
             onTermsOfService = {}
         )
@@ -256,8 +354,8 @@ private fun SettingsScreenDarkPreview() {
             onHapticsToggle = {},
             onClearData = {},
             onContactUs = {},
+            onReportBug = {},
             onRateApp = {},
-            onShareApp = {},
             onPrivacyPolicy = {},
             onTermsOfService = {}
         )

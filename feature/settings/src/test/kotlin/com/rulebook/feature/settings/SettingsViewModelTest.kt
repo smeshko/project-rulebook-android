@@ -8,11 +8,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -226,5 +228,41 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertFalse("Initial haptics should be false per preference source", viewModel.uiState.value.isHapticsEnabled)
+    }
+
+    @Test
+    fun `onContactUs emits ContactSupport event`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onContactUs()
+        advanceUntilIdle()
+
+        val event = withTimeout(1000) { viewModel.events.first() }
+        assertEquals("onContactUs should emit ContactSupport", SettingsEvent.ContactSupport, event)
+    }
+
+    @Test
+    fun `onReportBug emits ReportBug event`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onReportBug()
+        advanceUntilIdle()
+
+        val event = withTimeout(1000) { viewModel.events.first() }
+        assertEquals("onReportBug should emit ReportBug", SettingsEvent.ReportBug, event)
+    }
+
+    @Test
+    fun `onRateApp emits RateApp event`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onRateApp()
+        advanceUntilIdle()
+
+        val event = withTimeout(1000) { viewModel.events.first() }
+        assertEquals("onRateApp should emit RateApp", SettingsEvent.RateApp, event)
     }
 }
