@@ -1,18 +1,12 @@
-## [Unreleased] - 2026-03-15
+## [Unreleased] - 2026-03-19
 
 ### Added
-- Wire PurchaseScreen with ViewModel and real ProductCardsRow
-- Add ProductCardsRow composable with loading skeleton support
-- Add ProductCardSkeleton composable with shimmer animation
-- Add ProductCard composable with press animation and badge support
-- Add ProductBadge sealed class with badge mapping functions
-- Add RulebookBadge composable
-
-### Fixed
-- Sort products by credits and surface error state
+- Update version display format to include build number
+- Add SettingsIconInfoRow and upgrade about section rows
+- Implement legal link navigation via events
 
 ### Documentation
-- Add product cards and badges feature documentation
+- Add feature documentation for about section legal links
 
 ### Other
-- Add ProductBadgeTest covering badge mapping and elevation logic
+- Add unit tests for privacy policy, terms, and version info
