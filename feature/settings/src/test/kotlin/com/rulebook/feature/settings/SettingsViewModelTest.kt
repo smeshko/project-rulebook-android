@@ -457,4 +457,28 @@ class SettingsViewModelTest {
 
         assertFalse("Preferences reset should not be called when database fails", fakePreferences.resetCalled)
     }
+
+    @Test
+    fun `onClearData still navigates to onboarding when preferences reset throws`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(
+            resettablePreferences = FakeResettablePreferences(shouldThrow = true)
+        )
+        advanceUntilIdle()
+
+        val events = mutableListOf<SettingsEvent>()
+        val job = launch {
+            viewModel.events.collect { events.add(it) }
+        }
+
+        viewModel.onClearData()
+        advanceUntilIdle()
+
+        val snackbarEvent = events.filterIsInstance<SettingsEvent.ShowSnackbar>().firstOrNull()
+        assertTrue("ShowSnackbar event should be emitted", snackbarEvent != null)
+        assertEquals("Snackbar message should be 'All data cleared'", "All data cleared", snackbarEvent?.message)
+        assertTrue("NavigateToOnboarding should still be emitted",
+            events.any { it is SettingsEvent.NavigateToOnboarding })
+
+        job.cancel()
+    }
 }

@@ -133,12 +133,17 @@ class SettingsViewModel(
         viewModelScope.launch {
             try {
                 clearDatabase()
-                resettablePreferences.reset()
-                _events.send(SettingsEvent.ShowSnackbar("All data cleared"))
-                _events.send(SettingsEvent.NavigateToOnboarding)
             } catch (_: Exception) {
                 _events.send(SettingsEvent.ShowSnackbar("Failed to clear data"))
+                return@launch
             }
+            try {
+                resettablePreferences.reset()
+            } catch (_: Exception) {
+                // Database already cleared — proceed to onboarding despite preferences error
+            }
+            _events.send(SettingsEvent.ShowSnackbar("All data cleared"))
+            _events.send(SettingsEvent.NavigateToOnboarding)
         }
     }
 
