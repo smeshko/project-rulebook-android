@@ -2,6 +2,7 @@ package com.rulebook.feature.settings
 
 import com.rulebook.core.datastore.CreditPreferencesSource
 import com.rulebook.core.datastore.HapticsPreferencesSource
+import com.rulebook.core.datastore.ResettablePreferences
 import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.datastore.ThemePreferencesSource
 import kotlinx.coroutines.Dispatchers
@@ -9,6 +10,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -72,6 +74,20 @@ class FakeHapticsPreferencesSource(
     fun getCurrentHapticsEnabled(): Boolean = _hapticsEnabled.value
 }
 
+/**
+ * Fake implementation of ResettablePreferences for testing.
+ */
+class FakeResettablePreferences(
+    private val shouldThrow: Boolean = false
+) : ResettablePreferences {
+    var resetCalled = false
+
+    override suspend fun reset() {
+        if (shouldThrow) throw RuntimeException("Preferences error")
+        resetCalled = true
+    }
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
 
@@ -90,15 +106,17 @@ class SettingsViewModelTest {
     private fun createViewModel(
         creditPreferences: FakeCreditPreferencesSource = FakeCreditPreferencesSource(),
         themePreferences: FakeThemePreferencesSource = FakeThemePreferencesSource(),
-        hapticsPreferences: FakeHapticsPreferencesSource = FakeHapticsPreferencesSource()
-    ) = SettingsViewModel(creditPreferences, themePreferences, hapticsPreferences)
+        hapticsPreferences: FakeHapticsPreferencesSource = FakeHapticsPreferencesSource(),
+        clearDatabase: suspend () -> Unit = {},
+        resettablePreferences: FakeResettablePreferences = FakeResettablePreferences()
+    ) = SettingsViewModel(creditPreferences, themePreferences, hapticsPreferences, clearDatabase, resettablePreferences)
 
     @Test
     fun `initial state has expected default values`() = runTest(testDispatcher) {
         val fakeCreditPreferences = FakeCreditPreferencesSource(initialBalance = 5)
         val fakeThemePreferences = FakeThemePreferencesSource(initialMode = ThemeMode.SYSTEM)
         val fakeHapticsPreferences = FakeHapticsPreferencesSource(initialEnabled = true)
-        val viewModel = SettingsViewModel(fakeCreditPreferences, fakeThemePreferences, fakeHapticsPreferences)
+        val viewModel = SettingsViewModel(fakeCreditPreferences, fakeThemePreferences, fakeHapticsPreferences, {}, FakeResettablePreferences())
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -106,6 +124,7 @@ class SettingsViewModelTest {
         assertEquals("Theme mode should be SYSTEM by default", ThemeMode.SYSTEM, state.themeMode)
         assertTrue("Haptics should be enabled by default", state.isHapticsEnabled)
         assertEquals("Version should be 1.0.0", "1.0.0", state.appVersion)
+        assertFalse("showClearConfirmation should be false by default", state.showClearConfirmation)
     }
 
     @Test
@@ -301,5 +320,141 @@ class SettingsViewModelTest {
         val state = viewModel.uiState.value
         assertEquals("appVersion should be updated", "2.5.1", state.appVersion)
         assertEquals("appVersionCode should be updated", "42", state.appVersionCode)
+    }
+
+    // =========================================================================
+    // Clear Data Tests
+    // =========================================================================
+
+    @Test
+    fun `onShowClearConfirmation sets showClearConfirmation to true`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertFalse("showClearConfirmation should start false", viewModel.uiState.value.showClearConfirmation)
+
+        viewModel.onShowClearConfirmation()
+        advanceUntilIdle()
+
+        assertTrue("showClearConfirmation should be true", viewModel.uiState.value.showClearConfirmation)
+    }
+
+    @Test
+    fun `onDismissClearConfirmation sets showClearConfirmation to false`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onShowClearConfirmation()
+        advanceUntilIdle()
+        assertTrue("showClearConfirmation should be true after show", viewModel.uiState.value.showClearConfirmation)
+
+        viewModel.onDismissClearConfirmation()
+        advanceUntilIdle()
+
+        assertFalse("showClearConfirmation should be false after dismiss", viewModel.uiState.value.showClearConfirmation)
+    }
+
+    @Test
+    fun `onClearData dismisses confirmation dialog immediately`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onShowClearConfirmation()
+        advanceUntilIdle()
+        assertTrue("Dialog should be visible", viewModel.uiState.value.showClearConfirmation)
+
+        viewModel.onClearData()
+        advanceUntilIdle()
+
+        assertFalse("Dialog should be dismissed after clear", viewModel.uiState.value.showClearConfirmation)
+    }
+
+    @Test
+    fun `onClearData calls the clearDatabase function`() = runTest(testDispatcher) {
+        var clearDatabaseCalled = false
+        val viewModel = createViewModel(clearDatabase = { clearDatabaseCalled = true })
+        advanceUntilIdle()
+
+        viewModel.onClearData()
+        advanceUntilIdle()
+
+        assertTrue("clearDatabase should have been called", clearDatabaseCalled)
+    }
+
+    @Test
+    fun `onClearData calls reset on preferences`() = runTest(testDispatcher) {
+        val fakePreferences = FakeResettablePreferences()
+        val viewModel = createViewModel(resettablePreferences = fakePreferences)
+        advanceUntilIdle()
+
+        viewModel.onClearData()
+        advanceUntilIdle()
+
+        assertTrue("reset should have been called", fakePreferences.resetCalled)
+    }
+
+    @Test
+    fun `onClearData emits ShowSnackbar then NavigateToOnboarding on success`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        val events = mutableListOf<SettingsEvent>()
+        val job = launch {
+            viewModel.events.collect { events.add(it) }
+        }
+
+        viewModel.onClearData()
+        advanceUntilIdle()
+
+        val snackbarEvent = events.filterIsInstance<SettingsEvent.ShowSnackbar>().firstOrNull()
+        val navigateEvent = events.filterIsInstance<SettingsEvent.NavigateToOnboarding>().firstOrNull()
+
+        assertTrue("ShowSnackbar event should be emitted", snackbarEvent != null)
+        assertEquals("Snackbar message should be 'All data cleared'", "All data cleared", snackbarEvent?.message)
+        assertTrue("NavigateToOnboarding event should be emitted", navigateEvent != null)
+
+        // Verify ordering: snackbar before navigation
+        val snackbarIndex = events.indexOfFirst { it is SettingsEvent.ShowSnackbar }
+        val navigateIndex = events.indexOfFirst { it is SettingsEvent.NavigateToOnboarding }
+        assertTrue("ShowSnackbar should come before NavigateToOnboarding", snackbarIndex < navigateIndex)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `onClearData emits error snackbar when clearDatabase throws`() = runTest(testDispatcher) {
+        val viewModel = createViewModel(clearDatabase = { throw RuntimeException("Database error") })
+        advanceUntilIdle()
+
+        val events = mutableListOf<SettingsEvent>()
+        val job = launch {
+            viewModel.events.collect { events.add(it) }
+        }
+
+        viewModel.onClearData()
+        advanceUntilIdle()
+
+        val snackbarEvent = events.filterIsInstance<SettingsEvent.ShowSnackbar>().firstOrNull()
+        assertTrue("Error snackbar should be emitted on failure", snackbarEvent != null)
+        assertEquals("Error message should indicate failure", "Failed to clear data", snackbarEvent?.message)
+        assertFalse("NavigateToOnboarding should NOT be emitted on error",
+            events.any { it is SettingsEvent.NavigateToOnboarding })
+
+        job.cancel()
+    }
+
+    @Test
+    fun `onClearData does not call preferences reset when clearDatabase throws`() = runTest(testDispatcher) {
+        val fakePreferences = FakeResettablePreferences()
+        val viewModel = createViewModel(
+            clearDatabase = { throw RuntimeException("Database error") },
+            resettablePreferences = fakePreferences
+        )
+        advanceUntilIdle()
+
+        viewModel.onClearData()
+        advanceUntilIdle()
+
+        assertFalse("Preferences reset should not be called when database fails", fakePreferences.resetCalled)
     }
 }

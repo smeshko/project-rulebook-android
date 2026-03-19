@@ -2,13 +2,11 @@ package com.rulebook.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rulebook.core.database.ClearableDatabase
 import com.rulebook.core.datastore.CreditPreferencesSource
 import com.rulebook.core.datastore.HapticsPreferencesSource
 import com.rulebook.core.datastore.ResettablePreferences
 import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.datastore.ThemePreferencesSource
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +15,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * ViewModel for the Settings screen.
@@ -28,14 +25,14 @@ import kotlinx.coroutines.withContext
  * @param creditPreferencesSource Preferences source for reading credit balance.
  * @param themePreferencesSource Preferences source for reading and writing theme mode.
  * @param hapticsPreferencesSource Preferences source for reading and writing haptics enabled state.
- * @param clearableDatabase Database interface for wiping all tables.
+ * @param clearDatabase Suspend function that wipes all Room database tables (called from IO thread internally).
  * @param resettablePreferences Preferences interface for resetting to defaults (preserving credits).
  */
 class SettingsViewModel(
     private val creditPreferencesSource: CreditPreferencesSource,
     private val themePreferencesSource: ThemePreferencesSource,
     private val hapticsPreferencesSource: HapticsPreferencesSource,
-    private val clearableDatabase: ClearableDatabase,
+    private val clearDatabase: suspend () -> Unit,
     private val resettablePreferences: ResettablePreferences
 ) : ViewModel() {
 
@@ -124,7 +121,7 @@ class SettingsViewModel(
      * Clears all user data after confirmation.
      *
      * 1. Dismisses the confirmation dialog
-     * 2. Clears all Room database tables
+     * 2. Clears all Room database tables via [clearDatabase]
      * 3. Resets DataStore preferences (preserving credit balance)
      * 4. Emits a success snackbar event
      * 5. Emits a navigate-to-onboarding event
@@ -135,9 +132,7 @@ class SettingsViewModel(
         _uiState.update { it.copy(showClearConfirmation = false) }
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) {
-                    clearableDatabase.clearAllTables()
-                }
+                clearDatabase()
                 resettablePreferences.reset()
                 _events.send(SettingsEvent.ShowSnackbar("All data cleared"))
                 _events.send(SettingsEvent.NavigateToOnboarding)
