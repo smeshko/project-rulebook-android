@@ -19,7 +19,9 @@ val settingsModule = module {
             themePreferencesSource = get<ThemePreferencesSource>(),
             hapticsPreferencesSource = get<HapticsPreferencesSource>(),
             clearDatabase = { withContext(Dispatchers.IO) { database.clearAllTables() } },
-            resettablePreferences = get<ResettablePreferences>()
+            resettablePreferences = get<ResettablePreferences>(),
+            gameRepository = get(),
+            analyticsManager = get()
         )
     }
 }

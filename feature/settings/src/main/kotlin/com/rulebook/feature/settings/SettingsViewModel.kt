@@ -2,6 +2,9 @@ package com.rulebook.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rulebook.core.analytics.AnalyticsManager
+import com.rulebook.core.common.Result
+import com.rulebook.core.data.repository.GameRepository
 import com.rulebook.core.datastore.CreditPreferencesSource
 import com.rulebook.core.datastore.HapticsPreferencesSource
 import com.rulebook.core.datastore.ResettablePreferences
@@ -27,13 +30,17 @@ import kotlinx.coroutines.launch
  * @param hapticsPreferencesSource Preferences source for reading and writing haptics enabled state.
  * @param clearDatabase Suspend function that wipes all Room database tables (called from IO thread internally).
  * @param resettablePreferences Preferences interface for resetting to defaults (preserving credits).
+ * @param gameRepository Repository for accessing game data (used for games_count in analytics).
+ * @param analyticsManager Analytics manager for tracking settings events.
  */
 class SettingsViewModel(
     private val creditPreferencesSource: CreditPreferencesSource,
     private val themePreferencesSource: ThemePreferencesSource,
     private val hapticsPreferencesSource: HapticsPreferencesSource,
     private val clearDatabase: suspend () -> Unit,
-    private val resettablePreferences: ResettablePreferences
+    private val resettablePreferences: ResettablePreferences,
+    private val gameRepository: GameRepository,
+    private val analyticsManager: AnalyticsManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -79,7 +86,13 @@ class SettingsViewModel(
      * Updates local UI state immediately and persists to DataStore.
      */
     fun onThemeSelected(mode: ThemeMode) {
+        val previousTheme = _uiState.value.themeMode
         _uiState.update { it.copy(themeMode = mode) }
+        try {
+            analyticsManager.trackSettingsThemeChanged(mode.name.lowercase(), previousTheme.name.lowercase())
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             themePreferencesSource.setThemeMode(mode)
         }
@@ -91,6 +104,11 @@ class SettingsViewModel(
      */
     fun onHapticsToggle(enabled: Boolean) {
         _uiState.update { it.copy(isHapticsEnabled = enabled) }
+        try {
+            analyticsManager.trackSettingsHapticsChanged(enabled)
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             hapticsPreferencesSource.setHapticsEnabled(enabled)
         }
@@ -131,6 +149,10 @@ class SettingsViewModel(
     fun onClearData() {
         _uiState.update { it.copy(showClearConfirmation = false) }
         viewModelScope.launch {
+            val gamesCount = when (val result = gameRepository.getGames()) {
+                is Result.Success -> result.data.size
+                is Result.Error -> 0
+            }
             try {
                 clearDatabase()
             } catch (_: Exception) {
@@ -144,6 +166,11 @@ class SettingsViewModel(
             }
             _events.send(SettingsEvent.ShowSnackbar("All data cleared"))
             _events.send(SettingsEvent.NavigateToOnboarding)
+            try {
+                analyticsManager.trackSettingsDataCleared(gamesCount)
+            } catch (_: Exception) {
+                // Analytics must never block user actions
+            }
         }
     }
 
@@ -151,6 +178,11 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.ContactSupport] event to open the email composer.
      */
     fun onContactUs() {
+        try {
+            analyticsManager.trackSettingsSupportTapped("contact")
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             _events.send(SettingsEvent.ContactSupport)
         }
@@ -160,6 +192,11 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.ReportBug] event to open the bug report email composer.
      */
     fun onReportBug() {
+        try {
+            analyticsManager.trackSettingsSupportTapped("bug")
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             _events.send(SettingsEvent.ReportBug)
         }
@@ -169,6 +206,11 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.RateApp] event to open the Play Store listing.
      */
     fun onRateApp() {
+        try {
+            analyticsManager.trackSettingsSupportTapped("rate")
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             _events.send(SettingsEvent.RateApp)
         }
@@ -178,6 +220,11 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.OpenPrivacyPolicy] event to open the privacy policy in the browser.
      */
     fun onPrivacyPolicy() {
+        try {
+            analyticsManager.trackSettingsSupportTapped("privacy")
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             _events.send(SettingsEvent.OpenPrivacyPolicy)
         }
@@ -187,6 +234,11 @@ class SettingsViewModel(
      * Emits a [SettingsEvent.OpenTermsOfService] event to open the terms of service in the browser.
      */
     fun onTermsOfService() {
+        try {
+            analyticsManager.trackSettingsSupportTapped("terms")
+        } catch (_: Exception) {
+            // Analytics must never block user actions
+        }
         viewModelScope.launch {
             _events.send(SettingsEvent.OpenTermsOfService)
         }
