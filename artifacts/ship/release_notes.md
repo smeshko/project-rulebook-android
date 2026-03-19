@@ -1,19 +1,18 @@
-## [Unreleased] - 2026-03-18
+## [Unreleased] - 2026-03-19
 
 ### Added
-- Purchase analytics convenience methods to AnalyticsManager
-- Source navigation argument to Purchase route
-- Fire paywall_displayed event on PurchaseViewModel init
-- Replace raw trackEvent calls with purchase analytics convenience methods
+- Create ThemePreferencesSource interface and DI binding
+- Replace isDarkTheme Boolean with themeMode ThemeMode in SettingsUiState
+- Update SettingsViewModel to inject ThemePreferencesSource and persist theme
+- Update SettingsModule to inject ThemePreferencesSource into SettingsViewModel
+- Create SettingsThemeRow component with brutalist radio button indicator
+- Replace dark mode toggle with three theme selection rows in SettingsScreen
+- Wire theme preference to app root in MainActivity and RulebookApp
+- Update SettingsViewModelTest with FakeThemePreferencesSource and new theme tests
 
 ### Fixed
-- Handle addCredits failure after successful purchase
-- Fix failing tests for paywall analytics and purchase route
+- Add DataStore error handling and accessibility semantics
+- Restore 8dp spacing between theme rows in selectableGroup
 
 ### Documentation
-- Add purchase analytics events feature documentation
-- Register purchase analytics events in conditional docs guide
-
-### Other
-- Update PurchaseViewModelTest for new analytics property names
-- Add unit tests for purchase analytics convenience methods
+- Add theme selection feature documentation and update conditional guide

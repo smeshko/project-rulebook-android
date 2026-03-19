@@ -5,14 +5,18 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.rulebook.core.billing.PendingCheckResult
 import com.rulebook.core.billing.PendingPurchaseChecker
+import com.rulebook.core.datastore.RulebookPreferences
+import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.startup.StartupViewModel
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -30,6 +34,7 @@ class MainActivity : ComponentActivity() {
 
     private val startupViewModel: StartupViewModel by viewModel()
     private val pendingPurchaseChecker: PendingPurchaseChecker by inject()
+    private val preferences: RulebookPreferences by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Install splash screen BEFORE super.onCreate()
@@ -47,12 +52,21 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val startupDestination by startupViewModel.startupDestination.collectAsStateWithLifecycle()
+            val themeMode by preferences.themeMode
+                .catch { emit(ThemeMode.SYSTEM) }
+                .collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
 
-            RulebookTheme {
+            val darkTheme = when (themeMode) {
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+            }
+
+            RulebookTheme(darkTheme = darkTheme) {
                 // Only render app once startup destination is determined
                 // Splash screen is held until this point, so no flash occurs
                 startupDestination?.let { destination ->
-                    RulebookApp(startDestination = destination)
+                    RulebookApp(startDestination = destination, darkTheme = darkTheme)
                 }
             }
         }
