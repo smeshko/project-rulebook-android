@@ -1,15 +1,10 @@
 ## [Unreleased] - 2026-03-19
 
-### Added
-- Handle deep link warm start via onNewIntent and singleTop launchMode
-- Add deep link routing to camera composable in RulebookNavHost
-- Add rulebook:// deep link intent filter to MainActivity
-- Add adaptive shortcut icon with pink background and white camera
-
 ### Fixed
-- Fix warm-start deep link and add haptics tests
-- Fix pre-existing build failures in feature:camera from Story 9.2
-- Fix shortcut long label capitalization to match spec
+- Use safeDrawingPadding for camera top controls to handle display cutout (notch) in immersive mode
 
 ### Documentation
-- Document MVI pattern for app shortcuts deep link navigation (RULE-239)
+- Add edge-to-edge display cutout handling feature documentation (RULE-241)
+- Complete edge case verification for edge-to-edge polish
+- Verify navigation bar blending configuration
+- Audit edge-to-edge WindowInsets architecture

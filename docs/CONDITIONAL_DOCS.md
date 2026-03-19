@@ -171,3 +171,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When designing in-screen pagination (like Onboarding pager) that needs back navigation
     - When removing or refactoring back gesture handling to enable predictive back animation
     - When troubleshooting missing predictive back preview or back gesture conflicts
+
+- `docs/features/edge-to-edge-display-cutout-handling.md` - Edge-to-Edge Display Cutout Handling in Immersive Mode (RULE-241)
+  - Conditions:
+    - When building full-screen immersive UIs that hide system bars (e.g., Camera, fullscreen video)
+    - When adding overlay controls (buttons, indicators) to screens with display cutouts (notches, punch holes)
+    - When choosing between `statusBarsPadding()` and `safeDrawingPadding()` in immersive mode
+    - When handling display cutout insets separately from system bar insets in Compose
+    - When testing full-screen UIs on notched devices (Pixel 3+, etc.) with gesture navigation
