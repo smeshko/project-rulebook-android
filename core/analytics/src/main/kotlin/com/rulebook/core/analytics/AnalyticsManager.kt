@@ -366,4 +366,62 @@ interface AnalyticsManager {
             )
         )
     }
+
+    /**
+     * Track when user changes their theme preference (Story 9.9).
+     * This is a convenience method that fires the "settings_theme_changed" event.
+     * Aligns with iOS event naming for cross-platform consistency.
+     *
+     * @param theme The newly selected theme ("light", "dark", "system")
+     * @param previousTheme The previous theme ("light", "dark", "system")
+     */
+    fun trackSettingsThemeChanged(theme: String, previousTheme: String) {
+        trackEvent(
+            "settings_theme_changed",
+            mapOf(
+                "theme" to theme,
+                "previous_theme" to previousTheme
+            )
+        )
+    }
+
+    /**
+     * Track when user toggles haptic feedback (Story 9.9).
+     * This is a convenience method that fires the "settings_haptics_changed" event.
+     *
+     * @param enabled Whether haptics was enabled (true) or disabled (false)
+     */
+    fun trackSettingsHapticsChanged(enabled: Boolean) {
+        trackEvent(
+            "settings_haptics_changed",
+            mapOf("enabled" to enabled.toString())
+        )
+    }
+
+    /**
+     * Track when user clears all app data (Story 9.9).
+     * This is a convenience method that fires the "settings_data_cleared" event.
+     *
+     * @param gamesCount The number of games in the library before clearing
+     */
+    fun trackSettingsDataCleared(gamesCount: Int) {
+        trackEvent(
+            "settings_data_cleared",
+            mapOf("games_count" to gamesCount.toString())
+        )
+    }
+
+    /**
+     * Track when user taps a support or legal link (Story 9.9).
+     * This is a convenience method that fires the "settings_support_tapped" event.
+     * Aligns with iOS event naming for cross-platform consistency.
+     *
+     * @param link The link identifier ("contact", "bug", "rate", "privacy", "terms")
+     */
+    fun trackSettingsSupportTapped(link: String) {
+        trackEvent(
+            "settings_support_tapped",
+            mapOf("link" to link)
+        )
+    }
 }
