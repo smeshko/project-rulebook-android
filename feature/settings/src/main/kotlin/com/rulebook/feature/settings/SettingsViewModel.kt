@@ -2,6 +2,9 @@ package com.rulebook.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rulebook.core.analytics.AnalyticsManager
+import com.rulebook.core.common.Result
+import com.rulebook.core.data.repository.GameRepository
 import com.rulebook.core.datastore.CreditPreferencesSource
 import com.rulebook.core.datastore.HapticsPreferencesSource
 import com.rulebook.core.datastore.ResettablePreferences
@@ -27,13 +30,17 @@ import kotlinx.coroutines.launch
  * @param hapticsPreferencesSource Preferences source for reading and writing haptics enabled state.
  * @param clearDatabase Suspend function that wipes all Room database tables (called from IO thread internally).
  * @param resettablePreferences Preferences interface for resetting to defaults (preserving credits).
+ * @param gameRepository Repository for accessing game data (used for games_count in analytics).
+ * @param analyticsManager Analytics manager for tracking settings events.
  */
 class SettingsViewModel(
     private val creditPreferencesSource: CreditPreferencesSource,
     private val themePreferencesSource: ThemePreferencesSource,
     private val hapticsPreferencesSource: HapticsPreferencesSource,
     private val clearDatabase: suspend () -> Unit,
-    private val resettablePreferences: ResettablePreferences
+    private val resettablePreferences: ResettablePreferences,
+    private val gameRepository: GameRepository,
+    private val analyticsManager: AnalyticsManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
