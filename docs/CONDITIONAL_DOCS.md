@@ -123,3 +123,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When adding convenience methods to AnalyticsManager for domain-specific events
     - When propagating user context (source) through navigation arguments to ViewModels
     - When implementing privacy-compliant analytics that excludes PII (prices, payment methods)
+
+- `docs/features/theme-selection-light-dark-system.md` - Theme Selection (Light/Dark/System Modes) (RULE-234)
+  - Conditions:
+    - When implementing theme selection with Light/Dark/System modes
+    - When creating preference source abstractions for reactive setting persistence
+    - When designing settings UI with radio-button selection rows
+    - When applying theme changes at app root without activity restart
+    - When integrating system dark mode detection with user preference override
