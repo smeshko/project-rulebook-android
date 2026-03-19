@@ -19,6 +19,7 @@ import com.rulebook.core.datastore.PendingPurchasePreferencesSource
 import com.rulebook.core.datastore.RulebookPreferences
 import com.rulebook.core.datastore.SortPreferencesSource
 import com.rulebook.core.datastore.ThemePreferencesSource
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val dataModule = module {
@@ -39,5 +40,5 @@ val dataModule = module {
     single<HapticsPreferencesSource> { get<RulebookPreferences>() }
     single<PendingPurchasePreferencesSource> { get<RulebookPreferences>() }
     single<ScanRepository> { ScanRepositoryImpl(api = get(), context = get()) }
-    single<ReceiptRepository> { ReceiptRepositoryImpl(api = get(), context = get()) }
+    single<ReceiptRepository> { ReceiptRepositoryImpl(api = get(), packageName = androidContext().packageName) }
 }

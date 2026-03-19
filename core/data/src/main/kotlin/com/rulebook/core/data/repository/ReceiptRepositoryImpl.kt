@@ -1,6 +1,5 @@
 package com.rulebook.core.data.repository
 
-import android.content.Context
 import com.rulebook.core.common.Result
 import com.rulebook.core.common.safeCall
 import com.rulebook.core.data.util.NetworkErrorMapper
@@ -13,7 +12,7 @@ import com.rulebook.core.network.model.ValidateReceiptRequest
 
 class ReceiptRepositoryImpl(
     private val api: ReceiptValidationApi,
-    private val context: Context,
+    private val packageName: String,
 ) : ReceiptRepository {
 
     override suspend fun validatePurchase(
@@ -24,7 +23,7 @@ class ReceiptRepositoryImpl(
             val request = ValidateReceiptRequest(
                 purchaseToken = purchaseToken,
                 productId = productId,
-                packageName = context.packageName,
+                packageName = packageName,
             )
             val response = api.validateReceipt(request)
             response.toDomain()
