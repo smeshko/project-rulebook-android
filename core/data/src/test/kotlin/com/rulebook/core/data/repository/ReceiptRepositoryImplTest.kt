@@ -77,6 +77,18 @@ class ReceiptRepositoryImplTest {
         assertEquals(0, (result as Result.Success).data.creditsGranted)
     }
 
+    @Test
+    fun `validatePurchase sends correct request with packageName`() = runTest {
+        fakeApi.validateReceiptResult = ValidateReceiptResponse(status = "valid", creditsGranted = 1)
+
+        repository.validatePurchase("tok_abc", "prod_xyz")
+
+        val captured = fakeApi.lastValidateRequest
+        assertEquals("tok_abc", captured?.purchaseToken)
+        assertEquals("prod_xyz", captured?.productId)
+        assertEquals("com.rulebook.app", captured?.packageName)
+    }
+
     // --- validatePurchase error paths ---
 
     @Test
@@ -141,6 +153,20 @@ class ReceiptRepositoryImplTest {
         assertEquals(0, (result as Result.Success).data.size)
     }
 
+    @Test
+    fun `checkRefundStatus sends correct request with purchase tokens`() = runTest {
+        fakeApi.checkRefundStatusResult = CheckRefundResponse(
+            refundStatuses = listOf(
+                CheckRefundResponse.RefundStatusDto(purchaseToken = "tok1", isRefunded = false),
+            )
+        )
+
+        repository.checkRefundStatus(listOf("tok1", "tok2"))
+
+        val captured = fakeApi.lastCheckRefundRequest
+        assertEquals(listOf("tok1", "tok2"), captured?.purchaseTokens)
+    }
+
     // --- checkRefundStatus error paths ---
 
     @Test
@@ -167,16 +193,20 @@ class ReceiptRepositoryImplTest {
 class FakeReceiptValidationApi : ReceiptValidationApi {
     var validateReceiptResult: ValidateReceiptResponse? = null
     var validateReceiptError: Exception? = null
+    var lastValidateRequest: ValidateReceiptRequest? = null
 
     var checkRefundStatusResult: CheckRefundResponse? = null
     var checkRefundStatusError: Exception? = null
+    var lastCheckRefundRequest: CheckRefundRequest? = null
 
     override suspend fun validateReceipt(request: ValidateReceiptRequest): ValidateReceiptResponse {
+        lastValidateRequest = request
         validateReceiptError?.let { throw it }
         return validateReceiptResult ?: error("No validateReceiptResult configured")
     }
 
     override suspend fun checkRefundStatus(request: CheckRefundRequest): CheckRefundResponse {
+        lastCheckRefundRequest = request
         checkRefundStatusError?.let { throw it }
         return checkRefundStatusResult ?: error("No checkRefundStatusResult configured")
     }
