@@ -2,7 +2,9 @@ package com.rulebook.feature.settings
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.selection.selectableGroup
@@ -59,6 +61,30 @@ fun SettingsScreen(
     val view = LocalView.current
     val context = LocalContext.current
 
+    // Read version info from PackageManager and populate UI state
+    LaunchedEffect(Unit) {
+        val packageInfo = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(context.packageName, 0)
+            }
+        } catch (_: PackageManager.NameNotFoundException) {
+            null
+        }
+        if (packageInfo != null) {
+            val versionName = packageInfo.versionName ?: "1.0.0"
+            val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageInfo.longVersionCode.toString()
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.versionCode.toString()
+            }
+            viewModel.updateVersionInfo(versionName, versionCode)
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             val state = viewModel.uiState.value
@@ -99,12 +125,16 @@ fun SettingsScreen(
                             Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
                         )
                     } catch (_: ActivityNotFoundException) {
-                        context.startActivity(
-                            Intent(
-                                Intent.ACTION_VIEW,
-                                Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
+                        try {
+                            context.startActivity(
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
+                                )
                             )
-                        )
+                        } catch (_: ActivityNotFoundException) {
+                            // No Play Store or browser available — silently ignore
+                        }
                     }
                 }
             }

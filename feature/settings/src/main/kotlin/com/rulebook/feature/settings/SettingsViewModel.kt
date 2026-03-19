@@ -92,6 +92,13 @@ class SettingsViewModel(
     }
 
     /**
+     * Updates the app version information displayed in the UI and used in email subjects.
+     */
+    fun updateVersionInfo(versionName: String, versionCode: String) {
+        _uiState.update { it.copy(appVersion = versionName, appVersionCode = versionCode) }
+    }
+
+    /**
      * Clears all user data.
      * Placeholder - will be implemented in Epic 9.
      */
