@@ -7,8 +7,8 @@ android {
 
     defaultConfig {
         applicationId = "com.rulebook"
-        versionCode = 15
-        versionName = "1.0.14"
+        versionCode = 16
+        versionName = "1.0.15"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
