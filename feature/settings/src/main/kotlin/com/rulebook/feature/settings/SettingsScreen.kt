@@ -15,9 +15,11 @@ import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rulebook.core.common.HapticUtils
 import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.designsystem.component.ButtonVariant
 import com.rulebook.core.designsystem.component.RulebookButton
@@ -45,12 +47,19 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val view = LocalView.current
 
     SettingsScreenContent(
         uiState = uiState,
         onCreditsTap = onNavigateToPaywall,
         onThemeSelected = viewModel::onThemeSelected,
-        onHapticsToggle = viewModel::onHapticsToggle,
+        onHapticsToggle = { enabled ->
+            // Farewell vibration: fire one last haptic before disabling
+            if (!enabled && uiState.isHapticsEnabled) {
+                HapticUtils.performCaptureHaptic(view)
+            }
+            viewModel.onHapticsToggle(enabled)
+        },
         onClearData = viewModel::onClearData,
         onContactUs = viewModel::onContactUs,
         onRateApp = viewModel::onRateApp,
