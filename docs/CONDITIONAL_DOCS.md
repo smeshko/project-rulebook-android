@@ -147,3 +147,10 @@ This guide helps you find relevant documentation based on what you're working on
     - When handling ActivityNotFoundException for unavailable browsers or email clients
     - When creating reusable settings UI components with icon boxes
     - When adding dynamic version display to your app
+
+- `docs/features/clear-data-confirmation-flow.md` - Clear Data Confirmation Flow (RULE-238)
+  - Conditions:
+    - When implementing destructive operations with confirmation dialogs in Jetpack Compose
+    - When clearing database tables and resetting user preferences in Android apps
+    - When deciding between interface abstractions vs lambda patterns for Room dependencies
+    - When implementing dialogs that preserve certain data during reset operations
