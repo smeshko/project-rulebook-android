@@ -1,5 +1,8 @@
 package com.rulebook.feature.settings
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.selection.selectableGroup
@@ -10,11 +13,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BrightnessAuto
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,6 +34,7 @@ import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.feature.settings.components.SettingsCreditRow
+import com.rulebook.feature.settings.components.SettingsIconLinkRow
 import com.rulebook.feature.settings.components.SettingsInfoRow
 import com.rulebook.feature.settings.components.SettingsLinkRow
 import com.rulebook.feature.settings.components.SettingsSectionHeader
@@ -48,6 +57,50 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val view = LocalView.current
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            val appVersion = viewModel.uiState.value.appVersion
+            when (event) {
+                SettingsEvent.ContactSupport -> {
+                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                        data = Uri.parse("mailto:support@rulebook.app")
+                        putExtra(
+                            Intent.EXTRA_SUBJECT,
+                            "Rulebook Android v$appVersion - Support"
+                        )
+                    }
+                    context.startActivity(intent)
+                }
+                SettingsEvent.ReportBug -> {
+                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                        data = Uri.parse("mailto:support@rulebook.app")
+                        putExtra(
+                            Intent.EXTRA_SUBJECT,
+                            "Rulebook Android v$appVersion - Bug"
+                        )
+                    }
+                    context.startActivity(intent)
+                }
+                SettingsEvent.RateApp -> {
+                    val packageName = context.packageName
+                    try {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName"))
+                        )
+                    } catch (e: ActivityNotFoundException) {
+                        context.startActivity(
+                            Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://play.google.com/store/apps/details?id=$packageName")
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     SettingsScreenContent(
         uiState = uiState,
@@ -62,8 +115,8 @@ fun SettingsScreen(
         },
         onClearData = viewModel::onClearData,
         onContactUs = viewModel::onContactUs,
+        onReportBug = viewModel::onReportBug,
         onRateApp = viewModel::onRateApp,
-        onShareApp = viewModel::onShareApp,
         onPrivacyPolicy = viewModel::onPrivacyPolicy,
         onTermsOfService = viewModel::onTermsOfService,
         modifier = modifier
@@ -78,8 +131,8 @@ internal fun SettingsScreenContent(
     onHapticsToggle: (Boolean) -> Unit,
     onClearData: () -> Unit,
     onContactUs: () -> Unit,
+    onReportBug: () -> Unit,
     onRateApp: () -> Unit,
-    onShareApp: () -> Unit,
     onPrivacyPolicy: () -> Unit,
     onTermsOfService: () -> Unit,
     modifier: Modifier = Modifier,
@@ -159,21 +212,27 @@ internal fun SettingsScreenContent(
                 )
             }
             item {
-                SettingsLinkRow(
+                SettingsIconLinkRow(
                     label = "Contact Us",
+                    icon = Icons.Outlined.Email,
+                    iconTint = RulebookTheme.colors.blue,
                     onClick = onContactUs
                 )
             }
             item {
-                SettingsLinkRow(
-                    label = "Rate the App",
-                    onClick = onRateApp
+                SettingsIconLinkRow(
+                    label = "Report a Bug",
+                    icon = Icons.Outlined.BugReport,
+                    iconTint = RulebookTheme.colors.orange,
+                    onClick = onReportBug
                 )
             }
             item {
-                SettingsLinkRow(
-                    label = "Share",
-                    onClick = onShareApp
+                SettingsIconLinkRow(
+                    label = "Rate the App",
+                    icon = Icons.Outlined.Star,
+                    iconTint = RulebookTheme.colors.yellow,
+                    onClick = onRateApp
                 )
             }
 
@@ -237,8 +296,8 @@ private fun SettingsScreenLightPreview() {
             onHapticsToggle = {},
             onClearData = {},
             onContactUs = {},
+            onReportBug = {},
             onRateApp = {},
-            onShareApp = {},
             onPrivacyPolicy = {},
             onTermsOfService = {}
         )
@@ -256,8 +315,8 @@ private fun SettingsScreenDarkPreview() {
             onHapticsToggle = {},
             onClearData = {},
             onContactUs = {},
+            onReportBug = {},
             onRateApp = {},
-            onShareApp = {},
             onPrivacyPolicy = {},
             onTermsOfService = {}
         )
