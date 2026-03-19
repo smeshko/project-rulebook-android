@@ -10,4 +10,6 @@ sealed interface SettingsEvent {
     data object RateApp : SettingsEvent
     data object OpenPrivacyPolicy : SettingsEvent
     data object OpenTermsOfService : SettingsEvent
+    data object NavigateToOnboarding : SettingsEvent
+    data class ShowSnackbar(val message: String) : SettingsEvent
 }
