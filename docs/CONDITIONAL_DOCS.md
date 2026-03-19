@@ -187,3 +187,12 @@ This guide helps you find relevant documentation based on what you're working on
     - When implementing resilient analytics that don't block user actions
     - When testing ViewModels with analytics using FakeAnalyticsManager fixture
     - When capturing state transitions for analytics (previous/new value pairs)
+
+- `docs/features/server-side-receipt-validation-network-layer.md` - Server-Side Receipt Validation Network Layer (RULE-255)
+  - Conditions:
+    - When integrating server-side receipt validation for purchase verification
+    - When implementing network request/response mapping patterns with Retrofit and serialization
+    - When designing repository abstractions over external service integrations
+    - When creating testable network layer code with fake-based unit tests and String parameter injection
+    - When implementing consistent error handling for multiple network endpoints
+    - When replacing interim client-side validation with secure server-side verification

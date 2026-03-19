@@ -6,7 +6,7 @@ import java.net.UnknownHostException
 object NetworkErrorMapper {
 
     fun mapToUserMessage(cause: Throwable?): String = when (cause) {
-        is SocketTimeoutException -> "The analysis took too long. Please try again."
+        is SocketTimeoutException -> "The request took too long. Please try again."
         is UnknownHostException -> "No internet connection. Please check your network."
         is retrofit2.HttpException -> mapHttpException(cause)
         else -> "Something went wrong. Please try again."

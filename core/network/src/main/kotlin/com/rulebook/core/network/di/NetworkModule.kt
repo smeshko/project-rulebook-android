@@ -2,6 +2,7 @@ package com.rulebook.core.network.di
 
 import com.rulebook.core.network.BuildConfig
 import com.rulebook.core.network.RulebookApiClient
+import com.rulebook.core.network.api.ReceiptValidationApi
 import com.rulebook.core.network.api.RulebookApi
 import okhttp3.OkHttpClient
 import org.koin.dsl.module
@@ -21,5 +22,9 @@ val networkModule = module {
 
     single<RulebookApi> {
         RulebookApiClient.createRulebookApi(retrofit = get())
+    }
+
+    single<ReceiptValidationApi> {
+        RulebookApiClient.createReceiptValidationApi(retrofit = get())
     }
 }

@@ -13,7 +13,7 @@ class NetworkErrorMapperTest {
     @Test
     fun `maps SocketTimeoutException to timeout message`() {
         val result = NetworkErrorMapper.mapToUserMessage(SocketTimeoutException("timeout"))
-        assertEquals("The analysis took too long. Please try again.", result)
+        assertEquals("The request took too long. Please try again.", result)
     }
 
     @Test
