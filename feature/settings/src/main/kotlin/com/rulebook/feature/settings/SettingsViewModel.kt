@@ -3,6 +3,8 @@ package com.rulebook.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rulebook.core.datastore.CreditPreferencesSource
+import com.rulebook.core.datastore.ThemeMode
+import com.rulebook.core.datastore.ThemePreferencesSource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,13 +15,14 @@ import kotlinx.coroutines.launch
 /**
  * ViewModel for the Settings screen.
  *
- * Manages UI state for settings options. Currently contains placeholder
- * implementations that will be fully functional in Epic 9.
+ * Manages UI state for settings options.
  *
  * @param creditPreferencesSource Preferences source for reading credit balance.
+ * @param themePreferencesSource Preferences source for reading and writing theme mode.
  */
 class SettingsViewModel(
-    private val creditPreferencesSource: CreditPreferencesSource
+    private val creditPreferencesSource: CreditPreferencesSource,
+    private val themePreferencesSource: ThemePreferencesSource
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -35,15 +38,27 @@ class SettingsViewModel(
                     _uiState.update { it.copy(creditBalance = balance) }
                 }
         }
+
+        // Collect theme mode from preferences
+        // catch emits SYSTEM on DataStore IOException to keep UI functional
+        viewModelScope.launch {
+            themePreferencesSource.themeMode
+                .catch { emit(ThemeMode.SYSTEM) }
+                .collect { mode ->
+                    _uiState.update { it.copy(themeMode = mode) }
+                }
+        }
     }
 
     /**
-     * Toggles the dark theme setting.
-     * Updates local UI state immediately. Persistence will be implemented in Epic 9.
+     * Selects the theme mode and persists the selection.
+     * Updates local UI state immediately and persists to DataStore.
      */
-    fun onThemeToggle(enabled: Boolean) {
-        _uiState.value = _uiState.value.copy(isDarkTheme = enabled)
-        // TODO: Persist to DataStore in Epic 9
+    fun onThemeSelected(mode: ThemeMode) {
+        _uiState.update { it.copy(themeMode = mode) }
+        viewModelScope.launch {
+            themePreferencesSource.setThemeMode(mode)
+        }
     }
 
     /**
