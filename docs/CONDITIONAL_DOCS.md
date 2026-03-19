@@ -179,3 +179,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When choosing between `statusBarsPadding()` and `safeDrawingPadding()` in immersive mode
     - When handling display cutout insets separately from system bar insets in Compose
     - When testing full-screen UIs on notched devices (Pixel 3+, etc.) with gesture navigation
+
+- `docs/features/settings-analytics-events.md` - Settings Analytics Events Integration (RULE-242)
+  - Conditions:
+    - When adding analytics tracking to settings changes (theme, haptics, data clearing)
+    - When integrating AnalyticsManager with ViewModels across the app
+    - When implementing resilient analytics that don't block user actions
+    - When testing ViewModels with analytics using FakeAnalyticsManager fixture
+    - When capturing state transitions for analytics (previous/new value pairs)
