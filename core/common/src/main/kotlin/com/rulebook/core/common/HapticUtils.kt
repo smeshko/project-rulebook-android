@@ -41,6 +41,20 @@ object HapticUtils {
     }
 
     /**
+     * Performs a click haptic feedback suitable for capture actions, guarded by preference.
+     *
+     * No-ops when [hapticsEnabled] is false, allowing callsites to respect the
+     * user's haptic feedback preference without conditional logic at each callsite.
+     *
+     * @param view The view to perform haptic feedback from.
+     * @param hapticsEnabled Whether haptic feedback is enabled per user preference.
+     */
+    fun performCaptureHaptic(view: View, hapticsEnabled: Boolean) {
+        if (!hapticsEnabled) return
+        performCaptureHaptic(view)
+    }
+
+    /**
      * Performs long-press haptic feedback.
      *
      * Uses [HapticFeedbackConstants.LONG_PRESS] which provides medium-intensity
@@ -52,6 +66,19 @@ object HapticUtils {
      */
     fun performLongPressHaptic(view: View) {
         view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+    }
+
+    /**
+     * Performs long-press haptic feedback, guarded by preference.
+     *
+     * No-ops when [hapticsEnabled] is false.
+     *
+     * @param view The view to perform haptic feedback from.
+     * @param hapticsEnabled Whether haptic feedback is enabled per user preference.
+     */
+    fun performLongPressHaptic(view: View, hapticsEnabled: Boolean) {
+        if (!hapticsEnabled) return
+        performLongPressHaptic(view)
     }
 
     /**
@@ -77,6 +104,20 @@ object HapticUtils {
             @Suppress("DEPRECATION")
             vibrator.vibrate(durationMs)
         }
+    }
+
+    /**
+     * Performs haptic feedback using the Vibrator service, guarded by preference.
+     *
+     * No-ops when [hapticsEnabled] is false.
+     *
+     * @param context The Android context.
+     * @param durationMs Duration of the vibration in milliseconds.
+     * @param hapticsEnabled Whether haptic feedback is enabled per user preference.
+     */
+    fun performVibration(context: Context, durationMs: Long = 50L, hapticsEnabled: Boolean) {
+        if (!hapticsEnabled) return
+        performVibration(context, durationMs)
     }
 
     /**

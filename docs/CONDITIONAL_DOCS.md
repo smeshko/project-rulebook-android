@@ -131,3 +131,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When designing settings UI with radio-button selection rows
     - When applying theme changes at app root without activity restart
     - When integrating system dark mode detection with user preference override
+
+- `docs/features/haptic-feedback-toggle.md` - Haptic Feedback Toggle (RULE-235)
+  - Conditions:
+    - When adding new preferences to the Settings screen
+    - When implementing preference-aware feature toggles in the app
+    - When extending haptic feedback to new actions or modules
+    - When creating new preference sources following the established pattern
+    - When modifying camera or gesture-based interactions that trigger haptics
