@@ -163,3 +163,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When creating preference source implementations with DataStore error handling patterns
     - When writing unit tests for ViewModels that observe multiple preference flows
     - When designing lifecycle-safe state management for preference-dependent UI features
+
+- `docs/features/predictive-back-gesture-refinement.md` - Predictive Back Gesture Refinement (RULE-240)
+  - Conditions:
+    - When implementing back gesture handling with predictive back preview on Android 14+
+    - When adding or modifying BackHandler in Compose — understand when NOT to use it
+    - When designing in-screen pagination (like Onboarding pager) that needs back navigation
+    - When removing or refactoring back gesture handling to enable predictive back animation
+    - When troubleshooting missing predictive back preview or back gesture conflicts
