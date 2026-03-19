@@ -17,7 +17,7 @@ import com.rulebook.core.database.entity.RulesEntity
     version = 1,
     exportSchema = true,
 )
-abstract class RulebookDatabase : RoomDatabase() {
+abstract class RulebookDatabase : RoomDatabase(), ClearableDatabase {
     abstract fun gameDao(): GameDao
     abstract fun rulesDao(): RulesDao
 }
