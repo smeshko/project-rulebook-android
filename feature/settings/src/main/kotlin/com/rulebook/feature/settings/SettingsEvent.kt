@@ -8,4 +8,6 @@ sealed interface SettingsEvent {
     data object ContactSupport : SettingsEvent
     data object ReportBug : SettingsEvent
     data object RateApp : SettingsEvent
+    data object OpenPrivacyPolicy : SettingsEvent
+    data object OpenTermsOfService : SettingsEvent
 }

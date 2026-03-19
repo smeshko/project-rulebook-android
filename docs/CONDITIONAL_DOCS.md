@@ -139,3 +139,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When extending haptic feedback to new actions or modules
     - When creating new preference sources following the established pattern
     - When modifying camera or gesture-based interactions that trigger haptics
+
+- `docs/features/about-section-legal-links.md` - About Section: Version Display and Legal Links (RULE-237)
+  - Conditions:
+    - When extending the About section with new information rows or legal links
+    - When implementing safe external link navigation via Intent.ACTION_VIEW
+    - When handling ActivityNotFoundException for unavailable browsers or email clients
+    - When creating reusable settings UI components with icon boxes
+    - When adding dynamic version display to your app

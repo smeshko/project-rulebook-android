@@ -265,4 +265,41 @@ class SettingsViewModelTest {
         val event = withTimeout(1000) { viewModel.events.first() }
         assertEquals("onRateApp should emit RateApp", SettingsEvent.RateApp, event)
     }
+
+    @Test
+    fun `onPrivacyPolicy emits OpenPrivacyPolicy event`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onPrivacyPolicy()
+        advanceUntilIdle()
+
+        val event = withTimeout(1000) { viewModel.events.first() }
+        assertEquals("onPrivacyPolicy should emit OpenPrivacyPolicy", SettingsEvent.OpenPrivacyPolicy, event)
+    }
+
+    @Test
+    fun `onTermsOfService emits OpenTermsOfService event`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onTermsOfService()
+        advanceUntilIdle()
+
+        val event = withTimeout(1000) { viewModel.events.first() }
+        assertEquals("onTermsOfService should emit OpenTermsOfService", SettingsEvent.OpenTermsOfService, event)
+    }
+
+    @Test
+    fun `updateVersionInfo updates both appVersion and appVersionCode`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.updateVersionInfo("2.5.1", "42")
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals("appVersion should be updated", "2.5.1", state.appVersion)
+        assertEquals("appVersionCode should be updated", "42", state.appVersionCode)
+    }
 }

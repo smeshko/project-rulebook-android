@@ -134,18 +134,20 @@ class SettingsViewModel(
     }
 
     /**
-     * Opens the privacy policy page.
-     * Placeholder - will be implemented in Epic 9.
+     * Emits a [SettingsEvent.OpenPrivacyPolicy] event to open the privacy policy in the browser.
      */
     fun onPrivacyPolicy() {
-        // TODO: Implement in Epic 9
+        viewModelScope.launch {
+            _events.send(SettingsEvent.OpenPrivacyPolicy)
+        }
     }
 
     /**
-     * Opens the terms of service page.
-     * Placeholder - will be implemented in Epic 9.
+     * Emits a [SettingsEvent.OpenTermsOfService] event to open the terms of service in the browser.
      */
     fun onTermsOfService() {
-        // TODO: Implement in Epic 9
+        viewModelScope.launch {
+            _events.send(SettingsEvent.OpenTermsOfService)
+        }
     }
 }
