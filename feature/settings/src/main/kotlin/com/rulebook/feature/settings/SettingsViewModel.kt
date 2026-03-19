@@ -2,10 +2,13 @@ package com.rulebook.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rulebook.core.database.ClearableDatabase
 import com.rulebook.core.datastore.CreditPreferencesSource
 import com.rulebook.core.datastore.HapticsPreferencesSource
+import com.rulebook.core.datastore.ResettablePreferences
 import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.datastore.ThemePreferencesSource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +17,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * ViewModel for the Settings screen.
@@ -24,11 +28,15 @@ import kotlinx.coroutines.launch
  * @param creditPreferencesSource Preferences source for reading credit balance.
  * @param themePreferencesSource Preferences source for reading and writing theme mode.
  * @param hapticsPreferencesSource Preferences source for reading and writing haptics enabled state.
+ * @param clearableDatabase Database interface for wiping all tables.
+ * @param resettablePreferences Preferences interface for resetting to defaults (preserving credits).
  */
 class SettingsViewModel(
     private val creditPreferencesSource: CreditPreferencesSource,
     private val themePreferencesSource: ThemePreferencesSource,
-    private val hapticsPreferencesSource: HapticsPreferencesSource
+    private val hapticsPreferencesSource: HapticsPreferencesSource,
+    private val clearableDatabase: ClearableDatabase,
+    private val resettablePreferences: ResettablePreferences
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -99,11 +107,44 @@ class SettingsViewModel(
     }
 
     /**
-     * Clears all user data.
-     * Placeholder - will be implemented in Epic 9.
+     * Shows the clear data confirmation dialog.
+     */
+    fun onShowClearConfirmation() {
+        _uiState.update { it.copy(showClearConfirmation = true) }
+    }
+
+    /**
+     * Dismisses the clear data confirmation dialog without clearing data.
+     */
+    fun onDismissClearConfirmation() {
+        _uiState.update { it.copy(showClearConfirmation = false) }
+    }
+
+    /**
+     * Clears all user data after confirmation.
+     *
+     * 1. Dismisses the confirmation dialog
+     * 2. Clears all Room database tables
+     * 3. Resets DataStore preferences (preserving credit balance)
+     * 4. Emits a success snackbar event
+     * 5. Emits a navigate-to-onboarding event
+     *
+     * On failure, emits an error snackbar event.
      */
     fun onClearData() {
-        // TODO: Implement in Epic 9
+        _uiState.update { it.copy(showClearConfirmation = false) }
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    clearableDatabase.clearAllTables()
+                }
+                resettablePreferences.reset()
+                _events.send(SettingsEvent.ShowSnackbar("All data cleared"))
+                _events.send(SettingsEvent.NavigateToOnboarding)
+            } catch (_: Exception) {
+                _events.send(SettingsEvent.ShowSnackbar("Failed to clear data"))
+            }
+        }
     }
 
     /**
