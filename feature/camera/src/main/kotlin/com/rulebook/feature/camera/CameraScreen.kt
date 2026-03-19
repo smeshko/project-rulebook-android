@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -336,12 +335,14 @@ fun CameraScreen(
                 }
 
                 // Top controls row: Close button, Flash toggle (optional), Credits display
-                // Uses statusBarsPadding to avoid notch/punch-hole cutouts
+                // Uses safeDrawingPadding to avoid both status bar and display cutout (notch/punch-hole).
+                // statusBarsPadding() returns 0 in immersive mode but displayCutout insets remain,
+                // so safeDrawingPadding() (= systemBars + displayCutout + ime) is required here.
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.TopCenter)
-                        .statusBarsPadding()
+                        .safeDrawingPadding()
                         .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically

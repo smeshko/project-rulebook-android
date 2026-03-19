@@ -34,9 +34,9 @@ So that the interface feels modern and immersive.
   - [x] **Purchase screen**: Relies on Scaffold `innerPadding` via NavHost modifier; `padding(vertical = spacing.lg)` is extra padding on top, "Get Credits" title not obscured ✅
   - [x] **Onboarding screen**: Skip button `windowInsetsPadding(WindowInsets.statusBars)` returns 0 (consumed by Scaffold); `innerPadding` clears area — no double-padding ✅
   - [x] **Camera screen**: `ImmersiveMode()` correctly hides system bars on enter and restores via `onDispose` ✅
-- [ ] Task 3: Camera Display Cutout (Notch) Handling
-  - [ ] Replace `statusBarsPadding()` on top controls Row with `safeDrawingPadding()` — ensures controls visible on notched devices in immersive mode where `statusBarsPadding()` returns 0 but display cutout insets remain
-  - [ ] Verify `safeDrawingPadding()` on bottom controls (line 372) handles cutout for bottom region
+- [x] Task 3: Camera Display Cutout (Notch) Handling
+  - [x] Replace `statusBarsPadding()` on top controls Row with `safeDrawingPadding()` — ensures controls visible on notched devices in immersive mode where `statusBarsPadding()` returns 0 but display cutout insets remain
+  - [x] Verify `safeDrawingPadding()` on bottom controls (line 372) handles cutout for bottom region ✅
 - [ ] Task 4: Navigation Bar Blending Verification
   - [ ] `containerColor = MaterialTheme.colorScheme.surface` at `RulebookBottomBar.kt:48`
   - [ ] `tonalElevation = 0.dp` at `RulebookBottomBar.kt:49` — no elevation tinting
@@ -105,4 +105,5 @@ claude-sonnet-4-6
 - Navigation bar blending confirmed via surface color + 0.dp tonal elevation
 
 ### File List
+- **Modified:** feature/camera/src/main/kotlin/com/rulebook/feature/camera/CameraScreen.kt
 - **Created:** _bmad-output/implementation-artifacts/9-8-edge-to-edge-polish.md
