@@ -29,7 +29,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  * @param context Application context for DataStore access. Must be Application context
  *                to avoid memory leaks.
  */
-open class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource, SortPreferencesSource, PendingPurchasePreferencesSource, ThemePreferencesSource, HapticsPreferencesSource {
+open class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource, SortPreferencesSource, PendingPurchasePreferencesSource, ThemePreferencesSource, HapticsPreferencesSource, ResettablePreferences {
 
     /**
      * Preference keys used for DataStore storage.
@@ -240,6 +240,20 @@ open class RulebookPreferences(private val context: Context) : OnboardingPrefere
     override suspend fun setSortOrder(order: SortOrder) {
         context.dataStore.edit { preferences ->
             preferences[Keys.SORT_ORDER] = order.name
+        }
+    }
+
+    /**
+     * Resets all preferences to defaults while preserving the credit balance.
+     *
+     * Reads the current credit balance, clears all preference keys, then
+     * re-writes the preserved balance — all in a single atomic DataStore edit.
+     */
+    override suspend fun reset() {
+        context.dataStore.edit { preferences ->
+            val preservedBalance = preferences[Keys.CREDIT_BALANCE] ?: 0
+            preferences.clear()
+            preferences[Keys.CREDIT_BALANCE] = preservedBalance
         }
     }
 }

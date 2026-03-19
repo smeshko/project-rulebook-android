@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,9 +24,14 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -38,6 +44,7 @@ import com.rulebook.core.designsystem.component.ButtonVariant
 import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
 import com.rulebook.core.designsystem.theme.RulebookTheme
+import com.rulebook.feature.settings.components.ClearDataConfirmationDialog
 import com.rulebook.feature.settings.components.SettingsCreditRow
 import com.rulebook.feature.settings.components.SettingsIconInfoRow
 import com.rulebook.feature.settings.components.SettingsIconLinkRow
@@ -53,18 +60,21 @@ private const val TERMS_OF_SERVICE_URL = "https://rulebook.app/terms"
  * Settings screen displaying app configuration options.
  *
  * @param onNavigateToPaywall Callback invoked when the user taps the credit balance row.
+ * @param onNavigateToOnboarding Callback invoked after data is cleared to return to onboarding.
  * @param viewModel The ViewModel managing settings state.
  * @param modifier Modifier to be applied to the screen.
  */
 @Composable
 fun SettingsScreen(
     onNavigateToPaywall: () -> Unit = {},
+    onNavigateToOnboarding: () -> Unit = {},
     viewModel: SettingsViewModel = koinViewModel(),
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val view = LocalView.current
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // Read version info from PackageManager and populate UI state
     LaunchedEffect(Unit) {
@@ -160,12 +170,22 @@ fun SettingsScreen(
                         // No browser available — silently ignore
                     }
                 }
+                is SettingsEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(
+                        message = event.message,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+                SettingsEvent.NavigateToOnboarding -> {
+                    onNavigateToOnboarding()
+                }
             }
         }
     }
 
     SettingsScreenContent(
         uiState = uiState,
+        snackbarHostState = snackbarHostState,
         onCreditsTap = onNavigateToPaywall,
         onThemeSelected = viewModel::onThemeSelected,
         onHapticsToggle = { enabled ->
@@ -175,7 +195,12 @@ fun SettingsScreen(
             }
             viewModel.onHapticsToggle(enabled)
         },
-        onClearData = viewModel::onClearData,
+        onShowClearConfirmation = viewModel::onShowClearConfirmation,
+        onDismissClearConfirmation = viewModel::onDismissClearConfirmation,
+        onClearData = {
+            HapticUtils.performCaptureHaptic(view, uiState.isHapticsEnabled)
+            viewModel.onClearData()
+        },
         onContactUs = viewModel::onContactUs,
         onReportBug = viewModel::onReportBug,
         onRateApp = viewModel::onRateApp,
@@ -188,9 +213,12 @@ fun SettingsScreen(
 @Composable
 internal fun SettingsScreenContent(
     uiState: SettingsUiState,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     onCreditsTap: () -> Unit,
     onThemeSelected: (ThemeMode) -> Unit,
     onHapticsToggle: (Boolean) -> Unit,
+    onShowClearConfirmation: () -> Unit,
+    onDismissClearConfirmation: () -> Unit,
     onClearData: () -> Unit,
     onContactUs: () -> Unit,
     onReportBug: () -> Unit,
@@ -199,152 +227,166 @@ internal fun SettingsScreenContent(
     onTermsOfService: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
-        RulebookHeaderBar(title = "Settings")
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            RulebookHeaderBar(title = "Settings")
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Credits Section
-            item {
-                SettingsSectionHeader(title = "Credits")
-            }
-            item {
-                SettingsCreditRow(
-                    creditCount = uiState.creditBalance,
-                    onClick = onCreditsTap
-                )
-            }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Credits Section
+                item {
+                    SettingsSectionHeader(title = "Credits")
+                }
+                item {
+                    SettingsCreditRow(
+                        creditCount = uiState.creditBalance,
+                        onClick = onCreditsTap
+                    )
+                }
 
-            // Appearance Section
-            item {
-                SettingsSectionHeader(
-                    title = "Appearance",
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-            item {
-                Column(
-                    modifier = Modifier.selectableGroup(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    SettingsThemeRow(
-                        label = "Light",
-                        icon = Icons.Outlined.LightMode,
-                        isSelected = uiState.themeMode == ThemeMode.LIGHT,
-                        onClick = { onThemeSelected(ThemeMode.LIGHT) }
+                // Appearance Section
+                item {
+                    SettingsSectionHeader(
+                        title = "Appearance",
+                        modifier = Modifier.padding(top = 8.dp)
                     )
-                    SettingsThemeRow(
-                        label = "Dark",
-                        icon = Icons.Outlined.DarkMode,
-                        isSelected = uiState.themeMode == ThemeMode.DARK,
-                        onClick = { onThemeSelected(ThemeMode.DARK) }
+                }
+                item {
+                    Column(
+                        modifier = Modifier.selectableGroup(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        SettingsThemeRow(
+                            label = "Light",
+                            icon = Icons.Outlined.LightMode,
+                            isSelected = uiState.themeMode == ThemeMode.LIGHT,
+                            onClick = { onThemeSelected(ThemeMode.LIGHT) }
+                        )
+                        SettingsThemeRow(
+                            label = "Dark",
+                            icon = Icons.Outlined.DarkMode,
+                            isSelected = uiState.themeMode == ThemeMode.DARK,
+                            onClick = { onThemeSelected(ThemeMode.DARK) }
+                        )
+                        SettingsThemeRow(
+                            label = "System",
+                            icon = Icons.Outlined.BrightnessAuto,
+                            isSelected = uiState.themeMode == ThemeMode.SYSTEM,
+                            onClick = { onThemeSelected(ThemeMode.SYSTEM) }
+                        )
+                    }
+                }
+
+                // Feedback Section
+                item {
+                    SettingsSectionHeader(
+                        title = "Feedback",
+                        modifier = Modifier.padding(top = 8.dp)
                     )
-                    SettingsThemeRow(
-                        label = "System",
-                        icon = Icons.Outlined.BrightnessAuto,
-                        isSelected = uiState.themeMode == ThemeMode.SYSTEM,
-                        onClick = { onThemeSelected(ThemeMode.SYSTEM) }
+                }
+                item {
+                    SettingsToggleRow(
+                        label = "Haptic Feedback",
+                        checked = uiState.isHapticsEnabled,
+                        onCheckedChange = onHapticsToggle
+                    )
+                }
+
+                // Support Section
+                item {
+                    SettingsSectionHeader(
+                        title = "Support",
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                item {
+                    SettingsIconLinkRow(
+                        label = "Contact Us",
+                        icon = Icons.Outlined.Email,
+                        iconTint = RulebookTheme.colors.blue,
+                        onClick = onContactUs
+                    )
+                }
+                item {
+                    SettingsIconLinkRow(
+                        label = "Report a Bug",
+                        icon = Icons.Outlined.BugReport,
+                        iconTint = RulebookTheme.colors.orange,
+                        onClick = onReportBug
+                    )
+                }
+                item {
+                    SettingsIconLinkRow(
+                        label = "Rate the App",
+                        icon = Icons.Outlined.Star,
+                        iconTint = RulebookTheme.colors.yellow,
+                        onClick = onRateApp
+                    )
+                }
+
+                // About Section
+                item {
+                    SettingsSectionHeader(
+                        title = "About",
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                item {
+                    SettingsIconInfoRow(
+                        label = "Version",
+                        value = "${uiState.appVersion} (build ${uiState.appVersionCode})",
+                        icon = Icons.Outlined.Info,
+                        iconTint = RulebookTheme.colors.contentSecondary
+                    )
+                }
+                item {
+                    SettingsIconLinkRow(
+                        label = "Privacy Policy",
+                        icon = Icons.Outlined.Shield,
+                        iconTint = RulebookTheme.colors.blue,
+                        onClick = onPrivacyPolicy
+                    )
+                }
+                item {
+                    SettingsIconLinkRow(
+                        label = "Terms of Service",
+                        icon = Icons.Outlined.Description,
+                        iconTint = RulebookTheme.colors.blue,
+                        onClick = onTermsOfService
+                    )
+                }
+
+                // Data Section
+                item {
+                    SettingsSectionHeader(
+                        title = "Data",
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+                item {
+                    RulebookButton(
+                        text = "Clear All Data",
+                        onClick = onShowClearConfirmation,
+                        variant = ButtonVariant.Destructive,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
+        }
 
-            // Feedback Section
-            item {
-                SettingsSectionHeader(
-                    title = "Feedback",
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-            item {
-                SettingsToggleRow(
-                    label = "Haptic Feedback",
-                    checked = uiState.isHapticsEnabled,
-                    onCheckedChange = onHapticsToggle
-                )
-            }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
 
-            // Support Section
-            item {
-                SettingsSectionHeader(
-                    title = "Support",
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-            item {
-                SettingsIconLinkRow(
-                    label = "Contact Us",
-                    icon = Icons.Outlined.Email,
-                    iconTint = RulebookTheme.colors.blue,
-                    onClick = onContactUs
-                )
-            }
-            item {
-                SettingsIconLinkRow(
-                    label = "Report a Bug",
-                    icon = Icons.Outlined.BugReport,
-                    iconTint = RulebookTheme.colors.orange,
-                    onClick = onReportBug
-                )
-            }
-            item {
-                SettingsIconLinkRow(
-                    label = "Rate the App",
-                    icon = Icons.Outlined.Star,
-                    iconTint = RulebookTheme.colors.yellow,
-                    onClick = onRateApp
-                )
-            }
-
-            // About Section
-            item {
-                SettingsSectionHeader(
-                    title = "About",
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-            item {
-                SettingsIconInfoRow(
-                    label = "Version",
-                    value = "${uiState.appVersion} (build ${uiState.appVersionCode})",
-                    icon = Icons.Outlined.Info,
-                    iconTint = RulebookTheme.colors.contentSecondary
-                )
-            }
-            item {
-                SettingsIconLinkRow(
-                    label = "Privacy Policy",
-                    icon = Icons.Outlined.Shield,
-                    iconTint = RulebookTheme.colors.blue,
-                    onClick = onPrivacyPolicy
-                )
-            }
-            item {
-                SettingsIconLinkRow(
-                    label = "Terms of Service",
-                    icon = Icons.Outlined.Description,
-                    iconTint = RulebookTheme.colors.blue,
-                    onClick = onTermsOfService
-                )
-            }
-
-            // Data Section
-            item {
-                SettingsSectionHeader(
-                    title = "Data",
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-            item {
-                RulebookButton(
-                    text = "Clear All Data",
-                    onClick = onClearData,
-                    variant = ButtonVariant.Destructive,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+        if (uiState.showClearConfirmation) {
+            ClearDataConfirmationDialog(
+                onConfirm = onClearData,
+                onDismiss = onDismissClearConfirmation
+            )
         }
     }
 }
@@ -362,6 +404,8 @@ private fun SettingsScreenLightPreview() {
             onCreditsTap = {},
             onThemeSelected = {},
             onHapticsToggle = {},
+            onShowClearConfirmation = {},
+            onDismissClearConfirmation = {},
             onClearData = {},
             onContactUs = {},
             onReportBug = {},
@@ -381,6 +425,29 @@ private fun SettingsScreenDarkPreview() {
             onCreditsTap = {},
             onThemeSelected = {},
             onHapticsToggle = {},
+            onShowClearConfirmation = {},
+            onDismissClearConfirmation = {},
+            onClearData = {},
+            onContactUs = {},
+            onReportBug = {},
+            onRateApp = {},
+            onPrivacyPolicy = {},
+            onTermsOfService = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Settings Screen - Clear Confirmation Dialog")
+@Composable
+private fun SettingsScreenClearConfirmationPreview() {
+    RulebookTheme(darkTheme = false) {
+        SettingsScreenContent(
+            uiState = SettingsUiState(creditBalance = 5, showClearConfirmation = true),
+            onCreditsTap = {},
+            onThemeSelected = {},
+            onHapticsToggle = {},
+            onShowClearConfirmation = {},
+            onDismissClearConfirmation = {},
             onClearData = {},
             onContactUs = {},
             onReportBug = {},

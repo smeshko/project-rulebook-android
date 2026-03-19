@@ -16,5 +16,6 @@ data class SettingsUiState(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val isHapticsEnabled: Boolean = true,
     val appVersion: String = "1.0.0",
-    val appVersionCode: String = "1"
+    val appVersionCode: String = "1",
+    val showClearConfirmation: Boolean = false
 )

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rulebook.core.datastore.CreditPreferencesSource
 import com.rulebook.core.datastore.HapticsPreferencesSource
+import com.rulebook.core.datastore.ResettablePreferences
 import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.datastore.ThemePreferencesSource
 import kotlinx.coroutines.channels.Channel
@@ -24,11 +25,15 @@ import kotlinx.coroutines.launch
  * @param creditPreferencesSource Preferences source for reading credit balance.
  * @param themePreferencesSource Preferences source for reading and writing theme mode.
  * @param hapticsPreferencesSource Preferences source for reading and writing haptics enabled state.
+ * @param clearDatabase Suspend function that wipes all Room database tables (called from IO thread internally).
+ * @param resettablePreferences Preferences interface for resetting to defaults (preserving credits).
  */
 class SettingsViewModel(
     private val creditPreferencesSource: CreditPreferencesSource,
     private val themePreferencesSource: ThemePreferencesSource,
-    private val hapticsPreferencesSource: HapticsPreferencesSource
+    private val hapticsPreferencesSource: HapticsPreferencesSource,
+    private val clearDatabase: suspend () -> Unit,
+    private val resettablePreferences: ResettablePreferences
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -99,11 +104,47 @@ class SettingsViewModel(
     }
 
     /**
-     * Clears all user data.
-     * Placeholder - will be implemented in Epic 9.
+     * Shows the clear data confirmation dialog.
+     */
+    fun onShowClearConfirmation() {
+        _uiState.update { it.copy(showClearConfirmation = true) }
+    }
+
+    /**
+     * Dismisses the clear data confirmation dialog without clearing data.
+     */
+    fun onDismissClearConfirmation() {
+        _uiState.update { it.copy(showClearConfirmation = false) }
+    }
+
+    /**
+     * Clears all user data after confirmation.
+     *
+     * 1. Dismisses the confirmation dialog
+     * 2. Clears all Room database tables via [clearDatabase]
+     * 3. Resets DataStore preferences (preserving credit balance)
+     * 4. Emits a success snackbar event
+     * 5. Emits a navigate-to-onboarding event
+     *
+     * On failure, emits an error snackbar event.
      */
     fun onClearData() {
-        // TODO: Implement in Epic 9
+        _uiState.update { it.copy(showClearConfirmation = false) }
+        viewModelScope.launch {
+            try {
+                clearDatabase()
+            } catch (_: Exception) {
+                _events.send(SettingsEvent.ShowSnackbar("Failed to clear data"))
+                return@launch
+            }
+            try {
+                resettablePreferences.reset()
+            } catch (_: Exception) {
+                // Database already cleared — proceed to onboarding despite preferences error
+            }
+            _events.send(SettingsEvent.ShowSnackbar("All data cleared"))
+            _events.send(SettingsEvent.NavigateToOnboarding)
+        }
     }
 
     /**
