@@ -84,7 +84,12 @@ fun RulebookNavHost(
             exitTransition = { fadeOut(animationSpec = tween(TRANSITION_DURATION_MS)) }
         ) {
             SettingsScreen(
-                onNavigateToPaywall = { navController.navigate(Route.Purchase.createRoute("settings")) }
+                onNavigateToPaywall = { navController.navigate(Route.Purchase.createRoute("settings")) },
+                onNavigateToOnboarding = {
+                    navController.navigate(Route.Onboarding.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
 
