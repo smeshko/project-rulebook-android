@@ -3,6 +3,7 @@ package com.rulebook.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rulebook.core.datastore.CreditPreferencesSource
+import com.rulebook.core.datastore.HapticsPreferencesSource
 import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.datastore.ThemePreferencesSource
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,10 +20,12 @@ import kotlinx.coroutines.launch
  *
  * @param creditPreferencesSource Preferences source for reading credit balance.
  * @param themePreferencesSource Preferences source for reading and writing theme mode.
+ * @param hapticsPreferencesSource Preferences source for reading and writing haptics enabled state.
  */
 class SettingsViewModel(
     private val creditPreferencesSource: CreditPreferencesSource,
-    private val themePreferencesSource: ThemePreferencesSource
+    private val themePreferencesSource: ThemePreferencesSource,
+    private val hapticsPreferencesSource: HapticsPreferencesSource
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -48,6 +51,16 @@ class SettingsViewModel(
                     _uiState.update { it.copy(themeMode = mode) }
                 }
         }
+
+        // Collect haptics enabled state from preferences
+        // catch emits true on DataStore IOException to keep UI functional
+        viewModelScope.launch {
+            hapticsPreferencesSource.hapticsEnabled
+                .catch { emit(true) }
+                .collect { enabled ->
+                    _uiState.update { it.copy(isHapticsEnabled = enabled) }
+                }
+        }
     }
 
     /**
@@ -63,11 +76,13 @@ class SettingsViewModel(
 
     /**
      * Toggles the haptic feedback setting.
-     * Updates local UI state immediately. Persistence will be implemented in Epic 9.
+     * Updates local UI state immediately and persists to DataStore.
      */
     fun onHapticsToggle(enabled: Boolean) {
-        _uiState.value = _uiState.value.copy(isHapticsEnabled = enabled)
-        // TODO: Persist to DataStore in Epic 9
+        _uiState.update { it.copy(isHapticsEnabled = enabled) }
+        viewModelScope.launch {
+            hapticsPreferencesSource.setHapticsEnabled(enabled)
+        }
     }
 
     /**
