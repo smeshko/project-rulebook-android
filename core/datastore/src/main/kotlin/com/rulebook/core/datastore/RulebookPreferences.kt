@@ -29,7 +29,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  * @param context Application context for DataStore access. Must be Application context
  *                to avoid memory leaks.
  */
-open class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource, SortPreferencesSource, PendingPurchasePreferencesSource, ThemePreferencesSource {
+open class RulebookPreferences(private val context: Context) : OnboardingPreferencesSource, CreditPreferencesSource, SortPreferencesSource, PendingPurchasePreferencesSource, ThemePreferencesSource, HapticsPreferencesSource {
 
     /**
      * Preference keys used for DataStore storage.
@@ -207,13 +207,13 @@ open class RulebookPreferences(private val context: Context) : OnboardingPrefere
      * Flow of haptic feedback enabled status.
      * Default: `true`
      */
-    open val hapticsEnabled: Flow<Boolean> = context.dataStore.data
+    override val hapticsEnabled: Flow<Boolean> = context.dataStore.data
         .map { preferences -> preferences[Keys.HAPTICS_ENABLED] ?: true }
 
     /**
      * Sets whether haptic feedback is enabled.
      */
-    open suspend fun setHapticsEnabled(enabled: Boolean) {
+    override suspend fun setHapticsEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[Keys.HAPTICS_ENABLED] = enabled
         }
