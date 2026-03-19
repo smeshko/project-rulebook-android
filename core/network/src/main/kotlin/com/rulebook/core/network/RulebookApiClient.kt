@@ -1,5 +1,6 @@
 package com.rulebook.core.network
 
+import com.rulebook.core.network.api.ReceiptValidationApi
 import com.rulebook.core.network.api.RulebookApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -78,5 +79,9 @@ object RulebookApiClient {
      */
     fun createRulebookApi(retrofit: Retrofit): RulebookApi {
         return retrofit.create(RulebookApi::class.java)
+    }
+
+    fun createReceiptValidationApi(retrofit: Retrofit): ReceiptValidationApi {
+        return retrofit.create(ReceiptValidationApi::class.java)
     }
 }
