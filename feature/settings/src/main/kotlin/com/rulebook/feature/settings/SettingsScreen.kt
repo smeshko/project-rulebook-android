@@ -7,12 +7,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.BrightnessAuto
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.designsystem.component.ButtonVariant
 import com.rulebook.core.designsystem.component.RulebookButton
 import com.rulebook.core.designsystem.component.RulebookHeaderBar
@@ -21,18 +26,12 @@ import com.rulebook.feature.settings.components.SettingsCreditRow
 import com.rulebook.feature.settings.components.SettingsInfoRow
 import com.rulebook.feature.settings.components.SettingsLinkRow
 import com.rulebook.feature.settings.components.SettingsSectionHeader
+import com.rulebook.feature.settings.components.SettingsThemeRow
 import com.rulebook.feature.settings.components.SettingsToggleRow
 import org.koin.androidx.compose.koinViewModel
 
 /**
  * Settings screen displaying app configuration options.
- *
- * Contains placeholder sections for settings that will be fully implemented in Epic 9:
- * - Appearance (theme toggle)
- * - Feedback (haptics toggle)
- * - Support (contact, rate, share links)
- * - About (version, privacy, terms)
- * - Data (clear data action)
  *
  * @param onNavigateToPaywall Callback invoked when the user taps the credit balance row.
  * @param viewModel The ViewModel managing settings state.
@@ -49,7 +48,7 @@ fun SettingsScreen(
     SettingsScreenContent(
         uiState = uiState,
         onCreditsTap = onNavigateToPaywall,
-        onThemeToggle = viewModel::onThemeToggle,
+        onThemeSelected = viewModel::onThemeSelected,
         onHapticsToggle = viewModel::onHapticsToggle,
         onClearData = viewModel::onClearData,
         onContactUs = viewModel::onContactUs,
@@ -65,7 +64,7 @@ fun SettingsScreen(
 internal fun SettingsScreenContent(
     uiState: SettingsUiState,
     onCreditsTap: () -> Unit,
-    onThemeToggle: (Boolean) -> Unit,
+    onThemeSelected: (ThemeMode) -> Unit,
     onHapticsToggle: (Boolean) -> Unit,
     onClearData: () -> Unit,
     onContactUs: () -> Unit,
@@ -102,10 +101,27 @@ internal fun SettingsScreenContent(
                 )
             }
             item {
-                SettingsToggleRow(
-                    label = "Dark Mode",
-                    checked = uiState.isDarkTheme,
-                    onCheckedChange = onThemeToggle
+                SettingsThemeRow(
+                    label = "Light",
+                    icon = Icons.Outlined.LightMode,
+                    isSelected = uiState.themeMode == ThemeMode.LIGHT,
+                    onClick = { onThemeSelected(ThemeMode.LIGHT) }
+                )
+            }
+            item {
+                SettingsThemeRow(
+                    label = "Dark",
+                    icon = Icons.Outlined.DarkMode,
+                    isSelected = uiState.themeMode == ThemeMode.DARK,
+                    onClick = { onThemeSelected(ThemeMode.DARK) }
+                )
+            }
+            item {
+                SettingsThemeRow(
+                    label = "System",
+                    icon = Icons.Outlined.BrightnessAuto,
+                    isSelected = uiState.themeMode == ThemeMode.SYSTEM,
+                    onClick = { onThemeSelected(ThemeMode.SYSTEM) }
                 )
             }
 
@@ -204,9 +220,9 @@ internal fun SettingsScreenContent(
 private fun SettingsScreenLightPreview() {
     RulebookTheme(darkTheme = false) {
         SettingsScreenContent(
-            uiState = SettingsUiState(creditBalance = 5),
+            uiState = SettingsUiState(creditBalance = 5, themeMode = ThemeMode.SYSTEM),
             onCreditsTap = {},
-            onThemeToggle = {},
+            onThemeSelected = {},
             onHapticsToggle = {},
             onClearData = {},
             onContactUs = {},
@@ -223,9 +239,9 @@ private fun SettingsScreenLightPreview() {
 private fun SettingsScreenDarkPreview() {
     RulebookTheme(darkTheme = true) {
         SettingsScreenContent(
-            uiState = SettingsUiState(creditBalance = 5, isDarkTheme = true),
+            uiState = SettingsUiState(creditBalance = 5, themeMode = ThemeMode.DARK),
             onCreditsTap = {},
-            onThemeToggle = {},
+            onThemeSelected = {},
             onHapticsToggle = {},
             onClearData = {},
             onContactUs = {},
