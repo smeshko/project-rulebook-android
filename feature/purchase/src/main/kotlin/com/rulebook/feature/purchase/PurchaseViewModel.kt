@@ -378,13 +378,26 @@ class PurchaseViewModel(
                 var totalCreditsRestored = 0
                 for (purchase in purchases) {
                     val verifyResult = purchaseVerifier.verifyAndConsume(purchase.purchaseToken, purchase.productId)
-                    verifyResult.onSuccess { verificationResult ->
-                        creditRepository.addCredits(verificationResult.credits)
-                        totalCreditsRestored += verificationResult.credits
-                        purchaseHistoryStore.savePurchase(purchase.purchaseToken, purchase.productId)
+                    verifyResult.onSuccess { verification ->
+                        val status = when (verification.status) {
+                            VerificationStatus.VALID -> "valid"
+                            VerificationStatus.ALREADY_PROCESSED -> "already_processed"
+                        }
+                        analyticsManager.trackPurchaseValidated(sku = purchase.productId, status = status)
+
+                        val alreadyDelivered = verification.status == VerificationStatus.ALREADY_PROCESSED &&
+                            purchaseHistoryStore.getRecentTokens().contains(purchase.purchaseToken)
+
+                        if (!alreadyDelivered) {
+                            creditRepository.addCredits(verification.credits)
+                            totalCreditsRestored += verification.credits
+                            purchaseHistoryStore.savePurchase(purchase.purchaseToken, purchase.productId)
+                        }
                     }
                     verifyResult.onFailure { error ->
                         Log.w(TAG, "Failed to verify/consume restored purchase ${purchase.purchaseToken}", error)
+                        val status = if (error is PurchaseValidationException) "invalid" else "error"
+                        analyticsManager.trackPurchaseValidated(sku = purchase.productId, status = status)
                     }
                 }
 
@@ -482,14 +495,21 @@ class PurchaseViewModel(
                     VerificationStatus.ALREADY_PROCESSED -> "already_processed"
                 }
 
-                val creditsAdded = creditRepository.addCredits(credits)
-                if (!creditsAdded) {
-                    Log.e(TAG, "Failed to add credits after consuming resolved pending purchase")
-                    return
+                // For ALREADY_PROCESSED, skip credit delivery if already delivered locally
+                val alreadyDelivered = verification.status == VerificationStatus.ALREADY_PROCESSED &&
+                    purchaseHistoryStore.getRecentTokens().contains(resolution.token)
+
+                if (!alreadyDelivered) {
+                    val creditsAdded = creditRepository.addCredits(credits)
+                    if (!creditsAdded) {
+                        Log.e(TAG, "Failed to add credits after consuming resolved pending purchase")
+                        return
+                    }
+
+                    // Save to history store AFTER credits delivered (Story 10.5)
+                    purchaseHistoryStore.savePurchase(resolution.token, resolution.productId)
                 }
 
-                // Save to history store AFTER credits delivered (Story 10.5)
-                purchaseHistoryStore.savePurchase(resolution.token, resolution.productId)
                 pendingPurchasePrefs.clearPendingPurchase()
 
                 analyticsManager.trackPurchaseValidated(sku = resolution.productId, status = analyticsStatus)
