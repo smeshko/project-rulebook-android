@@ -19,6 +19,7 @@ dependencies {
 
     implementation(libs.play.billing)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.datastore.preferences)
 
     // Koin
     implementation(platform(libs.koin.bom))
