@@ -196,3 +196,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When creating testable network layer code with fake-based unit tests and String parameter injection
     - When implementing consistent error handling for multiple network endpoints
     - When replacing interim client-side validation with secure server-side verification
+
+- `docs/features/purchase-flow-server-validation.md` - Purchase Flow for Server Validation (RULE-256)
+  - Conditions:
+    - When modifying the purchase flow to use server-side validation with ServerSidePurchaseVerifier
+    - When adding new Validating state transitions or updating purchase state machine behavior
+    - When implementing PurchaseHistoryStore for purchase token persistence and refund tracking
+    - When creating purchase analytics events or tracking validation status (purchase_validated)
+    - When building Validating UI overlays or timeout feedback for in-progress validations
