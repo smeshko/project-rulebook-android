@@ -33,9 +33,17 @@ class ServerSidePurchaseVerifier(
         return when (validationResult) {
             is AppResult.Success -> {
                 when (validationResult.data.status) {
-                    ValidationStatus.VALID,
+                    ValidationStatus.VALID -> {
+                        Result.success(VerificationResult(
+                            credits = validationResult.data.creditsGranted,
+                            status = VerificationStatus.VALID
+                        ))
+                    }
                     ValidationStatus.ALREADY_PROCESSED -> {
-                        Result.success(VerificationResult(credits = validationResult.data.creditsGranted))
+                        Result.success(VerificationResult(
+                            credits = validationResult.data.creditsGranted,
+                            status = VerificationStatus.ALREADY_PROCESSED
+                        ))
                     }
                     ValidationStatus.INVALID -> {
                         Result.failure(PurchaseValidationException("Purchase validation failed"))

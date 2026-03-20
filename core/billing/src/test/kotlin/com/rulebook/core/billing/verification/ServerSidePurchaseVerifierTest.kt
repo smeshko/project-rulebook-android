@@ -26,10 +26,11 @@ class ServerSidePurchaseVerifierTest {
 
         assertTrue(result.isSuccess)
         assertEquals(3, result.getOrNull()!!.credits)
+        assertEquals(VerificationStatus.VALID, result.getOrNull()!!.status)
     }
 
     @Test
-    fun `ALREADY_PROCESSED response returns success with credits`() = runTest {
+    fun `ALREADY_PROCESSED response returns success with ALREADY_PROCESSED status`() = runTest {
         val repo = FakeReceiptRepository(
             AppResult.Success(ValidationResult(ValidationStatus.ALREADY_PROCESSED, creditsGranted = 3))
         )
@@ -39,6 +40,7 @@ class ServerSidePurchaseVerifierTest {
 
         assertTrue(result.isSuccess)
         assertEquals(3, result.getOrNull()!!.credits)
+        assertEquals(VerificationStatus.ALREADY_PROCESSED, result.getOrNull()!!.status)
     }
 
     @Test

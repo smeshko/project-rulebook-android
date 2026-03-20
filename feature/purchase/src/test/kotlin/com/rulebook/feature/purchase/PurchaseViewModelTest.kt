@@ -9,6 +9,7 @@ import com.rulebook.core.billing.repository.PurchaseInfo
 import com.rulebook.core.billing.verification.PurchaseValidationException
 import com.rulebook.core.billing.verification.PurchaseVerifier
 import com.rulebook.core.billing.verification.VerificationResult
+import com.rulebook.core.billing.verification.VerificationStatus
 import com.rulebook.core.data.repository.CreditRepository
 import com.rulebook.core.datastore.PendingPurchasePreferencesSource
 import com.rulebook.core.model.PendingPurchaseResolution
@@ -988,6 +989,91 @@ class PurchaseViewModelTest {
         advanceUntilIdle()
 
         assertTrue(fakePurchaseHistoryStore.savedPurchases.any { it.first == "pending-history-token" })
+    }
+
+    @Test
+    fun `ALREADY_PROCESSED skips credit delivery if token already in history`() = runTest {
+        // Pre-populate history with the token (simulating prior delivery)
+        fakePurchaseHistoryStore.savedPurchases.add("already-token" to "credits_3")
+        fakePurchaseVerifier.tokenResults["already-token"] =
+            Result.success(VerificationResult(credits = 3, status = VerificationStatus.ALREADY_PROCESSED))
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("already-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        // Credits must NOT be re-delivered
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+
+        // State should still be Success (treated as success per AC)
+        val state = viewModel.uiState.first()
+        assertIs<PurchaseState.Success>(state.purchaseState)
+    }
+
+    @Test
+    fun `ALREADY_PROCESSED tracks analytics with already_processed status`() = runTest {
+        fakePurchaseHistoryStore.savedPurchases.add("already-token" to "credits_3")
+        fakePurchaseVerifier.tokenResults["already-token"] =
+            Result.success(VerificationResult(credits = 3, status = VerificationStatus.ALREADY_PROCESSED))
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("already-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        val events = fakeAnalyticsManager.getTrackedEvents()
+        val validatedEvent = events.firstOrNull { it.first == "purchase_validated" }
+        assertTrue(validatedEvent != null)
+        assertEquals("already_processed", validatedEvent!!.second["status"])
+    }
+
+    @Test
+    fun `ALREADY_PROCESSED delivers credits if token NOT in history`() = runTest {
+        // History is empty — first time seeing this token locally
+        fakePurchaseVerifier.tokenResults["new-already-token"] =
+            Result.success(VerificationResult(credits = 3, status = VerificationStatus.ALREADY_PROCESSED))
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("new-already-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        // Credits should be delivered (first local delivery)
+        assertEquals(3, fakeCreditRepository.addedCreditsTotal)
+    }
+
+    @Test
+    fun `restore purchase saves token to PurchaseHistoryStore`() = runTest {
+        fakeBillingRepository.unconsumedPurchases = listOf(
+            PurchaseInfo("restore-token", "credits_3", "order-restore")
+        )
+
+        viewModel.onRestorePurchases()
+        advanceUntilIdle()
+
+        assertTrue(fakePurchaseHistoryStore.savedPurchases.any { it.first == "restore-token" })
     }
 }
 

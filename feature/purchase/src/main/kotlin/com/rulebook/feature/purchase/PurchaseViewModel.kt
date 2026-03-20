@@ -11,6 +11,7 @@ import com.rulebook.core.billing.history.PurchaseHistoryStore
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.billing.verification.PurchaseValidationException
 import com.rulebook.core.billing.verification.PurchaseVerifier
+import com.rulebook.core.billing.verification.VerificationStatus
 import com.rulebook.core.data.repository.CreditRepository
 import com.rulebook.core.datastore.PendingPurchasePreferencesSource
 import com.rulebook.core.model.PendingPurchaseResolution
@@ -249,28 +250,39 @@ class PurchaseViewModel(
                         return@launch
                     }
 
-                    val credits = verifyResult.getOrThrow().credits
+                    val verification = verifyResult.getOrThrow()
+                    val credits = verification.credits
+                    val analyticsStatus = when (verification.status) {
+                        VerificationStatus.VALID -> "valid"
+                        VerificationStatus.ALREADY_PROCESSED -> "already_processed"
+                    }
 
-                    // Save to history store for refund tracking (Story 10.5)
-                    purchaseHistoryStore.savePurchase(purchaseToken, productId)
+                    // For ALREADY_PROCESSED, skip credit delivery if already delivered locally
+                    val alreadyDelivered = verification.status == VerificationStatus.ALREADY_PROCESSED &&
+                        purchaseHistoryStore.getRecentTokens().contains(purchaseToken)
 
-                    // Deliver credits only after successful server validation
-                    val creditsSaved = creditRepository.addCredits(credits)
-                    if (!creditsSaved) {
-                        analyticsManager.trackPurchaseFailed(
-                            sku = productId,
-                            errorCode = "CREDIT_SAVE_FAILED",
-                            errorMessage = "Credits could not be saved after successful purchase"
-                        )
-                        _uiState.update {
-                            it.copy(purchaseState = PurchaseState.Error("Failed to save credits. Please restore purchases."))
+                    if (!alreadyDelivered) {
+                        // Deliver credits only after successful server validation
+                        val creditsSaved = creditRepository.addCredits(credits)
+                        if (!creditsSaved) {
+                            analyticsManager.trackPurchaseFailed(
+                                sku = productId,
+                                errorCode = "CREDIT_SAVE_FAILED",
+                                errorMessage = "Credits could not be saved after successful purchase"
+                            )
+                            _uiState.update {
+                                it.copy(purchaseState = PurchaseState.Error("Failed to save credits. Please restore purchases."))
+                            }
+                            return@launch
                         }
-                        return@launch
+
+                        // Save to history store AFTER credits delivered (Story 10.5)
+                        purchaseHistoryStore.savePurchase(purchaseToken, productId)
                     }
 
                     val newBalance = creditRepository.creditBalance.first()
 
-                    analyticsManager.trackPurchaseValidated(sku = productId, status = "valid")
+                    analyticsManager.trackPurchaseValidated(sku = productId, status = analyticsStatus)
                     analyticsManager.trackPurchaseCompleted(
                         sku = productId,
                         creditsAdded = credits,
@@ -369,6 +381,7 @@ class PurchaseViewModel(
                     verifyResult.onSuccess { verificationResult ->
                         creditRepository.addCredits(verificationResult.credits)
                         totalCreditsRestored += verificationResult.credits
+                        purchaseHistoryStore.savePurchase(purchase.purchaseToken, purchase.productId)
                     }
                     verifyResult.onFailure { error ->
                         Log.w(TAG, "Failed to verify/consume restored purchase ${purchase.purchaseToken}", error)
@@ -457,21 +470,29 @@ class PurchaseViewModel(
                 val verifyResult = purchaseVerifier.verifyAndConsume(resolution.token, resolution.productId)
                 verifyResult.onFailure { error ->
                     Log.e(TAG, "Failed to verify/consume resolved pending purchase", error)
+                    val status = if (error is PurchaseValidationException) "invalid" else "error"
+                    analyticsManager.trackPurchaseValidated(sku = resolution.productId, status = status)
                     return
                 }
 
-                val credits = verifyResult.getOrThrow().credits
-
-                // Save to history store for refund tracking (Story 10.5)
-                purchaseHistoryStore.savePurchase(resolution.token, resolution.productId)
+                val verification = verifyResult.getOrThrow()
+                val credits = verification.credits
+                val analyticsStatus = when (verification.status) {
+                    VerificationStatus.VALID -> "valid"
+                    VerificationStatus.ALREADY_PROCESSED -> "already_processed"
+                }
 
                 val creditsAdded = creditRepository.addCredits(credits)
                 if (!creditsAdded) {
                     Log.e(TAG, "Failed to add credits after consuming resolved pending purchase")
                     return
                 }
+
+                // Save to history store AFTER credits delivered (Story 10.5)
+                purchaseHistoryStore.savePurchase(resolution.token, resolution.productId)
                 pendingPurchasePrefs.clearPendingPurchase()
 
+                analyticsManager.trackPurchaseValidated(sku = resolution.productId, status = analyticsStatus)
                 analyticsManager.trackEvent(
                     "purchase_pending_resolved",
                     mapOf("product_id" to pendingProductId)
