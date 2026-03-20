@@ -7,8 +7,11 @@ import androidx.lifecycle.viewModelScope
 import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.billing.BillingResponseCode
 import com.rulebook.core.billing.PurchaseUpdate
+import com.rulebook.core.billing.history.PurchaseHistoryStore
 import com.rulebook.core.billing.repository.BillingRepository
+import com.rulebook.core.billing.verification.PurchaseValidationException
 import com.rulebook.core.billing.verification.PurchaseVerifier
+import com.rulebook.core.billing.verification.VerificationStatus
 import com.rulebook.core.data.repository.CreditRepository
 import com.rulebook.core.datastore.PendingPurchasePreferencesSource
 import com.rulebook.core.model.PendingPurchaseResolution
@@ -40,14 +43,16 @@ private const val TAG = "PurchaseViewModel"
  * - Observing user's credit balance
  * - Initiating and tracking purchase flows
  * - Handling purchase success/failure/cancellation
+ * - Server-side receipt validation (Story 10.2)
  * - Restore purchases
  * - Dismiss action
  *
  * @param creditRepository Repository for observing and modifying credit balance.
  * @param billingRepository Repository for billing operations and purchase updates.
  * @param analyticsManager Manager for tracking analytics events.
- * @param purchaseVerifier Verifier that consumes the purchase and resolves credits.
+ * @param purchaseVerifier Verifier that validates the purchase server-side and resolves credits.
  * @param pendingPurchasePrefs DataStore preferences for pending purchase token storage.
+ * @param purchaseHistoryStore Store for persisting validated purchase tokens (Story 10.5 prerequisite).
  * @param source The navigation source that triggered the paywall (e.g., "scan_gate", "settings").
  */
 class PurchaseViewModel(
@@ -56,6 +61,7 @@ class PurchaseViewModel(
     private val analyticsManager: AnalyticsManager,
     private val purchaseVerifier: PurchaseVerifier,
     private val pendingPurchasePrefs: PendingPurchasePreferencesSource,
+    private val purchaseHistoryStore: PurchaseHistoryStore,
     private val source: String = "unknown"
 ) : ViewModel() {
 
@@ -178,6 +184,10 @@ class PurchaseViewModel(
      *
      * Called when a PurchaseUpdate arrives on the purchaseUpdates SharedFlow.
      * Only processes updates when a purchase is currently in [PurchaseState.Processing].
+     *
+     * After receiving a valid purchase token, transitions to [PurchaseState.Validating]
+     * and calls the server-side verifier. Credits are only delivered after the server
+     * confirms the purchase is valid.
      */
     private fun handlePurchaseUpdate(update: PurchaseUpdate) {
         val currentState = _uiState.value.purchaseState
@@ -215,13 +225,23 @@ class PurchaseViewModel(
                     }
                     return
                 }
+
+                // Transition to Validating state — server validation in progress
+                _uiState.update { it.copy(purchaseState = PurchaseState.Validating(productId)) }
+
                 viewModelScope.launch {
                     val verifyResult = purchaseVerifier.verifyAndConsume(purchaseToken, productId)
                     verifyResult.onFailure { error ->
-                        Log.e(TAG, "Failed to verify/consume purchase for $productId", error)
+                        Log.e(TAG, "Failed to verify purchase for $productId", error)
+                        val (errorCode, analyticsStatus) = if (error is PurchaseValidationException) {
+                            "VALIDATION_INVALID" to "invalid"
+                        } else {
+                            "CONSUME_FAILED" to "error"
+                        }
+                        analyticsManager.trackPurchaseValidated(sku = productId, status = analyticsStatus)
                         analyticsManager.trackPurchaseFailed(
                             sku = productId,
-                            errorCode = "CONSUME_FAILED",
+                            errorCode = errorCode,
                             errorMessage = error.message ?: "Purchase verification failed"
                         )
                         _uiState.update {
@@ -230,24 +250,39 @@ class PurchaseViewModel(
                         return@launch
                     }
 
-                    val credits = verifyResult.getOrThrow().credits
+                    val verification = verifyResult.getOrThrow()
+                    val credits = verification.credits
+                    val analyticsStatus = when (verification.status) {
+                        VerificationStatus.VALID -> "valid"
+                        VerificationStatus.ALREADY_PROCESSED -> "already_processed"
+                    }
 
-                    // Deliver credits only after successful consumption
-                    val creditsSaved = creditRepository.addCredits(credits)
-                    if (!creditsSaved) {
-                        analyticsManager.trackPurchaseFailed(
-                            sku = productId,
-                            errorCode = "CREDIT_SAVE_FAILED",
-                            errorMessage = "Credits could not be saved after successful purchase"
-                        )
-                        _uiState.update {
-                            it.copy(purchaseState = PurchaseState.Error("Failed to save credits. Please restore purchases."))
+                    // For ALREADY_PROCESSED, skip credit delivery if already delivered locally
+                    val alreadyDelivered = verification.status == VerificationStatus.ALREADY_PROCESSED &&
+                        purchaseHistoryStore.getRecentTokens().contains(purchaseToken)
+
+                    if (!alreadyDelivered) {
+                        // Deliver credits only after successful server validation
+                        val creditsSaved = creditRepository.addCredits(credits)
+                        if (!creditsSaved) {
+                            analyticsManager.trackPurchaseFailed(
+                                sku = productId,
+                                errorCode = "CREDIT_SAVE_FAILED",
+                                errorMessage = "Credits could not be saved after successful purchase"
+                            )
+                            _uiState.update {
+                                it.copy(purchaseState = PurchaseState.Error("Failed to save credits. Please restore purchases."))
+                            }
+                            return@launch
                         }
-                        return@launch
+
+                        // Save to history store AFTER credits delivered (Story 10.5)
+                        purchaseHistoryStore.savePurchase(purchaseToken, productId)
                     }
 
                     val newBalance = creditRepository.creditBalance.first()
 
+                    analyticsManager.trackPurchaseValidated(sku = productId, status = analyticsStatus)
                     analyticsManager.trackPurchaseCompleted(
                         sku = productId,
                         creditsAdded = credits,
@@ -290,12 +325,6 @@ class PurchaseViewModel(
     }
 
     /**
-     * Handles user tapping the "Restore Purchases" button.
-     *
-     * Queries unconsumed purchases, verifies and consumes each one, delivers credits,
-     * and emits a one-time event with the result.
-     */
-    /**
      * Initiates a restore purchases operation to recover previously purchased items.
      *
      * This method queries the Google Play Billing service for unconsumed in-app purchases,
@@ -306,7 +335,7 @@ class PurchaseViewModel(
      * 2. Tracks "paywall_restore_purchases_tapped" analytics event
      * 3. Queries [BillingRepository.queryUnconsumedPurchases]
      * 4. For each found purchase:
-     *    - Calls [PurchaseVerifier.verifyAndConsume] to verify and consume the purchase
+     *    - Calls [PurchaseVerifier.verifyAndConsume] to verify the purchase server-side
      *    - On success: calls [CreditRepository.addCredits] to deliver credits
      *    - On failure: logs warning but continues with next purchase (partial success allowed)
      * 5. Emits result events:
@@ -349,12 +378,26 @@ class PurchaseViewModel(
                 var totalCreditsRestored = 0
                 for (purchase in purchases) {
                     val verifyResult = purchaseVerifier.verifyAndConsume(purchase.purchaseToken, purchase.productId)
-                    verifyResult.onSuccess { verificationResult ->
-                        creditRepository.addCredits(verificationResult.credits)
-                        totalCreditsRestored += verificationResult.credits
+                    verifyResult.onSuccess { verification ->
+                        val status = when (verification.status) {
+                            VerificationStatus.VALID -> "valid"
+                            VerificationStatus.ALREADY_PROCESSED -> "already_processed"
+                        }
+                        analyticsManager.trackPurchaseValidated(sku = purchase.productId, status = status)
+
+                        val alreadyDelivered = verification.status == VerificationStatus.ALREADY_PROCESSED &&
+                            purchaseHistoryStore.getRecentTokens().contains(purchase.purchaseToken)
+
+                        if (!alreadyDelivered) {
+                            creditRepository.addCredits(verification.credits)
+                            totalCreditsRestored += verification.credits
+                            purchaseHistoryStore.savePurchase(purchase.purchaseToken, purchase.productId)
+                        }
                     }
                     verifyResult.onFailure { error ->
                         Log.w(TAG, "Failed to verify/consume restored purchase ${purchase.purchaseToken}", error)
+                        val status = if (error is PurchaseValidationException) "invalid" else "error"
+                        analyticsManager.trackPurchaseValidated(sku = purchase.productId, status = status)
                     }
                 }
 
@@ -415,7 +458,7 @@ class PurchaseViewModel(
      *
      * Called on ViewModel init. If a pending token exists in DataStore, queries
      * the billing service for resolution:
-     * - [PendingPurchaseResolution.Purchased]: consume, deliver credits, clear token, emit event
+     * - [PendingPurchaseResolution.Purchased]: validate server-side, deliver credits, clear token, emit event
      * - [PendingPurchaseResolution.StillPending]: no-op, token remains for next check
      * - [PendingPurchaseResolution.NotFound]: clear token (purchase was cancelled)
      */
@@ -440,17 +483,36 @@ class PurchaseViewModel(
                 val verifyResult = purchaseVerifier.verifyAndConsume(resolution.token, resolution.productId)
                 verifyResult.onFailure { error ->
                     Log.e(TAG, "Failed to verify/consume resolved pending purchase", error)
+                    val status = if (error is PurchaseValidationException) "invalid" else "error"
+                    analyticsManager.trackPurchaseValidated(sku = resolution.productId, status = status)
                     return
                 }
 
-                val credits = verifyResult.getOrThrow().credits
-                val creditsAdded = creditRepository.addCredits(credits)
-                if (!creditsAdded) {
-                    Log.e(TAG, "Failed to add credits after consuming resolved pending purchase")
-                    return
+                val verification = verifyResult.getOrThrow()
+                val credits = verification.credits
+                val analyticsStatus = when (verification.status) {
+                    VerificationStatus.VALID -> "valid"
+                    VerificationStatus.ALREADY_PROCESSED -> "already_processed"
                 }
+
+                // For ALREADY_PROCESSED, skip credit delivery if already delivered locally
+                val alreadyDelivered = verification.status == VerificationStatus.ALREADY_PROCESSED &&
+                    purchaseHistoryStore.getRecentTokens().contains(resolution.token)
+
+                if (!alreadyDelivered) {
+                    val creditsAdded = creditRepository.addCredits(credits)
+                    if (!creditsAdded) {
+                        Log.e(TAG, "Failed to add credits after consuming resolved pending purchase")
+                        return
+                    }
+
+                    // Save to history store AFTER credits delivered (Story 10.5)
+                    purchaseHistoryStore.savePurchase(resolution.token, resolution.productId)
+                }
+
                 pendingPurchasePrefs.clearPendingPurchase()
 
+                analyticsManager.trackPurchaseValidated(sku = resolution.productId, status = analyticsStatus)
                 analyticsManager.trackEvent(
                     "purchase_pending_resolved",
                     mapOf("product_id" to pendingProductId)

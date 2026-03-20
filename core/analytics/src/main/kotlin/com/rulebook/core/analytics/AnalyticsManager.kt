@@ -424,4 +424,21 @@ interface AnalyticsManager {
             mapOf("link" to link)
         )
     }
+
+    /**
+     * Track the result of server-side purchase validation (Story 10.2).
+     * This is a convenience method that fires the "purchase_validated" event.
+     *
+     * @param sku The product SKU / identifier being validated
+     * @param status The validation status: "valid", "already_processed", "invalid", or "error"
+     */
+    fun trackPurchaseValidated(sku: String, status: String) {
+        trackEvent(
+            "purchase_validated",
+            mapOf(
+                "sku" to sku,
+                "status" to status
+            )
+        )
+    }
 }

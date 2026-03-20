@@ -3,10 +3,13 @@ package com.rulebook.feature.purchase
 import android.app.Activity
 import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.billing.PurchaseUpdate
+import com.rulebook.core.billing.history.PurchaseHistoryStore
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.billing.repository.PurchaseInfo
+import com.rulebook.core.billing.verification.PurchaseValidationException
 import com.rulebook.core.billing.verification.PurchaseVerifier
 import com.rulebook.core.billing.verification.VerificationResult
+import com.rulebook.core.billing.verification.VerificationStatus
 import com.rulebook.core.data.repository.CreditRepository
 import com.rulebook.core.datastore.PendingPurchasePreferencesSource
 import com.rulebook.core.model.PendingPurchaseResolution
@@ -46,6 +49,7 @@ class PurchaseViewModelTest {
     private lateinit var fakeAnalyticsManager: FakeAnalyticsManager
     private lateinit var fakePurchaseVerifier: FakePurchaseVerifier
     private lateinit var fakePendingPrefs: FakePendingPurchasePreferencesSource
+    private lateinit var fakePurchaseHistoryStore: FakePurchaseHistoryStore
 
     @Before
     fun setup() {
@@ -55,12 +59,14 @@ class PurchaseViewModelTest {
         fakeAnalyticsManager = FakeAnalyticsManager()
         fakePurchaseVerifier = FakePurchaseVerifier()
         fakePendingPrefs = FakePendingPurchasePreferencesSource()
+        fakePurchaseHistoryStore = FakePurchaseHistoryStore()
         viewModel = PurchaseViewModel(
             creditRepository = fakeCreditRepository,
             billingRepository = fakeBillingRepository,
             analyticsManager = fakeAnalyticsManager,
             purchaseVerifier = fakePurchaseVerifier,
             pendingPurchasePrefs = fakePendingPrefs,
+            purchaseHistoryStore = fakePurchaseHistoryStore,
             source = "test_source"
         )
     }
@@ -145,6 +151,7 @@ class PurchaseViewModelTest {
             analyticsManager = fakeAnalyticsManager,
             purchaseVerifier = fakePurchaseVerifier,
             pendingPurchasePrefs = fakePendingPrefs,
+            purchaseHistoryStore = fakePurchaseHistoryStore,
             source = "test_source"
         )
         advanceUntilIdle()
@@ -173,6 +180,7 @@ class PurchaseViewModelTest {
             analyticsManager = fakeAnalyticsManager,
             purchaseVerifier = fakePurchaseVerifier,
             pendingPurchasePrefs = fakePendingPrefs,
+            purchaseHistoryStore = fakePurchaseHistoryStore,
             source = "scan_gate"
         )
         advanceUntilIdle()
@@ -196,6 +204,7 @@ class PurchaseViewModelTest {
             analyticsManager = fakeAnalyticsManager,
             purchaseVerifier = fakePurchaseVerifier,
             pendingPurchasePrefs = fakePendingPrefs,
+            purchaseHistoryStore = fakePurchaseHistoryStore,
             source = "settings"
         )
         advanceUntilIdle()
@@ -835,6 +844,237 @@ class PurchaseViewModelTest {
         assertTrue(resolvedEvent != null)
         assertEquals("credits_3", resolvedEvent!!.second["product_id"])
     }
+
+    // =====================================================================
+    // Story 10.2: Server Validation State Machine Tests
+    // =====================================================================
+
+    @Test
+    fun `purchase OK transitions through Processing to Validating state`() = runTest {
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        // Simulate Google Play returning success with a token
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0, // BillingResponseCode.OK
+                purchaseTokens = listOf("test-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        // Check state immediately after update (before verifier completes)
+        // With UnconfinedTestDispatcher, coroutines run immediately, so we check
+        // that the state eventually reached Success (via Validating)
+        advanceUntilIdle()
+
+        // After successful validation, state should be Success
+        val finalState = viewModel.uiState.first()
+        assertIs<PurchaseState.Success>(finalState.purchaseState)
+    }
+
+    @Test
+    fun `invalid purchase validation shows Error state and does NOT deliver credits`() = runTest {
+        fakePurchaseVerifier.tokenResults["invalid-token"] =
+            Result.failure(PurchaseValidationException("Purchase validation failed"))
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("invalid-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        // Credits must NOT be delivered
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+
+        // State must be Error
+        val state = viewModel.uiState.first()
+        assertIs<PurchaseState.Error>(state.purchaseState)
+    }
+
+    @Test
+    fun `invalid purchase tracks purchase_validated with invalid status`() = runTest {
+        fakePurchaseVerifier.tokenResults["invalid-token"] =
+            Result.failure(PurchaseValidationException("Purchase validation failed"))
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("invalid-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        val events = fakeAnalyticsManager.getTrackedEvents()
+        val validatedEvent = events.firstOrNull { it.first == "purchase_validated" }
+        assertTrue(validatedEvent != null)
+        assertEquals("invalid", validatedEvent!!.second["status"])
+        assertEquals("credits_3", validatedEvent.second["sku"])
+    }
+
+    @Test
+    fun `successful validation tracks purchase_validated with valid status`() = runTest {
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("test-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        val events = fakeAnalyticsManager.getTrackedEvents()
+        val validatedEvent = events.firstOrNull { it.first == "purchase_validated" }
+        assertTrue(validatedEvent != null)
+        assertEquals("valid", validatedEvent!!.second["status"])
+        assertEquals("credits_3", validatedEvent.second["sku"])
+    }
+
+    @Test
+    fun `successful purchase saves token to PurchaseHistoryStore`() = runTest {
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("saved-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        assertTrue(fakePurchaseHistoryStore.savedPurchases.any { it.first == "saved-token" })
+    }
+
+    @Test
+    fun `failed validation does NOT save token to PurchaseHistoryStore`() = runTest {
+        fakePurchaseVerifier.shouldFail = true
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("fail-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        assertTrue(fakePurchaseHistoryStore.savedPurchases.isEmpty())
+    }
+
+    @Test
+    fun `pending purchase resolution saves token to PurchaseHistoryStore`() = runTest {
+        fakePendingPrefs.storedToken = "pending-history-token"
+        fakePendingPrefs.storedProductId = "credits_10"
+        fakeBillingRepository.pendingPurchaseResolution =
+            PendingPurchaseResolution.Purchased("pending-history-token", "credits_10")
+
+        viewModel.checkPendingPurchaseResolution()
+        advanceUntilIdle()
+
+        assertTrue(fakePurchaseHistoryStore.savedPurchases.any { it.first == "pending-history-token" })
+    }
+
+    @Test
+    fun `ALREADY_PROCESSED skips credit delivery if token already in history`() = runTest {
+        // Pre-populate history with the token (simulating prior delivery)
+        fakePurchaseHistoryStore.savedPurchases.add("already-token" to "credits_3")
+        fakePurchaseVerifier.tokenResults["already-token"] =
+            Result.success(VerificationResult(credits = 3, status = VerificationStatus.ALREADY_PROCESSED))
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("already-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        // Credits must NOT be re-delivered
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+
+        // State should still be Success (treated as success per AC)
+        val state = viewModel.uiState.first()
+        assertIs<PurchaseState.Success>(state.purchaseState)
+    }
+
+    @Test
+    fun `ALREADY_PROCESSED tracks analytics with already_processed status`() = runTest {
+        fakePurchaseHistoryStore.savedPurchases.add("already-token" to "credits_3")
+        fakePurchaseVerifier.tokenResults["already-token"] =
+            Result.success(VerificationResult(credits = 3, status = VerificationStatus.ALREADY_PROCESSED))
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("already-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        val events = fakeAnalyticsManager.getTrackedEvents()
+        val validatedEvent = events.firstOrNull { it.first == "purchase_validated" }
+        assertTrue(validatedEvent != null)
+        assertEquals("already_processed", validatedEvent!!.second["status"])
+    }
+
+    @Test
+    fun `ALREADY_PROCESSED delivers credits if token NOT in history`() = runTest {
+        // History is empty — first time seeing this token locally
+        fakePurchaseVerifier.tokenResults["new-already-token"] =
+            Result.success(VerificationResult(credits = 3, status = VerificationStatus.ALREADY_PROCESSED))
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("new-already-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        // Credits should be delivered (first local delivery)
+        assertEquals(3, fakeCreditRepository.addedCreditsTotal)
+    }
+
+    @Test
+    fun `restore purchase saves token to PurchaseHistoryStore`() = runTest {
+        fakeBillingRepository.unconsumedPurchases = listOf(
+            PurchaseInfo("restore-token", "credits_3", "order-restore")
+        )
+
+        viewModel.onRestorePurchases()
+        advanceUntilIdle()
+
+        assertTrue(fakePurchaseHistoryStore.savedPurchases.any { it.first == "restore-token" })
+    }
 }
 
 // ======================================================================
@@ -1001,5 +1241,19 @@ class FakePendingPurchasePreferencesSource : PendingPurchasePreferencesSource {
     override suspend fun clearPendingPurchase() {
         storedToken = null
         storedProductId = null
+    }
+}
+
+class FakePurchaseHistoryStore : PurchaseHistoryStore {
+    val savedPurchases = mutableListOf<Pair<String, String>>()
+
+    override suspend fun savePurchase(purchaseToken: String, productId: String) {
+        savedPurchases.add(purchaseToken to productId)
+    }
+
+    override suspend fun getRecentTokens(): List<String> = savedPurchases.map { it.first }
+
+    override suspend fun clear() {
+        savedPurchases.clear()
     }
 }

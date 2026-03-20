@@ -5,5 +5,5 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val purchaseModule = module {
-    viewModel { params -> PurchaseViewModel(get(), get(), get(), get(), get(), params.getOrNull<String>() ?: "unknown") }
+    viewModel { params -> PurchaseViewModel(get(), get(), get(), get(), get(), get(), params.getOrNull<String>() ?: "unknown") }
 }

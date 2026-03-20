@@ -31,7 +31,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
@@ -115,7 +118,7 @@ fun PurchaseScreen(
         }
     }
 
-    // Haptic feedback on purchase state changes
+    // Haptic feedback on purchase state changes (no haptic for Validating)
     LaunchedEffect(uiState.purchaseState) {
         when (uiState.purchaseState) {
             is PurchaseState.Success -> {
@@ -128,7 +131,11 @@ fun PurchaseScreen(
             is PurchaseState.Error -> {
                 view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             }
-            else -> Unit
+            is PurchaseState.Validating,
+            is PurchaseState.Processing,
+            is PurchaseState.Pending,
+            is PurchaseState.Idle,
+            null -> Unit
         }
     }
 
@@ -173,7 +180,20 @@ internal fun PurchaseScreenContent(
     modifier: Modifier = Modifier
 ) {
     val spacing = RulebookTheme.spacing
-    val isPurchaseActive = uiState.purchaseState is PurchaseState.Processing
+    val isPurchaseActive = uiState.purchaseState is PurchaseState.Processing ||
+        uiState.purchaseState is PurchaseState.Validating
+
+    // 5-second timeout message for slow server validation
+    var showValidatingTimeout by remember { mutableStateOf(false) }
+    LaunchedEffect(uiState.purchaseState) {
+        if (uiState.purchaseState is PurchaseState.Validating) {
+            showValidatingTimeout = false
+            delay(5_000)
+            showValidatingTimeout = true
+        } else {
+            showValidatingTimeout = false
+        }
+    }
 
     Box(
         modifier = modifier.fillMaxSize()
@@ -263,6 +283,33 @@ internal fun PurchaseScreenContent(
                 tint = RulebookTheme.colors.green,
                 modifier = Modifier.size(72.dp)
             )
+        }
+
+        // Validating overlay — shown while server is verifying the purchase
+        AnimatedVisibility(
+            visible = uiState.purchaseState is PurchaseState.Validating,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(spacing.sm)
+            ) {
+                AnimatedDots()
+                Text(
+                    text = "Verifying purchase...",
+                    style = RulebookTheme.typography.body,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                if (showValidatingTimeout) {
+                    Text(
+                        text = "This is taking longer than expected...",
+                        style = RulebookTheme.typography.callout,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                    )
+                }
+            }
         }
     }
 
@@ -504,6 +551,27 @@ private fun PurchaseScreenErrorLightPreview() {
                 ),
                 isLoading = false,
                 purchaseState = PurchaseState.Error("Purchase failed (code: 6)")
+            ),
+            onProductSelected = {},
+            onDismiss = {},
+            onRestorePurchases = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Purchase Screen - Validating Light")
+@Composable
+private fun PurchaseScreenValidatingLightPreview() {
+    RulebookTheme(darkTheme = false) {
+        PurchaseScreenContent(
+            uiState = PurchaseUiState(
+                products = listOf(
+                    ProductInfo("credits_1", "1 Credit", "$0.99", 1),
+                    ProductInfo("credits_3", "3 Credits", "$2.49", 3),
+                    ProductInfo("credits_10", "10 Credits", "$6.99", 10)
+                ),
+                isLoading = false,
+                purchaseState = PurchaseState.Validating("credits_3")
             ),
             onProductSelected = {},
             onDismiss = {},

@@ -13,12 +13,14 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:common"))
     implementation(project(":core:model"))
     implementation(project(":core:data"))
     implementation(project(":core:datastore"))
 
     implementation(libs.play.billing)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.datastore.preferences)
 
     // Koin
     implementation(platform(libs.koin.bom))

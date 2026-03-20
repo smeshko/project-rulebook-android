@@ -1,11 +1,26 @@
 package com.rulebook.core.billing.verification
 
 /**
+ * The validation status returned by the server during purchase verification.
+ */
+enum class VerificationStatus {
+    /** Purchase is valid and credits should be delivered. */
+    VALID,
+    /** Purchase was already processed server-side (idempotent retry). */
+    ALREADY_PROCESSED
+}
+
+/**
  * Result of a successful purchase verification and consumption.
  *
  * @property credits The number of credits to deliver to the user.
+ * @property status The server validation status — used to distinguish first-time
+ *                  validation from idempotent retries.
  */
-data class VerificationResult(val credits: Int)
+data class VerificationResult(
+    val credits: Int,
+    val status: VerificationStatus = VerificationStatus.VALID
+)
 
 /**
  * Interface for verifying and consuming a purchase before delivering credits.
