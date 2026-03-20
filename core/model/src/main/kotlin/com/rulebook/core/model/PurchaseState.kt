@@ -34,6 +34,13 @@ sealed class PurchaseState {
     data class Error(val message: String) : PurchaseState()
 
     /**
+     * Purchase is being validated by the server after Google Play returns success.
+     *
+     * @property sku The product identifier being validated
+     */
+    data class Validating(val sku: String) : PurchaseState()
+
+    /**
      * Purchase is pending (e.g., waiting for payment confirmation).
      */
     data object Pending : PurchaseState()
