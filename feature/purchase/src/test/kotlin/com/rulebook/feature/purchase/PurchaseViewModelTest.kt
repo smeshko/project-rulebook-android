@@ -1121,7 +1121,6 @@ class PurchaseViewModelTest {
 
     @Test
     fun `transient failure then success on retry delivers credits without pending entry`() = runTest {
-        var callCount = 0
         fakePurchaseVerifier.tokenResults["retry-token"] = Result.failure(RuntimeException("network error"))
 
         viewModel.onProductSelected(null, "credits_3")

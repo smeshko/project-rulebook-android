@@ -18,6 +18,7 @@ import com.rulebook.core.data.repository.CreditRepository
 import com.rulebook.core.datastore.PendingPurchasePreferencesSource
 import com.rulebook.core.model.PendingPurchaseResolution
 import com.rulebook.core.model.PurchaseState
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -312,6 +313,9 @@ class PurchaseViewModel(
                             }
                             return@launch
                         }
+
+                        // Rethrow CancellationException to preserve coroutine cancellation
+                        if (error is CancellationException) throw error
 
                         // Transient network/timeout error — retry with backoff
                         lastTransientError = error
