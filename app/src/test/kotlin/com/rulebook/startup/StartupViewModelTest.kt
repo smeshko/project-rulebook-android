@@ -1,5 +1,7 @@
 package com.rulebook.startup
 
+import com.rulebook.core.billing.reconciliation.BalanceReconciliation
+import com.rulebook.core.billing.reconciliation.ReconciliationResult
 import com.rulebook.core.billing.recovery.RecoveryResult
 import com.rulebook.core.billing.recovery.ValidationRecovery
 import com.rulebook.core.billing.refund.RefundSync
@@ -38,6 +40,7 @@ class StartupViewModelTest {
     private lateinit var viewModel: StartupViewModel
 
     private lateinit var fakeRefundSync: FakeRefundSync
+    private lateinit var fakeBalanceReconciliation: FakeBalanceReconciliation
 
     @Before
     fun setup() {
@@ -45,6 +48,7 @@ class StartupViewModelTest {
         fakeRepository = FakeOnboardingRepository()
         fakeRecoveryManager = FakeValidationRecovery()
         fakeRefundSync = FakeRefundSync()
+        fakeBalanceReconciliation = FakeBalanceReconciliation()
     }
 
     @After
@@ -56,7 +60,7 @@ class StartupViewModelTest {
 
     @Test
     fun `initial state has null destination and isLoading true`() = runTest {
-        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         assertNull(viewModel.startupDestination.value)
         assertTrue(viewModel.isLoading.value)
@@ -67,7 +71,7 @@ class StartupViewModelTest {
     @Test
     fun `when onboarding not completed, destination is Onboarding`() = runTest {
         fakeRepository.setOnboardingCompletedSync(false)
-        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         advanceUntilIdle()
 
@@ -78,7 +82,7 @@ class StartupViewModelTest {
     @Test
     fun `when onboarding completed, destination is Library`() = runTest {
         fakeRepository.setOnboardingCompletedSync(true)
-        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         advanceUntilIdle()
 
@@ -91,7 +95,7 @@ class StartupViewModelTest {
     @Test
     fun `isLoading becomes false after destination is determined`() = runTest {
         fakeRepository.setOnboardingCompletedSync(false)
-        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         assertTrue(viewModel.isLoading.value)
 
@@ -105,7 +109,7 @@ class StartupViewModelTest {
     @Test
     fun `when repository throws exception, destination defaults to Onboarding`() = runTest {
         val errorRepository = ErrorThrowingOnboardingRepository()
-        viewModel = StartupViewModel(errorRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(errorRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         advanceUntilIdle()
 
@@ -115,7 +119,7 @@ class StartupViewModelTest {
     @Test
     fun `when repository throws exception, isLoading becomes false`() = runTest {
         val errorRepository = ErrorThrowingOnboardingRepository()
-        viewModel = StartupViewModel(errorRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(errorRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         advanceUntilIdle()
 
@@ -134,7 +138,7 @@ class StartupViewModelTest {
             expiredCount = 0,
             failedCount = 0
         )
-        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         advanceUntilIdle()
 
@@ -152,7 +156,7 @@ class StartupViewModelTest {
             expiredCount = 0,
             failedCount = 0
         )
-        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         advanceUntilIdle()
 
@@ -170,7 +174,7 @@ class StartupViewModelTest {
             expiredCount = 0,
             failedCount = 0
         )
-        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         advanceUntilIdle()
 
@@ -182,7 +186,7 @@ class StartupViewModelTest {
     fun `recovery failure does not affect startup flow`() = runTest {
         fakeRepository.setOnboardingCompletedSync(true)
         fakeRecoveryManager.shouldThrow = true
-        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         advanceUntilIdle()
 
@@ -196,7 +200,7 @@ class StartupViewModelTest {
     @Test
     fun `refund sync emits CreditsRevoked event when credits are revoked`() = runTest {
         fakeRefundSync.result = RefundSyncResult(creditsRevoked = 3, tokensRefunded = 1)
-        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         advanceUntilIdle()
 
@@ -208,7 +212,7 @@ class StartupViewModelTest {
     @Test
     fun `refund sync emits no event when no credits are revoked`() = runTest {
         fakeRefundSync.result = RefundSyncResult(creditsRevoked = 0, tokensRefunded = 0)
-        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         advanceUntilIdle()
 
@@ -219,13 +223,39 @@ class StartupViewModelTest {
     fun `refund sync failure does not affect startup flow`() = runTest {
         fakeRepository.setOnboardingCompletedSync(true)
         fakeRefundSync.shouldThrow = true
-        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync)
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
 
         advanceUntilIdle()
 
         // Startup destination is still determined correctly despite refund sync failure
         assertEquals(StartupDestination.Library, viewModel.startupDestination.value)
         assertFalse(viewModel.isLoading.value)
+    }
+
+    // ==================== Balance Reconciliation Tests ====================
+
+    @Test
+    fun `reconciliation failure does not affect startup flow`() = runTest {
+        fakeRepository.setOnboardingCompletedSync(true)
+        fakeBalanceReconciliation.shouldThrow = true
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
+
+        advanceUntilIdle()
+
+        assertEquals(StartupDestination.Library, viewModel.startupDestination.value)
+        assertFalse(viewModel.isLoading.value)
+    }
+
+    @Test
+    fun `reconciliation does not block startup destination determination`() = runTest {
+        fakeRepository.setOnboardingCompletedSync(true)
+        viewModel = StartupViewModel(fakeRepository, fakeRecoveryManager, fakeRefundSync, fakeBalanceReconciliation)
+
+        advanceUntilIdle()
+
+        assertEquals(StartupDestination.Library, viewModel.startupDestination.value)
+        assertFalse(viewModel.isLoading.value)
+        assertEquals(1, fakeBalanceReconciliation.reconcileCallCount)
     }
 }
 
@@ -301,6 +331,20 @@ class ErrorThrowingOnboardingRepository : OnboardingRepository {
 
     override suspend fun completeOnboardingWithCredits(creditAmount: Int): Boolean {
         throw java.io.IOException("Simulated DataStore IO error")
+    }
+}
+
+/**
+ * Fake implementation of [BalanceReconciliation] for testing StartupViewModel.
+ */
+class FakeBalanceReconciliation : BalanceReconciliation {
+    var shouldThrow = false
+    var reconcileCallCount = 0
+
+    override suspend fun reconcile(): ReconciliationResult {
+        reconcileCallCount++
+        if (shouldThrow) throw RuntimeException("Reconciliation failed")
+        return ReconciliationResult(reconciled = false, localBalance = 0, serverBalance = 0, delta = 0)
     }
 }
 
