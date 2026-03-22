@@ -114,6 +114,12 @@ fun PurchaseScreen(
                         duration = SnackbarDuration.Short
                     )
                 }
+                is PurchaseEvent.ValidationPending -> {
+                    snackbarHostState.showSnackbar(
+                        message = "Purchase saved — will be verified shortly",
+                        duration = SnackbarDuration.Short
+                    )
+                }
             }
         }
     }
