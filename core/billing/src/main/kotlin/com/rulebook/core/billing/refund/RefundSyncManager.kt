@@ -73,8 +73,10 @@ class RefundSyncManager(
         val entries = purchaseHistoryStore.getRecentEntries()
         if (entries.isEmpty()) return RefundSyncResult(creditsRevoked = 0, tokensRefunded = 0)
 
-        // Step 2: Filter out already-acknowledged tokens
-        val unacknowledged = entries.filter { !refundAcknowledgmentStore.isAcknowledged(it.purchaseToken) }
+        // Step 2: Filter out already-acknowledged tokens and deduplicate by purchase token
+        val unacknowledged = entries
+            .distinctBy { it.purchaseToken }
+            .filter { !refundAcknowledgmentStore.isAcknowledged(it.purchaseToken) }
         if (unacknowledged.isEmpty()) return RefundSyncResult(creditsRevoked = 0, tokensRefunded = 0)
 
         // Step 3: Call backend with unacknowledged tokens
@@ -92,11 +94,14 @@ class RefundSyncManager(
         for (status in refundStatuses) {
             if (!status.isRefunded) continue
 
+            // Acknowledge first to prevent double-revocation if the app crashes
+            // after removing credits but before acknowledging.
+            refundAcknowledgmentStore.acknowledge(status.purchaseToken)
+
             val productId = tokenToProductId[status.purchaseToken] ?: continue
             val creditsToRevoke = billingRepository.creditsForProduct(productId) ?: continue
 
             val actualRevoked = creditRepository.removeCredits(creditsToRevoke)
-            refundAcknowledgmentStore.acknowledge(status.purchaseToken)
 
             totalCreditsRevoked += actualRevoked
             tokensRefunded++
