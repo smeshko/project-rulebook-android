@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rulebook.core.billing.recovery.ValidationRecovery
 import com.rulebook.core.data.repository.OnboardingRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +24,7 @@ import kotlinx.coroutines.launch
  * until the destination is determined, preventing any flash of the
  * wrong screen.
  *
- * Recovery runs non-blocking on [Dispatchers.IO] — app startup is never delayed.
+ * Recovery runs as an independent coroutine — app startup is never delayed.
  * If credits are recovered, a [RecoveryEvent.CreditsRecovered] event is emitted
  * via [recoveryEvents] for the UI to display a notification.
  *
@@ -93,15 +92,14 @@ class StartupViewModel(
     }
 
     private fun runValidationRecovery() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
                 val result = validationRecoveryManager.recover()
                 if (result.creditsRecovered > 0) {
                     _recoveryEvents.send(RecoveryEvent.CreditsRecovered(result.creditsRecovered))
                 }
             } catch (e: Exception) {
-                // Recovery failure must never crash the app — log and continue
-                android.util.Log.e("StartupViewModel", "Validation recovery failed unexpectedly", e)
+                // Recovery failure must never crash the app — silently swallow and continue
             }
         }
     }
