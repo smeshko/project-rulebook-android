@@ -1351,6 +1351,13 @@ class FakeCreditRepository : CreditRepository {
         addedCreditsTotal += amount
         return true
     }
+
+    override suspend fun removeCredits(amount: Int): Int {
+        val current = _creditBalance.value
+        val actualRemoved = minOf(current, amount)
+        _creditBalance.value = (current - amount).coerceAtLeast(0)
+        return actualRemoved
+    }
 }
 
 class FakeBillingRepository : BillingRepository {

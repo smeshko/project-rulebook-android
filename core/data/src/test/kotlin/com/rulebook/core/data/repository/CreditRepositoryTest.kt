@@ -157,6 +157,46 @@ class CreditRepositoryTest {
         val result = repository.hasCredits()
         assertTrue(result)
     }
+
+    // ==================== removeCredits Tests ====================
+
+    @Test
+    fun `removeCredits reduces balance by specified amount`() = runTest {
+        fakePreferences.setBalance(10)
+
+        val removed = repository.removeCredits(3)
+
+        assertEquals(3, removed)
+        assertEquals(7, repository.creditBalance.first())
+    }
+
+    @Test
+    fun `removeCredits returns actual removed when balance less than amount`() = runTest {
+        fakePreferences.setBalance(2)
+
+        val removed = repository.removeCredits(5)
+
+        assertEquals(2, removed)
+        assertEquals(0, repository.creditBalance.first())
+    }
+
+    @Test
+    fun `removeCredits from zero balance returns 0 and leaves balance at 0`() = runTest {
+        val removed = repository.removeCredits(3)
+
+        assertEquals(0, removed)
+        assertEquals(0, repository.creditBalance.first())
+    }
+
+    @Test
+    fun `removeCredits exact balance returns exact amount and leaves 0`() = runTest {
+        fakePreferences.setBalance(5)
+
+        val removed = repository.removeCredits(5)
+
+        assertEquals(5, removed)
+        assertEquals(0, repository.creditBalance.first())
+    }
 }
 
 /**
@@ -187,6 +227,13 @@ class FakeCreditPreferencesSource : CreditPreferencesSource {
     override suspend fun addCredits(amount: Int): Boolean {
         _creditBalance.value = _creditBalance.value + amount
         return true
+    }
+
+    override suspend fun removeCredits(amount: Int): Int {
+        val current = _creditBalance.value
+        val actualRemoved = minOf(current, amount)
+        _creditBalance.value = (current - amount).coerceAtLeast(0)
+        return actualRemoved
     }
 
     fun setBalance(balance: Int) {

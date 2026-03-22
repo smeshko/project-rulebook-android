@@ -40,4 +40,12 @@ interface CreditPreferencesSource {
      * @return true if credits were added successfully.
      */
     suspend fun addCredits(amount: Int): Boolean
+
+    /**
+     * Removes credits from the current balance, clamping to 0 if insufficient.
+     *
+     * @param amount The number of credits to remove.
+     * @return The actual number of credits removed (may be less than [amount] if balance is low).
+     */
+    suspend fun removeCredits(amount: Int): Int
 }

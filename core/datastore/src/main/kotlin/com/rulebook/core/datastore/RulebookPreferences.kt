@@ -154,6 +154,23 @@ open class RulebookPreferences(private val context: Context) : OnboardingPrefere
     }
 
     /**
+     * Removes credits from the current balance, clamping to 0 if insufficient.
+     *
+     * @param amount The number of credits to remove.
+     * @return The actual number of credits removed (may be less than [amount] if balance is low).
+     */
+    override suspend fun removeCredits(amount: Int): Int {
+        if (amount <= 0) return 0
+        var actualRemoved = 0
+        context.dataStore.edit { preferences ->
+            val currentBalance = preferences[Keys.CREDIT_BALANCE] ?: 0
+            actualRemoved = minOf(currentBalance, amount)
+            preferences[Keys.CREDIT_BALANCE] = (currentBalance - amount).coerceAtLeast(0)
+        }
+        return actualRemoved
+    }
+
+    /**
      * Flow of the pending purchase token, or null if no purchase is pending.
      */
     override val pendingPurchaseToken: Flow<String?> = context.dataStore.data
