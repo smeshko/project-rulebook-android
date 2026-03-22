@@ -295,6 +295,10 @@ class FakeRefundSyncCreditRepository : CreditRepository {
         return actualRemoved
     }
 
+    override suspend fun setCreditBalance(balance: Int) {
+        _balance.value = balance.coerceAtLeast(0)
+    }
+
     fun setBalance(balance: Int) {
         _balance.value = balance
     }

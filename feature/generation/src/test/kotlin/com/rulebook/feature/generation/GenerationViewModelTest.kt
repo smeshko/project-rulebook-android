@@ -2004,4 +2004,8 @@ class FakeCreditRepository : com.rulebook.core.data.repository.CreditRepository 
         _creditBalance.value = (current - amount).coerceAtLeast(0)
         return actualRemoved
     }
+
+    override suspend fun setCreditBalance(balance: Int) {
+        _creditBalance.value = balance.coerceAtLeast(0)
+    }
 }

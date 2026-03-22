@@ -237,4 +237,8 @@ class FakeCheckerCreditRepository : CreditRepository {
         _balance.value = (current - amount).coerceAtLeast(0)
         return actualRemoved
     }
+
+    override suspend fun setCreditBalance(balance: Int) {
+        _balance.value = balance.coerceAtLeast(0)
+    }
 }

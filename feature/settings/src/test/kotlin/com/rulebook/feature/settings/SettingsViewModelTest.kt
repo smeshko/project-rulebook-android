@@ -39,7 +39,7 @@ class FakeCreditPreferencesSource(
     private val _creditBalance = MutableStateFlow(initialBalance)
     override val creditBalance: Flow<Int> = _creditBalance
 
-    fun setCreditBalance(balance: Int) {
+    fun setCreditBalanceSync(balance: Int) {
         _creditBalance.value = balance
     }
 
@@ -47,6 +47,7 @@ class FakeCreditPreferencesSource(
     override suspend fun deductCredit(): Boolean = false
     override suspend fun addCredits(amount: Int): Boolean = false
     override suspend fun removeCredits(amount: Int): Int = 0
+    override suspend fun setCreditBalance(balance: Int) { _creditBalance.value = balance.coerceAtLeast(0) }
 }
 
 /**
@@ -202,7 +203,7 @@ class SettingsViewModelTest {
         var state = viewModel.uiState.value
         assertEquals("Initial balance should be 5", 5, state.creditBalance)
 
-        fakeCreditPreferences.setCreditBalance(10)
+        fakeCreditPreferences.setCreditBalanceSync(10)
         advanceUntilIdle()
 
         state = viewModel.uiState.value

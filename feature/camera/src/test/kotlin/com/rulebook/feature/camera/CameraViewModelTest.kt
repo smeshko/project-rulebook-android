@@ -893,6 +893,10 @@ class FakeCreditRepository : CreditRepository {
         return actualRemoved
     }
 
+    override suspend fun setCreditBalance(balance: Int) {
+        _creditBalance.value = balance.coerceAtLeast(0)
+    }
+
     var hasCreditsWasCalled = false
         private set
 

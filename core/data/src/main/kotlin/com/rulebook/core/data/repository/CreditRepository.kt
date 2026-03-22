@@ -65,4 +65,14 @@ interface CreditRepository {
      * @return The actual number of credits removed (may be less than [amount] if balance is low).
      */
     suspend fun removeCredits(amount: Int): Int
+
+    /**
+     * Sets the credit balance to an absolute value.
+     *
+     * Used during server-side balance reconciliation (Story 10.7) to overwrite
+     * the local balance with the authoritative server balance.
+     *
+     * @param balance The new absolute balance.
+     */
+    suspend fun setCreditBalance(balance: Int)
 }
