@@ -96,7 +96,7 @@ open class RulebookPreferences(private val context: Context) : OnboardingPrefere
      * Sets the credit balance.
      * @param balance The new balance. Negative values are coerced to 0.
      */
-    suspend fun setCreditBalance(balance: Int) {
+    override suspend fun setCreditBalance(balance: Int) {
         context.dataStore.edit { preferences ->
             preferences[Keys.CREDIT_BALANCE] = balance.coerceAtLeast(0)
         }
