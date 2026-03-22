@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
@@ -85,9 +86,9 @@ class StartupViewModel(
 
     init {
         determineStartupDestination()
-        runValidationRecovery()
-        runRefundSync()
-        runBalanceReconciliation()
+        val recoveryJob = runValidationRecovery()
+        val refundJob = runRefundSync()
+        runBalanceReconciliation(recoveryJob, refundJob)
     }
 
     private fun determineStartupDestination() {
@@ -110,7 +111,7 @@ class StartupViewModel(
         }
     }
 
-    private fun runValidationRecovery() {
+    private fun runValidationRecovery(): Job =
         viewModelScope.launch {
             try {
                 val result = validationRecoveryManager.recover()
@@ -121,9 +122,8 @@ class StartupViewModel(
                 // Recovery failure must never crash the app — silently swallow and continue
             }
         }
-    }
 
-    private fun runRefundSync() {
+    private fun runRefundSync(): Job =
         viewModelScope.launch {
             try {
                 val result = refundSync.checkRefunds()
@@ -134,10 +134,13 @@ class StartupViewModel(
                 // Refund sync failure must never crash the app — silently swallow and continue
             }
         }
-    }
 
-    private fun runBalanceReconciliation() {
+    private fun runBalanceReconciliation(recoveryJob: Job, refundJob: Job) {
         viewModelScope.launch {
+            // Reconciliation must run after recovery and refund sync to avoid
+            // overwriting balance changes made by those operations
+            recoveryJob.join()
+            refundJob.join()
             try {
                 balanceReconciliation.reconcile()
             } catch (_: Exception) {
