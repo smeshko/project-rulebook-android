@@ -92,6 +92,48 @@ class PurchaseHistoryStoreImplTest {
         assertTrue(tokens.contains("abc-token"))
         assertTrue(tokens.contains("def-token"))
     }
+
+    // ==================== getRecentEntries Tests ====================
+
+    @Test
+    fun `getRecentEntries returns empty list when no entries`() = runTest {
+        val entries = store.getRecentEntries()
+        assertTrue(entries.isEmpty())
+    }
+
+    @Test
+    fun `getRecentEntries returns correct token and productId`() = runTest {
+        store.savePurchase("token-1", "credits_3")
+
+        val entries = store.getRecentEntries()
+        assertEquals(1, entries.size)
+        assertEquals("token-1", entries[0].purchaseToken)
+        assertEquals("credits_3", entries[0].productId)
+    }
+
+    @Test
+    fun `getRecentEntries returns multiple entries newest first`() = runTest {
+        store.savePurchase("token-1", "credits_1")
+        store.savePurchase("token-2", "credits_3")
+        store.savePurchase("token-3", "credits_10")
+
+        val entries = store.getRecentEntries()
+        assertEquals(3, entries.size)
+        assertEquals(PurchaseHistoryEntry("token-3", "credits_10"), entries[0])
+        assertEquals(PurchaseHistoryEntry("token-2", "credits_3"), entries[1])
+        assertEquals(PurchaseHistoryEntry("token-1", "credits_1"), entries[2])
+    }
+
+    @Test
+    fun `getRecentEntries caps at MAX_ENTRIES`() = runTest {
+        val maxEntries = PurchaseHistoryStore.MAX_ENTRIES
+        repeat(maxEntries + 5) { i ->
+            store.savePurchase("token-$i", "credits_1")
+        }
+
+        val entries = store.getRecentEntries()
+        assertEquals(maxEntries, entries.size)
+    }
 }
 
 // ======================================================================

@@ -3,6 +3,7 @@ package com.rulebook.startup
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rulebook.core.billing.recovery.ValidationRecovery
+import com.rulebook.core.billing.refund.RefundSync
 import com.rulebook.core.data.repository.OnboardingRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,8 @@ import kotlinx.coroutines.launch
 
 /**
  * ViewModel responsible for determining the startup destination and running
- * background recovery for purchases that failed validation during previous sessions.
+ * background recovery for purchases that failed validation during previous sessions,
+ * as well as detecting refunded purchases and revoking credits.
  *
  * Reads the onboarding completion status from [OnboardingRepository]
  * and exposes the appropriate startup destination. This ViewModel is
@@ -24,16 +26,18 @@ import kotlinx.coroutines.launch
  * until the destination is determined, preventing any flash of the
  * wrong screen.
  *
- * Recovery runs as an independent coroutine — app startup is never delayed.
- * If credits are recovered, a [RecoveryEvent.CreditsRecovered] event is emitted
- * via [recoveryEvents] for the UI to display a notification.
+ * Recovery and refund sync run as independent coroutines — app startup is never delayed.
+ * If credits are recovered or revoked, the corresponding event is emitted via
+ * [recoveryEvents] or [refundEvents] for the UI to display a notification.
  *
  * @param onboardingRepository Repository for onboarding state access.
  * @param validationRecoveryManager Recovery contract for app-launch purchase recovery (Story 10.4).
+ * @param refundSync Refund sync contract for app-launch refund detection (Story 10.5).
  */
 class StartupViewModel(
     private val onboardingRepository: OnboardingRepository,
-    private val validationRecoveryManager: ValidationRecovery
+    private val validationRecoveryManager: ValidationRecovery,
+    private val refundSync: RefundSync,
 ) : ViewModel() {
 
     private val _startupDestination = MutableStateFlow<StartupDestination?>(null)
@@ -66,9 +70,20 @@ class StartupViewModel(
      */
     val recoveryEvents = _recoveryEvents.receiveAsFlow()
 
+    private val _refundEvents = Channel<RefundEvent>(Channel.BUFFERED)
+
+    /**
+     * One-shot events for refund detection outcomes that require UI feedback.
+     *
+     * Emits [RefundEvent.CreditsRevoked] if credits were revoked for a refunded purchase.
+     * Silent if no refunds were detected.
+     */
+    val refundEvents = _refundEvents.receiveAsFlow()
+
     init {
         determineStartupDestination()
         runValidationRecovery()
+        runRefundSync()
     }
 
     private fun determineStartupDestination() {
@@ -103,6 +118,19 @@ class StartupViewModel(
             }
         }
     }
+
+    private fun runRefundSync() {
+        viewModelScope.launch {
+            try {
+                val result = refundSync.checkRefunds()
+                if (result.creditsRevoked > 0) {
+                    _refundEvents.send(RefundEvent.CreditsRevoked(result.creditsRevoked))
+                }
+            } catch (e: Exception) {
+                // Refund sync failure must never crash the app — silently swallow and continue
+            }
+        }
+    }
 }
 
 /**
@@ -111,4 +139,12 @@ class StartupViewModel(
 sealed class RecoveryEvent {
     /** Credits were recovered from a previous purchase that failed validation. */
     data class CreditsRecovered(val credits: Int) : RecoveryEvent()
+}
+
+/**
+ * Events emitted by [StartupViewModel] for refund detection outcomes that require UI feedback.
+ */
+sealed class RefundEvent {
+    /** Credits were revoked because a previous purchase was refunded. */
+    data class CreditsRevoked(val credits: Int) : RefundEvent()
 }

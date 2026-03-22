@@ -469,6 +469,7 @@ private class FakeCreditPreferences(
     override suspend fun awardInitialCreditsIfNeeded(amount: Int): Boolean = false
     override suspend fun deductCredit(): Boolean = false
     override suspend fun addCredits(amount: Int): Boolean = false
+    override suspend fun removeCredits(amount: Int): Int = 0
 }
 
 /**

@@ -55,4 +55,14 @@ interface CreditRepository {
      * @return true if credits were added successfully.
      */
     suspend fun addCredits(amount: Int): Boolean
+
+    /**
+     * Removes credits from the user's balance, clamping to 0 if insufficient.
+     *
+     * Used during refund sync (Story 10.5) to revoke credits for refunded purchases.
+     *
+     * @param amount The number of credits to remove.
+     * @return The actual number of credits removed (may be less than [amount] if balance is low).
+     */
+    suspend fun removeCredits(amount: Int): Int
 }

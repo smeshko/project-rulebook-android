@@ -10,6 +10,10 @@ import com.rulebook.core.billing.pending.PendingValidationStore
 import com.rulebook.core.billing.pending.PendingValidationStoreImpl
 import com.rulebook.core.billing.recovery.ValidationRecovery
 import com.rulebook.core.billing.recovery.ValidationRecoveryManager
+import com.rulebook.core.billing.refund.RefundAcknowledgmentStore
+import com.rulebook.core.billing.refund.RefundAcknowledgmentStoreImpl
+import com.rulebook.core.billing.refund.RefundSync
+import com.rulebook.core.billing.refund.RefundSyncManager
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.billing.verification.PurchaseVerifier
 import com.rulebook.core.billing.verification.ServerSidePurchaseVerifier
@@ -25,6 +29,8 @@ import org.koin.dsl.module
  * - [PurchaseHistoryStore] is provided as a singleton for purchase history persistence.
  * - [PendingPurchaseChecker] is provided as a singleton for app-resume pending checks.
  * - [ValidationRecoveryManager] is provided as a singleton for app-launch recovery (Story 10.4).
+ * - [RefundAcknowledgmentStore] is provided as a singleton for refund acknowledgment (Story 10.5).
+ * - [RefundSyncManager] is provided as a singleton for app-launch refund detection (Story 10.5).
  */
 val billingModule = module {
     single<BillingClientWrapper> { BillingClientWrapperImpl(androidContext()) }
@@ -34,4 +40,6 @@ val billingModule = module {
     single<PendingValidationStore> { PendingValidationStoreImpl.create(androidContext()) }
     single { PendingPurchaseChecker(get(), get(), get(), get()) }
     single<ValidationRecovery> { ValidationRecoveryManager(get(), get(), get(), get(), get(), get()) }
+    single<RefundAcknowledgmentStore> { RefundAcknowledgmentStoreImpl.create(androidContext()) }
+    single<RefundSync> { RefundSyncManager(get(), get(), get(), get(), get(), get()) }
 }

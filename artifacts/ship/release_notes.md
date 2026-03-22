@@ -1,19 +1,18 @@
-## [Unreleased] - 2026-03-20
+## [Unreleased] - 2026-03-22
 
 ### Added
-- Register ReceiptRepository as singleton in Koin DataModule
-- Add ReceiptRepository interface and implementation
-- Add network-to-domain mappers for receipt validation
-- Add ReceiptValidationApi retrofit interface and register in Koin
-- Add network request/response models for receipt validation
-- Add domain models for receipt validation
+- Display refund notification Toast in MainActivity
+- Integrate RefundSync into StartupViewModel with RefundEvent
+- Register RefundAcknowledgmentStore and RefundSyncManager in DI
+- Add trackPurchaseRefundDetected analytics event
+- Create RefundSyncManager with full refund detection flow
+- Create RefundAcknowledgmentStore to prevent duplicate revocations
+- Add removeCredits to CreditPreferencesSource and CreditRepository
+- Add PurchaseHistoryEntry and getRecentEntries to PurchaseHistoryStore
 
 ### Fixed
-- Add request payload assertions to ReceiptRepositoryImplTest
-- Generalize NetworkErrorMapper timeout message
+- Prevent double-revocation and duplicate token processing
+- Implement removeCredits in GenerationViewModelTest fake
 
 ### Documentation
-- Add feature documentation for server-side receipt validation network layer (RULE-255)
-
-### Other
-- Add unit tests for receipt validation and update repository to accept packageName
+- Add feature documentation for refund sync detection (RULE-259)

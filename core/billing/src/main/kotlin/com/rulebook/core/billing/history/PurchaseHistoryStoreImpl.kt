@@ -55,6 +55,20 @@ class PurchaseHistoryStoreImpl(private val dataStore: DataStore<Preferences>) : 
         }
     }
 
+    override suspend fun getRecentEntries(): List<PurchaseHistoryEntry> {
+        val preferences = dataStore.data.first()
+        val stored = preferences[ENTRIES_KEY] ?: return emptyList()
+        if (stored.isEmpty()) return emptyList()
+        return stored.split(DELIMITER).mapNotNull { entry ->
+            val parts = entry.split(ENTRY_SEPARATOR)
+            if (parts.size == 2 && parts[0].isNotEmpty() && parts[1].isNotEmpty()) {
+                PurchaseHistoryEntry(purchaseToken = parts[0], productId = parts[1])
+            } else {
+                null
+            }
+        }
+    }
+
     override suspend fun clear() {
         dataStore.edit { preferences ->
             preferences.remove(ENTRIES_KEY)

@@ -473,4 +473,21 @@ interface AnalyticsManager {
             mapOf("expired_count" to expiredCount.toString())
         )
     }
+
+    /**
+     * Track when one or more refunded purchases are detected on app launch (Story 10.5).
+     * This is a convenience method that fires the "purchase_refund_detected" event.
+     *
+     * @param tokensRefunded The number of purchase tokens identified as refunded.
+     * @param creditsRevoked The total number of credits revoked from the user.
+     */
+    fun trackPurchaseRefundDetected(tokensRefunded: Int, creditsRevoked: Int) {
+        trackEvent(
+            "purchase_refund_detected",
+            mapOf(
+                "tokens_refunded" to tokensRefunded.toString(),
+                "credits_revoked" to creditsRevoked.toString(),
+            )
+        )
+    }
 }

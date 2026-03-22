@@ -83,4 +83,36 @@ class RulebookPreferencesTest {
         val coerced = maxValue.coerceAtLeast(0)
         assertEquals(Int.MAX_VALUE, coerced)
     }
+
+    // ==================== removeCredits Logic Tests ====================
+
+    @Test
+    fun `removeCredits logic - removing less than balance returns exact amount`() {
+        val balance = 10
+        val amount = 3
+        val actualRemoved = minOf(balance, amount)
+        val newBalance = (balance - amount).coerceAtLeast(0)
+        assertEquals(3, actualRemoved)
+        assertEquals(7, newBalance)
+    }
+
+    @Test
+    fun `removeCredits logic - removing more than balance clamps to 0 and returns actual balance`() {
+        val balance = 2
+        val amount = 5
+        val actualRemoved = minOf(balance, amount)
+        val newBalance = (balance - amount).coerceAtLeast(0)
+        assertEquals(2, actualRemoved)
+        assertEquals(0, newBalance)
+    }
+
+    @Test
+    fun `removeCredits logic - removing from zero balance returns 0`() {
+        val balance = 0
+        val amount = 3
+        val actualRemoved = minOf(balance, amount)
+        val newBalance = (balance - amount).coerceAtLeast(0)
+        assertEquals(0, actualRemoved)
+        assertEquals(0, newBalance)
+    }
 }

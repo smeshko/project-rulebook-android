@@ -371,22 +371,34 @@ class FakeRecoveryCreditRepository : CreditRepository {
         _balance.value += amount
         return true
     }
+
+    override suspend fun removeCredits(amount: Int): Int {
+        val current = _balance.value
+        val actualRemoved = minOf(current, amount)
+        _balance.value = (current - amount).coerceAtLeast(0)
+        return actualRemoved
+    }
 }
 
 class FakeRecoveryPurchaseHistoryStore : PurchaseHistoryStore {
     val savedTokens: MutableList<String> = mutableListOf()
     val recentTokens: MutableSet<String> = mutableSetOf()
+    val savedEntries: MutableList<com.rulebook.core.billing.history.PurchaseHistoryEntry> = mutableListOf()
 
     override suspend fun savePurchase(purchaseToken: String, productId: String) {
         savedTokens.add(purchaseToken)
         recentTokens.add(purchaseToken)
+        savedEntries.add(com.rulebook.core.billing.history.PurchaseHistoryEntry(purchaseToken, productId))
     }
 
     override suspend fun getRecentTokens(): List<String> = recentTokens.toList()
 
+    override suspend fun getRecentEntries(): List<com.rulebook.core.billing.history.PurchaseHistoryEntry> = savedEntries.toList()
+
     override suspend fun clear() {
         savedTokens.clear()
         recentTokens.clear()
+        savedEntries.clear()
     }
 }
 

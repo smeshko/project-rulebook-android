@@ -34,4 +34,8 @@ class CreditRepositoryImpl(
     override suspend fun addCredits(amount: Int): Boolean {
         return preferencesSource.addCredits(amount)
     }
+
+    override suspend fun removeCredits(amount: Int): Int {
+        return preferencesSource.removeCredits(amount)
+    }
 }
