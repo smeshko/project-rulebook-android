@@ -8,6 +8,8 @@ import com.rulebook.core.billing.history.PurchaseHistoryStore
 import com.rulebook.core.billing.history.PurchaseHistoryStoreImpl
 import com.rulebook.core.billing.pending.PendingValidationStore
 import com.rulebook.core.billing.pending.PendingValidationStoreImpl
+import com.rulebook.core.billing.recovery.ValidationRecovery
+import com.rulebook.core.billing.recovery.ValidationRecoveryManager
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.billing.verification.PurchaseVerifier
 import com.rulebook.core.billing.verification.ServerSidePurchaseVerifier
@@ -22,6 +24,7 @@ import org.koin.dsl.module
  * - [PurchaseVerifier] is provided as a singleton using [ServerSidePurchaseVerifier] (Epic 10).
  * - [PurchaseHistoryStore] is provided as a singleton for purchase history persistence.
  * - [PendingPurchaseChecker] is provided as a singleton for app-resume pending checks.
+ * - [ValidationRecoveryManager] is provided as a singleton for app-launch recovery (Story 10.4).
  */
 val billingModule = module {
     single<BillingClientWrapper> { BillingClientWrapperImpl(androidContext()) }
@@ -30,4 +33,5 @@ val billingModule = module {
     single<PurchaseHistoryStore> { PurchaseHistoryStoreImpl.create(androidContext()) }
     single<PendingValidationStore> { PendingValidationStoreImpl.create(androidContext()) }
     single { PendingPurchaseChecker(get(), get(), get(), get()) }
+    single<ValidationRecovery> { ValidationRecoveryManager(get(), get(), get(), get(), get(), get()) }
 }

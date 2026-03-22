@@ -16,6 +16,7 @@ import com.rulebook.core.billing.PendingPurchaseChecker
 import com.rulebook.core.datastore.RulebookPreferences
 import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.designsystem.theme.RulebookTheme
+import com.rulebook.startup.RecoveryEvent
 import com.rulebook.startup.StartupViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -54,6 +55,19 @@ class MainActivity : ComponentActivity() {
         // Enable edge-to-edge after splash screen installation
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        // Collect recovery events and show toast when credits are recovered from a previous purchase
+        lifecycleScope.launch {
+            startupViewModel.recoveryEvents.collect { event ->
+                if (event is RecoveryEvent.CreditsRecovered) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "${event.credits} credits from a previous purchase have been added!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
 
         setContent {
             val startupDestination by startupViewModel.startupDestination.collectAsStateWithLifecycle()

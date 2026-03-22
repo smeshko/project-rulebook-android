@@ -22,7 +22,7 @@ import org.koin.dsl.module
  * App-level Koin module for ViewModels that don't belong to a specific feature.
  */
 val appModule = module {
-    viewModel { StartupViewModel(get()) }
+    viewModel { StartupViewModel(get(), get()) }
 }
 
 /**

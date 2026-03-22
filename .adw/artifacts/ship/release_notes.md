@@ -1,20 +1,14 @@
-## [Unreleased] - 2026-03-20
+## [Unreleased] - 2026-03-22
 
 ### Added
-- Add Validating state to PurchaseState sealed class
-- Add ServerSidePurchaseVerifier and PurchaseValidationException
-- Add PurchaseHistoryStore for refund tracking
-- Swap DI binding to ServerSidePurchaseVerifier
-- Add trackPurchaseValidated analytics method
-- Update PurchaseViewModel for server validation flow
-- Inject PurchaseHistoryStore into PurchaseViewModel via Koin
-- Add Validating UI overlay to PurchaseScreen
+- Implement app-launch validation recovery
 
 ### Fixed
-- Add missing core:common dependency to core:billing module
-- Address code review findings (cycle 1)
-- ALREADY_PROCESSED guard and analytics on all paths (cycle 2)
+- Remove unneeded Dispatchers.IO and android.util.Log from StartupViewModel
+
+### Documentation
+- Add app-launch validation recovery feature documentation
 
 ### Other
-- Update PurchaseViewModelTest for server validation flow
-- Add feature documentation for RULE-256 server-side purchase validation
+- Add ValidationRecoveryManager unit tests
+- Add StartupViewModel recovery tests and ValidationRecovery interface
