@@ -212,3 +212,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When designing encrypted storage for sensitive financial data (purchase tokens)
     - When applying exponential backoff patterns to other transient failure scenarios
     - When implementing graceful degradation for user-facing features
+
+- `docs/features/refund-sync-pull-based-detection.md` - Refund Sync: Pull-Based Refund Detection (RULE-259)
+  - Conditions:
+    - When implementing app-launch refund detection with backend sync
+    - When designing acknowledgment stores to prevent duplicate financial operations
+    - When integrating refund status endpoint checks into the purchase flow
+    - When implementing silent recovery patterns that don't block or crash app startup
+    - When handling credit revocation for detected refunded purchases
