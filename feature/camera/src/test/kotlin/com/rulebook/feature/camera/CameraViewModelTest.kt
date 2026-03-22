@@ -855,10 +855,6 @@ class FakeCreditRepository : CreditRepository {
             _creditBalance
         }
 
-    fun setCreditBalance(balance: Int) {
-        _creditBalance.value = balance
-    }
-
     fun setThrowOnBalanceRead(shouldThrow: Boolean) {
         shouldThrowOnBalanceRead = shouldThrow
     }
