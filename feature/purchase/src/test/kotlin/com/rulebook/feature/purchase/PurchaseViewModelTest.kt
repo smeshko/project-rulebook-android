@@ -1464,6 +1464,9 @@ class FakePurchaseHistoryStore : PurchaseHistoryStore {
 
     override suspend fun getRecentTokens(): List<String> = savedPurchases.map { it.first }
 
+    override suspend fun getRecentEntries(): List<com.rulebook.core.billing.history.PurchaseHistoryEntry> =
+        savedPurchases.map { com.rulebook.core.billing.history.PurchaseHistoryEntry(it.first, it.second) }
+
     override suspend fun clear() {
         savedPurchases.clear()
     }
