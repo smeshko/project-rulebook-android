@@ -2,6 +2,7 @@ package com.rulebook.startup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rulebook.core.billing.reconciliation.BalanceReconciliation
 import com.rulebook.core.billing.recovery.ValidationRecovery
 import com.rulebook.core.billing.refund.RefundSync
 import com.rulebook.core.data.repository.OnboardingRepository
@@ -33,11 +34,13 @@ import kotlinx.coroutines.launch
  * @param onboardingRepository Repository for onboarding state access.
  * @param validationRecoveryManager Recovery contract for app-launch purchase recovery (Story 10.4).
  * @param refundSync Refund sync contract for app-launch refund detection (Story 10.5).
+ * @param balanceReconciliation Balance reconciliation contract for app-launch credit sync (Story 10.7).
  */
 class StartupViewModel(
     private val onboardingRepository: OnboardingRepository,
     private val validationRecoveryManager: ValidationRecovery,
     private val refundSync: RefundSync,
+    private val balanceReconciliation: BalanceReconciliation,
 ) : ViewModel() {
 
     private val _startupDestination = MutableStateFlow<StartupDestination?>(null)
@@ -84,6 +87,7 @@ class StartupViewModel(
         determineStartupDestination()
         runValidationRecovery()
         runRefundSync()
+        runBalanceReconciliation()
     }
 
     private fun determineStartupDestination() {
@@ -128,6 +132,16 @@ class StartupViewModel(
                 }
             } catch (e: Exception) {
                 // Refund sync failure must never crash the app — silently swallow and continue
+            }
+        }
+    }
+
+    private fun runBalanceReconciliation() {
+        viewModelScope.launch {
+            try {
+                balanceReconciliation.reconcile()
+            } catch (_: Exception) {
+                // Reconciliation failure must never crash the app — silently swallow and continue
             }
         }
     }
