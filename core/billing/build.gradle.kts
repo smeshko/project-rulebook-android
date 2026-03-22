@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.rulebook.android.library)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -21,6 +22,8 @@ dependencies {
     implementation(libs.play.billing)
     implementation(libs.androidx.core.ktx)
     implementation(libs.datastore.preferences)
+    implementation(libs.androidx.security.crypto)
+    implementation(libs.kotlinx.serialization.json)
 
     // Koin
     implementation(platform(libs.koin.bom))

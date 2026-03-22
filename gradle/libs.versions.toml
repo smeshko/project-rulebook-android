@@ -42,6 +42,9 @@ accompanistPermissions = "0.36.0"
 # Billing
 playBilling = "7.1.1"
 
+# Security
+securityCrypto = "1.1.0"
+
 # Analytics
 telemetryDeck = "6.3.0"
 
@@ -121,6 +124,9 @@ accompanist-permissions = { module = "com.google.accompanist:accompanist-permiss
 
 # Billing
 play-billing = { module = "com.android.billingclient:billing-ktx", version.ref = "playBilling" }
+
+# Security
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 
 # Analytics
 telemetrydeck = { module = "com.telemetrydeck:kotlin-sdk", version.ref = "telemetryDeck" }
