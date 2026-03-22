@@ -441,4 +441,36 @@ interface AnalyticsManager {
             )
         )
     }
+
+    /**
+     * Track the outcome of an app-launch validation recovery attempt (Story 10.4).
+     * This is a convenience method that fires the "purchase_recovery_attempted" event.
+     *
+     * @param pendingCount Number of non-expired entries found in the pending store at launch.
+     * @param recoveredCount Number of purchases successfully validated and credited.
+     * @param expiredCount Number of entries removed as expired.
+     */
+    fun trackPurchaseRecoveryAttempted(pendingCount: Int, recoveredCount: Int, expiredCount: Int) {
+        trackEvent(
+            "purchase_recovery_attempted",
+            mapOf(
+                "pending_count" to pendingCount.toString(),
+                "recovered_count" to recoveredCount.toString(),
+                "expired_count" to expiredCount.toString()
+            )
+        )
+    }
+
+    /**
+     * Track when expired pending validation entries are silently removed (Story 10.4).
+     * This is a convenience method that fires the "purchase_recovery_expired" event.
+     *
+     * @param expiredCount Number of entries removed as expired.
+     */
+    fun trackPurchaseRecoveryExpired(expiredCount: Int) {
+        trackEvent(
+            "purchase_recovery_expired",
+            mapOf("expired_count" to expiredCount.toString())
+        )
+    }
 }
