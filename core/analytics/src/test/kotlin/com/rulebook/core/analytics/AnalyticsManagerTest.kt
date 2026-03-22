@@ -379,4 +379,24 @@ class AnalyticsManagerTest {
         assertEquals("none", analyticsManager.trackedEvents[0].properties["result"])
         assertEquals("0", analyticsManager.trackedEvents[0].properties["credits_restored"])
     }
+
+    @Test
+    fun `trackPurchaseRefundDetected fires purchase_refund_detected event with correct properties`() {
+        analyticsManager.trackPurchaseRefundDetected(tokensRefunded = 2, creditsRevoked = 13)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("purchase_refund_detected", analyticsManager.trackedEvents[0].name)
+        assertEquals("2", analyticsManager.trackedEvents[0].properties["tokens_refunded"])
+        assertEquals("13", analyticsManager.trackedEvents[0].properties["credits_revoked"])
+    }
+
+    @Test
+    fun `trackPurchaseRefundDetected fires event with single token and credits`() {
+        analyticsManager.trackPurchaseRefundDetected(tokensRefunded = 1, creditsRevoked = 3)
+
+        assertEquals(1, analyticsManager.trackedEvents.size)
+        assertEquals("purchase_refund_detected", analyticsManager.trackedEvents[0].name)
+        assertEquals("1", analyticsManager.trackedEvents[0].properties["tokens_refunded"])
+        assertEquals("3", analyticsManager.trackedEvents[0].properties["credits_revoked"])
+    }
 }
