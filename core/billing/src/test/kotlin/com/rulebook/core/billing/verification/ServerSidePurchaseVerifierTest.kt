@@ -121,4 +121,8 @@ class FakeReceiptRepository(
     ): AppResult<List<RefundStatus>> {
         return AppResult.Success(emptyList())
     }
+
+    override suspend fun getServerBalance(): AppResult<Int> {
+        return AppResult.Success(0)
+    }
 }

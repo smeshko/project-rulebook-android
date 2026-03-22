@@ -269,6 +269,10 @@ class FakeRefundSyncReceiptRepository : ReceiptRepository {
         if (shouldFail) return AppResult.Error("Network error", RuntimeException("Simulated failure"))
         return AppResult.Success(refundStatuses)
     }
+
+    override suspend fun getServerBalance(): AppResult<Int> {
+        return AppResult.Success(0)
+    }
 }
 
 class FakeRefundSyncCreditRepository : CreditRepository {
