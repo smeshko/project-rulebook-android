@@ -2,6 +2,7 @@ package com.rulebook.startup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rulebook.core.billing.reconciliation.BalanceReconciliation
 import com.rulebook.core.billing.recovery.ValidationRecovery
 import com.rulebook.core.billing.refund.RefundSync
 import com.rulebook.core.data.repository.OnboardingRepository
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
@@ -33,11 +35,13 @@ import kotlinx.coroutines.launch
  * @param onboardingRepository Repository for onboarding state access.
  * @param validationRecoveryManager Recovery contract for app-launch purchase recovery (Story 10.4).
  * @param refundSync Refund sync contract for app-launch refund detection (Story 10.5).
+ * @param balanceReconciliation Balance reconciliation contract for app-launch credit sync (Story 10.7).
  */
 class StartupViewModel(
     private val onboardingRepository: OnboardingRepository,
     private val validationRecoveryManager: ValidationRecovery,
     private val refundSync: RefundSync,
+    private val balanceReconciliation: BalanceReconciliation,
 ) : ViewModel() {
 
     private val _startupDestination = MutableStateFlow<StartupDestination?>(null)
@@ -82,8 +86,9 @@ class StartupViewModel(
 
     init {
         determineStartupDestination()
-        runValidationRecovery()
-        runRefundSync()
+        val recoveryJob = runValidationRecovery()
+        val refundJob = runRefundSync()
+        runBalanceReconciliation(recoveryJob, refundJob)
     }
 
     private fun determineStartupDestination() {
@@ -106,7 +111,7 @@ class StartupViewModel(
         }
     }
 
-    private fun runValidationRecovery() {
+    private fun runValidationRecovery(): Job =
         viewModelScope.launch {
             try {
                 val result = validationRecoveryManager.recover()
@@ -117,9 +122,8 @@ class StartupViewModel(
                 // Recovery failure must never crash the app — silently swallow and continue
             }
         }
-    }
 
-    private fun runRefundSync() {
+    private fun runRefundSync(): Job =
         viewModelScope.launch {
             try {
                 val result = refundSync.checkRefunds()
@@ -128,6 +132,19 @@ class StartupViewModel(
                 }
             } catch (e: Exception) {
                 // Refund sync failure must never crash the app — silently swallow and continue
+            }
+        }
+
+    private fun runBalanceReconciliation(recoveryJob: Job, refundJob: Job) {
+        viewModelScope.launch {
+            // Reconciliation must run after recovery and refund sync to avoid
+            // overwriting balance changes made by those operations
+            recoveryJob.join()
+            refundJob.join()
+            try {
+                balanceReconciliation.reconcile()
+            } catch (_: Exception) {
+                // Reconciliation failure must never crash the app — silently swallow and continue
             }
         }
     }

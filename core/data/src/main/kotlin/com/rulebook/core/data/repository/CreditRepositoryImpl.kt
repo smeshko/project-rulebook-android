@@ -38,4 +38,8 @@ class CreditRepositoryImpl(
     override suspend fun removeCredits(amount: Int): Int {
         return preferencesSource.removeCredits(amount)
     }
+
+    override suspend fun setCreditBalance(balance: Int) {
+        preferencesSource.setCreditBalance(balance)
+    }
 }

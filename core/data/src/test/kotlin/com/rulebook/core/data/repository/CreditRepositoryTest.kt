@@ -239,4 +239,8 @@ class FakeCreditPreferencesSource : CreditPreferencesSource {
     fun setBalance(balance: Int) {
         _creditBalance.value = balance
     }
+
+    override suspend fun setCreditBalance(balance: Int) {
+        _creditBalance.value = balance.coerceAtLeast(0)
+    }
 }

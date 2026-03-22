@@ -53,4 +53,17 @@ class ReceiptRepositoryImpl(
                 )
             }
         }
+
+    override suspend fun getServerBalance(): Result<Int> =
+        safeCall {
+            api.getBalance().balance
+        }.let { result ->
+            when (result) {
+                is Result.Success -> result
+                is Result.Error -> Result.Error(
+                    message = NetworkErrorMapper.mapToUserMessage(result.cause),
+                    cause = result.cause,
+                )
+            }
+        }
 }

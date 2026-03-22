@@ -855,10 +855,6 @@ class FakeCreditRepository : CreditRepository {
             _creditBalance
         }
 
-    fun setCreditBalance(balance: Int) {
-        _creditBalance.value = balance
-    }
-
     fun setThrowOnBalanceRead(shouldThrow: Boolean) {
         shouldThrowOnBalanceRead = shouldThrow
     }
@@ -891,6 +887,10 @@ class FakeCreditRepository : CreditRepository {
         val actualRemoved = minOf(current, amount)
         _creditBalance.value = (current - amount).coerceAtLeast(0)
         return actualRemoved
+    }
+
+    override suspend fun setCreditBalance(balance: Int) {
+        _creditBalance.value = balance.coerceAtLeast(0)
     }
 
     var hasCreditsWasCalled = false

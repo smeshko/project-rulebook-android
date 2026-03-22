@@ -269,6 +269,10 @@ class FakeRefundSyncReceiptRepository : ReceiptRepository {
         if (shouldFail) return AppResult.Error("Network error", RuntimeException("Simulated failure"))
         return AppResult.Success(refundStatuses)
     }
+
+    override suspend fun getServerBalance(): AppResult<Int> {
+        return AppResult.Success(0)
+    }
 }
 
 class FakeRefundSyncCreditRepository : CreditRepository {
@@ -289,6 +293,10 @@ class FakeRefundSyncCreditRepository : CreditRepository {
         val actualRemoved = minOf(current, amount)
         _balance.value = (current - amount).coerceAtLeast(0)
         return actualRemoved
+    }
+
+    override suspend fun setCreditBalance(balance: Int) {
+        _balance.value = balance.coerceAtLeast(0)
     }
 
     fun setBalance(balance: Int) {

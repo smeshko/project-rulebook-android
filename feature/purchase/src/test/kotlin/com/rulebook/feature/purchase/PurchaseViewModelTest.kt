@@ -1322,10 +1322,6 @@ class FakeCreditRepository : CreditRepository {
 
     override val creditBalance: Flow<Int> = _creditBalance
 
-    fun setCreditBalance(balance: Int) {
-        _creditBalance.value = balance
-    }
-
     override suspend fun awardInitialCredits(amount: Int): Boolean {
         if (_creditBalance.value == 0) {
             _creditBalance.value = amount
@@ -1357,6 +1353,10 @@ class FakeCreditRepository : CreditRepository {
         val actualRemoved = minOf(current, amount)
         _creditBalance.value = (current - amount).coerceAtLeast(0)
         return actualRemoved
+    }
+
+    override suspend fun setCreditBalance(balance: Int) {
+        _creditBalance.value = balance.coerceAtLeast(0)
     }
 }
 

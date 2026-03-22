@@ -132,7 +132,7 @@ class LibraryViewModelTest {
         assertEquals(10, viewModel.uiState.value.creditBalance)
 
         // And when credit balance changes
-        creditPreferences.setCreditBalance(5)
+        creditPreferences.setCreditBalanceSync(5)
         advanceUntilIdle()
 
         // Then UI state updates
@@ -462,7 +462,7 @@ private class FakeCreditPreferences(
     private val _creditBalance = MutableStateFlow(initialBalance)
     override val creditBalance: Flow<Int> = _creditBalance
 
-    fun setCreditBalance(balance: Int) {
+    fun setCreditBalanceSync(balance: Int) {
         _creditBalance.value = balance
     }
 
@@ -470,6 +470,7 @@ private class FakeCreditPreferences(
     override suspend fun deductCredit(): Boolean = false
     override suspend fun addCredits(amount: Int): Boolean = false
     override suspend fun removeCredits(amount: Int): Int = 0
+    override suspend fun setCreditBalance(balance: Int) { _creditBalance.value = balance.coerceAtLeast(0) }
 }
 
 /**

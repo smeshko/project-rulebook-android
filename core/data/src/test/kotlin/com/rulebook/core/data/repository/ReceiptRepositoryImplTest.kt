@@ -5,6 +5,7 @@ import com.rulebook.core.model.ValidationStatus
 import com.rulebook.core.network.api.ReceiptValidationApi
 import com.rulebook.core.network.model.CheckRefundRequest
 import com.rulebook.core.network.model.CheckRefundResponse
+import com.rulebook.core.network.model.CreditBalanceResponse
 import com.rulebook.core.network.model.ValidateReceiptRequest
 import com.rulebook.core.network.model.ValidateReceiptResponse
 import kotlinx.coroutines.test.runTest
@@ -209,5 +210,13 @@ class FakeReceiptValidationApi : ReceiptValidationApi {
         lastCheckRefundRequest = request
         checkRefundStatusError?.let { throw it }
         return checkRefundStatusResult ?: error("No checkRefundStatusResult configured")
+    }
+
+    var getBalanceResult: CreditBalanceResponse? = null
+    var getBalanceError: Exception? = null
+
+    override suspend fun getBalance(): CreditBalanceResponse {
+        getBalanceError?.let { throw it }
+        return getBalanceResult ?: error("No getBalanceResult configured")
     }
 }

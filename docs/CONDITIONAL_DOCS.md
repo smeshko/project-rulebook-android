@@ -228,3 +228,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When renaming queryUnconsumedPurchases() calls to queryUnacknowledgedPurchases()
     - When implementing or updating fake BillingRepository implementations in tests
     - When understanding the final cleanup step of Epic 10: Server-Side Receipt Validation
+
+- `docs/features/credit-balance-reconciliation-app-launch-sync.md` - Credit Balance Reconciliation: App-Launch Server Sync (RULE-261)
+  - Conditions:
+    - When integrating server-side state sync into app startup flows
+    - When implementing the manager pattern for dedicated reconciliation concerns
+    - When designing error handling for optional background operations that must never crash
+    - When coordinating multiple Job operations with join() to ensure correct ordering
+    - When establishing server-as-authoritative patterns for client cache validation

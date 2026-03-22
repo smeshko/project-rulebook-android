@@ -490,4 +490,23 @@ interface AnalyticsManager {
             )
         )
     }
+
+    /**
+     * Track when the local credit balance is reconciled against the server balance (Story 10.7).
+     * This is a convenience method that fires the "credit_balance_reconciled" event.
+     *
+     * @param localBalance The local balance before reconciliation.
+     * @param serverBalance The authoritative balance from the server.
+     * @param delta The difference (serverBalance - localBalance).
+     */
+    fun trackCreditBalanceReconciled(localBalance: Int, serverBalance: Int, delta: Int) {
+        trackEvent(
+            "credit_balance_reconciled",
+            mapOf(
+                "local_balance" to localBalance.toString(),
+                "server_balance" to serverBalance.toString(),
+                "delta" to delta.toString(),
+            )
+        )
+    }
 }
