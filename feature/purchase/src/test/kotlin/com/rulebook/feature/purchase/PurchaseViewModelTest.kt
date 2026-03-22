@@ -4,6 +4,8 @@ import android.app.Activity
 import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.billing.PurchaseUpdate
 import com.rulebook.core.billing.history.PurchaseHistoryStore
+import com.rulebook.core.billing.pending.PendingValidation
+import com.rulebook.core.billing.pending.PendingValidationStore
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.billing.repository.PurchaseInfo
 import com.rulebook.core.billing.verification.PurchaseValidationException
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -50,6 +53,7 @@ class PurchaseViewModelTest {
     private lateinit var fakePurchaseVerifier: FakePurchaseVerifier
     private lateinit var fakePendingPrefs: FakePendingPurchasePreferencesSource
     private lateinit var fakePurchaseHistoryStore: FakePurchaseHistoryStore
+    private lateinit var fakePendingValidationStore: FakePendingValidationStore
 
     @Before
     fun setup() {
@@ -60,6 +64,7 @@ class PurchaseViewModelTest {
         fakePurchaseVerifier = FakePurchaseVerifier()
         fakePendingPrefs = FakePendingPurchasePreferencesSource()
         fakePurchaseHistoryStore = FakePurchaseHistoryStore()
+        fakePendingValidationStore = FakePendingValidationStore()
         viewModel = PurchaseViewModel(
             creditRepository = fakeCreditRepository,
             billingRepository = fakeBillingRepository,
@@ -67,6 +72,7 @@ class PurchaseViewModelTest {
             purchaseVerifier = fakePurchaseVerifier,
             pendingPurchasePrefs = fakePendingPrefs,
             purchaseHistoryStore = fakePurchaseHistoryStore,
+            pendingValidationStore = fakePendingValidationStore,
             source = "test_source"
         )
     }
@@ -152,6 +158,7 @@ class PurchaseViewModelTest {
             purchaseVerifier = fakePurchaseVerifier,
             pendingPurchasePrefs = fakePendingPrefs,
             purchaseHistoryStore = fakePurchaseHistoryStore,
+            pendingValidationStore = fakePendingValidationStore,
             source = "test_source"
         )
         advanceUntilIdle()
@@ -181,6 +188,7 @@ class PurchaseViewModelTest {
             purchaseVerifier = fakePurchaseVerifier,
             pendingPurchasePrefs = fakePendingPrefs,
             purchaseHistoryStore = fakePurchaseHistoryStore,
+            pendingValidationStore = fakePendingValidationStore,
             source = "scan_gate"
         )
         advanceUntilIdle()
@@ -205,6 +213,7 @@ class PurchaseViewModelTest {
             purchaseVerifier = fakePurchaseVerifier,
             pendingPurchasePrefs = fakePendingPrefs,
             purchaseHistoryStore = fakePurchaseHistoryStore,
+            pendingValidationStore = fakePendingValidationStore,
             source = "settings"
         )
         advanceUntilIdle()
@@ -658,7 +667,8 @@ class PurchaseViewModelTest {
     }
 
     @Test
-    fun `failed verification sets PurchaseState Error and does NOT deliver credits`() = runTest {
+    fun `transient verification failure does NOT deliver credits and saves to pending queue`() = runTest {
+        // shouldFail = true throws RuntimeException (transient, not PurchaseValidationException)
         fakePurchaseVerifier.shouldFail = true
 
         viewModel.onProductSelected(null, "credits_3")
@@ -671,14 +681,19 @@ class PurchaseViewModelTest {
                 productIds = listOf("credits_3")
             )
         )
+        // Advance through all retry delays: 2s + 4s + 8s = 14s
+        advanceTimeBy(14_001)
         advanceUntilIdle()
 
         // Credits must NOT be delivered
         assertEquals(0, fakeCreditRepository.addedCreditsTotal)
 
-        // State must be Error
+        // Transient failure leads to pending state (not error), state reset to null
         val state = viewModel.uiState.first()
-        assertIs<PurchaseState.Error>(state.purchaseState)
+        assertNull(state.purchaseState)
+
+        // Token must be saved to pending validation store
+        assertTrue(fakePendingValidationStore.savedValidations.any { it.purchaseToken == "token-fail" })
     }
 
     @Test
@@ -1075,6 +1090,203 @@ class PurchaseViewModelTest {
 
         assertTrue(fakePurchaseHistoryStore.savedPurchases.any { it.first == "restore-token" })
     }
+
+    // =====================================================================
+    // Story 10.3: Pending Validation Queue — Retry Logic Tests
+    // =====================================================================
+
+    @Test
+    fun `validation success on first attempt delivers credits and emits PurchaseSuccess`() = runTest {
+        // Default fake verifier succeeds on first attempt
+        val events = mutableListOf<PurchaseEvent>()
+        val job = launch { viewModel.events.collect { events.add(it) } }
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("success-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        assertEquals(3, fakeCreditRepository.addedCreditsTotal)
+        assertTrue(events.any { it is PurchaseEvent.PurchaseSuccess })
+        assertTrue(fakePendingValidationStore.savedValidations.isEmpty())
+        job.cancel()
+    }
+
+    @Test
+    fun `transient failure then success on retry delivers credits without pending entry`() = runTest {
+        var callCount = 0
+        fakePurchaseVerifier.tokenResults["retry-token"] = Result.failure(RuntimeException("network error"))
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("retry-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+
+        // After first attempt fails (immediately), advance past the 2s delay to trigger retry 1
+        advanceTimeBy(2001)
+
+        // Now make retry 1 succeed by updating the fake result
+        fakePurchaseVerifier.tokenResults["retry-token"] = Result.success(VerificationResult(3))
+        advanceUntilIdle()
+
+        assertEquals(3, fakeCreditRepository.addedCreditsTotal)
+        assertTrue(fakePendingValidationStore.savedValidations.isEmpty())
+    }
+
+    @Test
+    fun `invalid purchase (PurchaseValidationException) shows error and does NOT retry`() = runTest {
+        fakePurchaseVerifier.tokenResults["invalid-token"] =
+            Result.failure(PurchaseValidationException("Purchase validation failed"))
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("invalid-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceUntilIdle()
+
+        // Should show error immediately (no retry)
+        val state = viewModel.uiState.first()
+        assertIs<PurchaseState.Error>(state.purchaseState)
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+        assertTrue(fakePendingValidationStore.savedValidations.isEmpty())
+
+        // Only 1 verification attempt (no retries)
+        assertEquals(1, fakePurchaseVerifier.verifiedTokens.count { it == "invalid-token" })
+    }
+
+    @Test
+    fun `all 3 retries fail saves PendingValidation and emits ValidationPending`() = runTest {
+        fakePurchaseVerifier.shouldFail = true
+
+        val events = mutableListOf<PurchaseEvent>()
+        val job = launch { viewModel.events.collect { events.add(it) } }
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("pending-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        // Advance through all retry delays: 2s + 4s + 8s
+        advanceTimeBy(14_001)
+        advanceUntilIdle()
+
+        // Credits NOT delivered
+        assertEquals(0, fakeCreditRepository.addedCreditsTotal)
+
+        // ValidationPending event emitted
+        assertTrue(events.any { it is PurchaseEvent.ValidationPending })
+
+        // State reset to null (graceful degradation)
+        assertNull(viewModel.uiState.first().purchaseState)
+
+        // Pending entry saved with correct purchaseToken and productId
+        val pending = fakePendingValidationStore.savedValidations.firstOrNull { it.purchaseToken == "pending-token" }
+        assertTrue(pending != null)
+        assertEquals("credits_3", pending!!.productId)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `all 3 retries fail verifies exactly 4 total attempts (initial + 3 retries)`() = runTest {
+        fakePurchaseVerifier.shouldFail = true
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("count-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceTimeBy(14_001)
+        advanceUntilIdle()
+
+        // 1 initial attempt + 3 retries = 4 total calls to verifyAndConsume
+        assertEquals(4, fakePurchaseVerifier.verifiedTokens.count { it == "count-token" })
+    }
+
+    @Test
+    fun `exponential backoff uses 2s 4s 8s delays`() = runTest {
+        fakePurchaseVerifier.shouldFail = true
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("delay-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+
+        // With UnconfinedTestDispatcher, the initial attempt runs eagerly until it hits delay(2000).
+        // Check count immediately after emit — only 1 attempt has run.
+        assertEquals(1, fakePurchaseVerifier.verifiedTokens.count { it == "delay-token" })
+
+        // Advance 2s → retry 1 fires (then suspends at delay(4000))
+        advanceTimeBy(2001)
+        assertEquals(2, fakePurchaseVerifier.verifiedTokens.count { it == "delay-token" })
+
+        // Advance 4s → retry 2 fires (then suspends at delay(8000))
+        advanceTimeBy(4001)
+        assertEquals(3, fakePurchaseVerifier.verifiedTokens.count { it == "delay-token" })
+
+        // Advance 8s → retry 3 fires and loop exits
+        advanceTimeBy(8001)
+        assertEquals(4, fakePurchaseVerifier.verifiedTokens.count { it == "delay-token" })
+    }
+
+    @Test
+    fun `failed validation tracks CONSUME_FAILED analytics after retry exhaustion`() = runTest {
+        fakePurchaseVerifier.shouldFail = true
+
+        viewModel.onProductSelected(null, "credits_3")
+        advanceUntilIdle()
+
+        fakeBillingRepository.emitPurchaseUpdate(
+            PurchaseUpdate(
+                responseCode = 0,
+                purchaseTokens = listOf("analytics-token"),
+                productIds = listOf("credits_3")
+            )
+        )
+        advanceTimeBy(14_001)
+        advanceUntilIdle()
+
+        val trackedEvents = fakeAnalyticsManager.getTrackedEvents()
+        val failedEvent = trackedEvents.firstOrNull { it.first == "purchase_failed" }
+        assertTrue(failedEvent != null)
+        assertEquals("CONSUME_FAILED", failedEvent!!.second["error_code"])
+        assertEquals("credits_3", failedEvent.second["sku"])
+    }
 }
 
 // ======================================================================
@@ -1255,5 +1467,24 @@ class FakePurchaseHistoryStore : PurchaseHistoryStore {
 
     override suspend fun clear() {
         savedPurchases.clear()
+    }
+}
+
+class FakePendingValidationStore : PendingValidationStore {
+    val savedValidations = mutableListOf<PendingValidation>()
+
+    override suspend fun save(pendingValidation: PendingValidation) {
+        savedValidations.removeAll { it.purchaseToken == pendingValidation.purchaseToken }
+        savedValidations.add(pendingValidation)
+    }
+
+    override suspend fun getAll(): List<PendingValidation> = savedValidations.toList()
+
+    override suspend fun remove(purchaseToken: String) {
+        savedValidations.removeAll { it.purchaseToken == purchaseToken }
+    }
+
+    override suspend fun clear() {
+        savedValidations.clear()
     }
 }
