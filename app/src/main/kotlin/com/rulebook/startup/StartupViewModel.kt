@@ -2,7 +2,7 @@ package com.rulebook.startup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rulebook.core.billing.recovery.ValidationRecoveryManager
+import com.rulebook.core.billing.recovery.ValidationRecovery
 import com.rulebook.core.data.repository.OnboardingRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -30,11 +30,11 @@ import kotlinx.coroutines.launch
  * via [recoveryEvents] for the UI to display a notification.
  *
  * @param onboardingRepository Repository for onboarding state access.
- * @param validationRecoveryManager Manager for app-launch purchase recovery (Story 10.4).
+ * @param validationRecoveryManager Recovery contract for app-launch purchase recovery (Story 10.4).
  */
 class StartupViewModel(
     private val onboardingRepository: OnboardingRepository,
-    private val validationRecoveryManager: ValidationRecoveryManager
+    private val validationRecoveryManager: ValidationRecovery
 ) : ViewModel() {
 
     private val _startupDestination = MutableStateFlow<StartupDestination?>(null)

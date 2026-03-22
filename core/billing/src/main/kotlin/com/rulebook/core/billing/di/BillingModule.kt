@@ -8,6 +8,7 @@ import com.rulebook.core.billing.history.PurchaseHistoryStore
 import com.rulebook.core.billing.history.PurchaseHistoryStoreImpl
 import com.rulebook.core.billing.pending.PendingValidationStore
 import com.rulebook.core.billing.pending.PendingValidationStoreImpl
+import com.rulebook.core.billing.recovery.ValidationRecovery
 import com.rulebook.core.billing.recovery.ValidationRecoveryManager
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.billing.verification.PurchaseVerifier
@@ -32,5 +33,5 @@ val billingModule = module {
     single<PurchaseHistoryStore> { PurchaseHistoryStoreImpl.create(androidContext()) }
     single<PendingValidationStore> { PendingValidationStoreImpl.create(androidContext()) }
     single { PendingPurchaseChecker(get(), get(), get(), get()) }
-    single { ValidationRecoveryManager(get(), get(), get(), get(), get(), get()) }
+    single<ValidationRecovery> { ValidationRecoveryManager(get(), get(), get(), get(), get(), get()) }
 }

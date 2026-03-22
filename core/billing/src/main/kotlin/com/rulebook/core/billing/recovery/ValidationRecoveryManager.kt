@@ -13,6 +13,18 @@ import com.rulebook.core.data.repository.CreditRepository
 private const val TAG = "ValidationRecoveryManager"
 
 /**
+ * Contract for running app-launch purchase recovery.
+ *
+ * Allows [ValidationRecoveryManager] to be swapped with a test double in unit tests.
+ */
+interface ValidationRecovery {
+    /**
+     * Runs the full recovery flow and returns a summary of the outcome.
+     */
+    suspend fun recover(): RecoveryResult
+}
+
+/**
  * Orchestrates app-launch recovery of purchases that failed server-side validation.
  *
  * Recovery runs on app launch to handle two failure scenarios:
@@ -40,7 +52,7 @@ class ValidationRecoveryManager(
     private val creditRepository: CreditRepository,
     private val purchaseHistoryStore: PurchaseHistoryStore,
     private val analyticsManager: AnalyticsManager
-) {
+) : ValidationRecovery {
 
     /**
      * Runs the full recovery flow and returns a summary of the outcome.
@@ -52,7 +64,7 @@ class ValidationRecoveryManager(
      *
      * @return [RecoveryResult] with counts of recovered credits and processing outcomes.
      */
-    suspend fun recover(): RecoveryResult {
+    override suspend fun recover(): RecoveryResult {
         val recentTokens = purchaseHistoryStore.getRecentTokens().toSet()
 
         // Step 1: Process pending store entries (getAll auto-prunes expired entries)
