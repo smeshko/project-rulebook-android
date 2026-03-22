@@ -8,6 +8,8 @@ import com.rulebook.core.billing.history.PurchaseHistoryStore
 import com.rulebook.core.billing.history.PurchaseHistoryStoreImpl
 import com.rulebook.core.billing.pending.PendingValidationStore
 import com.rulebook.core.billing.pending.PendingValidationStoreImpl
+import com.rulebook.core.billing.reconciliation.BalanceReconciliation
+import com.rulebook.core.billing.reconciliation.BalanceReconciliationManager
 import com.rulebook.core.billing.recovery.ValidationRecovery
 import com.rulebook.core.billing.recovery.ValidationRecoveryManager
 import com.rulebook.core.billing.refund.RefundAcknowledgmentStore
@@ -31,6 +33,7 @@ import org.koin.dsl.module
  * - [ValidationRecoveryManager] is provided as a singleton for app-launch recovery (Story 10.4).
  * - [RefundAcknowledgmentStore] is provided as a singleton for refund acknowledgment (Story 10.5).
  * - [RefundSyncManager] is provided as a singleton for app-launch refund detection (Story 10.5).
+ * - [BalanceReconciliationManager] is provided as a singleton for app-launch balance reconciliation (Story 10.7).
  */
 val billingModule = module {
     single<BillingClientWrapper> { BillingClientWrapperImpl(androidContext()) }
@@ -42,4 +45,5 @@ val billingModule = module {
     single<ValidationRecovery> { ValidationRecoveryManager(get(), get(), get(), get(), get(), get()) }
     single<RefundAcknowledgmentStore> { RefundAcknowledgmentStoreImpl.create(androidContext()) }
     single<RefundSync> { RefundSyncManager(get(), get(), get(), get(), get(), get()) }
+    single<BalanceReconciliation> { BalanceReconciliationManager(get(), get(), get()) }
 }
