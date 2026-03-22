@@ -9,7 +9,7 @@ import com.rulebook.core.model.ValidationStatus
  *
  * Sends the purchase token to the backend for receipt validation instead of
  * consuming locally via BillingClient. This is the Epic 10 implementation that
- * replaces [ClientSidePurchaseVerifier].
+ * replaces the former client-side interim verifier.
  *
  * Validation contract:
  * - [ValidationStatus.VALID]: success — return [VerificationResult] with credits

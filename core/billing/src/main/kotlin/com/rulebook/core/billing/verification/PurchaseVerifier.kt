@@ -23,23 +23,22 @@ data class VerificationResult(
 )
 
 /**
- * Interface for verifying and consuming a purchase before delivering credits.
+ * Interface for verifying a purchase before delivering credits.
  *
- * The implementation is swappable:
- * - [ClientSidePurchaseVerifier]: Interim client-side consume via BillingClient (Story 8.7)
- * - ServerSidePurchaseVerifier: Server-side receipt validation (Epic 10)
+ * The sole implementation is ServerSidePurchaseVerifier, which sends the receipt
+ * to the backend for validation (Epic 10).
  *
- * Contract: consume FIRST, then return credits only on success.
- * If consume fails, return [Result.failure] — credits must NOT be delivered.
+ * Contract: validate FIRST, then return credits only on success.
+ * If validation fails, return [Result.failure] — credits must NOT be delivered.
  */
 interface PurchaseVerifier {
     /**
-     * Verifies the purchase and consumes it, returning the credits to deliver.
+     * Verifies the purchase server-side and returns the credits to deliver.
      *
      * Implementations must:
-     * 1. Consume the purchase token via the billing system
-     * 2. Only on successful consumption, resolve the credits for the given [productId]
-     * 3. Return [Result.failure] if consumption fails or the product is unknown
+     * 1. Validate the purchase token via the server
+     * 2. Only on successful validation, resolve the credits for the given [productId]
+     * 3. Return [Result.failure] if validation fails or the product is unknown
      *
      * @param purchaseToken The purchase token from the completed purchase.
      * @param productId The product identifier (SKU) to resolve credit count from.

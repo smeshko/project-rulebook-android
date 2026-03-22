@@ -1399,14 +1399,9 @@ class FakeBillingRepository : BillingRepository {
         return Result.success(Unit)
     }
 
-    override suspend fun consumePurchase(purchaseToken: String): Result<Unit> {
-        consumedTokens.add(purchaseToken)
-        return Result.success(Unit)
-    }
-
-    override suspend fun queryUnconsumedPurchases(): Result<List<PurchaseInfo>> {
+    override suspend fun queryUnacknowledgedPurchases(): Result<List<PurchaseInfo>> {
         if (shouldFailQueryUnconsumed) {
-            return Result.failure(RuntimeException("Failed to query unconsumed purchases"))
+            return Result.failure(RuntimeException("Failed to query unacknowledged purchases"))
         }
         return Result.success(unconsumedPurchases)
     }

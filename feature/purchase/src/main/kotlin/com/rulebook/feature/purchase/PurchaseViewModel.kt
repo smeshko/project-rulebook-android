@@ -373,20 +373,20 @@ class PurchaseViewModel(
     /**
      * Initiates a restore purchases operation to recover previously purchased items.
      *
-     * This method queries the Google Play Billing service for unconsumed in-app purchases,
-     * verifies each purchase, and delivers credits for any successfully verified purchases.
+     * This method queries the Google Play Billing service for unacknowledged in-app purchases,
+     * verifies each purchase server-side, and delivers credits for any successfully verified purchases.
      *
      * Flow:
      * 1. Sets [isRestoring] = true, prevents duplicate calls
      * 2. Tracks "paywall_restore_purchases_tapped" analytics event
-     * 3. Queries [BillingRepository.queryUnconsumedPurchases]
+     * 3. Queries [BillingRepository.queryUnacknowledgedPurchases]
      * 4. For each found purchase:
      *    - Calls [PurchaseVerifier.verifyAndConsume] to verify the purchase server-side
      *    - On success: calls [CreditRepository.addCredits] to deliver credits
      *    - On failure: logs warning but continues with next purchase (partial success allowed)
      * 5. Emits result events:
      *    - [PurchaseEvent.RestoreSuccess] if any credits were restored
-     *    - [PurchaseEvent.RestoreNoPurchases] if no unconsumed purchases found
+     *    - [PurchaseEvent.RestoreNoPurchases] if no unacknowledged purchases found
      *    - [PurchaseEvent.RestoreError] if query or all verifications failed
      * 6. Tracks "purchase_restored" analytics with result and credits_count
      * 7. Sets [isRestoring] = false when complete
@@ -402,10 +402,10 @@ class PurchaseViewModel(
 
         viewModelScope.launch {
             try {
-                val queryResult = billingRepository.queryUnconsumedPurchases()
+                val queryResult = billingRepository.queryUnacknowledgedPurchases()
 
                 queryResult.onFailure { error ->
-                    Log.e(TAG, "Failed to query unconsumed purchases", error)
+                    Log.e(TAG, "Failed to query unacknowledged purchases", error)
                     analyticsManager.trackPurchaseRestored(result = "error", creditsRestored = 0)
                     _uiState.update { it.copy(isRestoring = false) }
                     _events.send(PurchaseEvent.RestoreError(error.message ?: "Failed to restore purchases"))
