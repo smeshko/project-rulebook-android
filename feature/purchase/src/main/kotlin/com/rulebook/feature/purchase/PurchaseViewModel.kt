@@ -239,7 +239,7 @@ class PurchaseViewModel(
                 viewModelScope.launch {
                     // Attempt validation with exponential backoff (2s, 4s, 8s) for transient errors.
                     // PurchaseValidationException (server-side INVALID) is not retried.
-                    var lastTransientError: Exception? = null
+                    var lastTransientError: Throwable? = null
 
                     for (attempt in 0..MAX_VALIDATION_RETRY_ATTEMPTS) {
                         if (attempt > 0) {
