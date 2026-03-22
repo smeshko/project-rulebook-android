@@ -180,10 +180,7 @@ class FakeCheckerBillingRepository : BillingRepository {
     override suspend fun launchPurchaseFlow(activity: Activity, productId: String): Result<Unit> =
         Result.success(Unit)
 
-    override suspend fun consumePurchase(purchaseToken: String): Result<Unit> =
-        Result.success(Unit)
-
-    override suspend fun queryUnconsumedPurchases(): Result<List<PurchaseInfo>> =
+    override suspend fun queryUnacknowledgedPurchases(): Result<List<PurchaseInfo>> =
         Result.success(emptyList())
 
     override suspend fun checkPendingPurchases(pendingToken: String): Result<PendingPurchaseResolution> {

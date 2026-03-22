@@ -6,13 +6,11 @@ import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
-import com.android.billingclient.api.ConsumeParams
 import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
-import com.android.billingclient.api.consumePurchase
 import com.android.billingclient.api.queryProductDetails
 import com.android.billingclient.api.queryPurchasesAsync
 import com.rulebook.core.billing.repository.PurchaseInfo
@@ -118,7 +116,6 @@ interface BillingClientWrapper {
     suspend fun ensureConnected(): Result<Unit>
     suspend fun queryProducts(): Result<List<ProductInfo>>
     fun launchBillingFlow(activity: Activity, productId: String): Result<Unit>
-    suspend fun consumePurchase(purchaseToken: String): Result<Unit>
     suspend fun queryPurchases(): Result<List<PurchaseInfo>>
 
     /**
@@ -309,26 +306,6 @@ class BillingClientWrapperImpl(context: Context) : BillingClientWrapper {
             Result.failure(
                 Exception("Launch billing flow failed: ${billingResult.debugMessage}")
             )
-        }
-    }
-
-    override suspend fun consumePurchase(purchaseToken: String): Result<Unit> {
-        val params = ConsumeParams.newBuilder()
-            .setPurchaseToken(purchaseToken)
-            .build()
-
-        return try {
-            val result = billingClient.consumePurchase(params)
-            if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                Result.success(Unit)
-            } else {
-                updateConnectionStateOnError(result.billingResult.responseCode)
-                Result.failure(
-                    Exception("Consume purchase failed: ${result.billingResult.debugMessage}")
-                )
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 

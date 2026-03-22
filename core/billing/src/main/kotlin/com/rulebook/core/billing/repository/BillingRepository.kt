@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.SharedFlow
 /**
  * Repository interface for Google Play billing operations.
  *
- * Manages product queries, purchase flows, and purchase consumption
- * for in-app credit packs.
+ * Manages product queries and purchase flows for in-app credit packs.
+ * Server-side validation handles purchase acknowledgment.
  */
 interface BillingRepository {
 
@@ -54,25 +54,14 @@ interface BillingRepository {
     suspend fun launchPurchaseFlow(activity: Activity, productId: String): Result<Unit>
 
     /**
-     * Consumes a completed purchase by its token.
-     *
-     * Marks an in-app product as consumed, allowing it to be purchased again.
-     * Must be called after awarding credits to the user.
-     *
-     * @param purchaseToken The purchase token from the completed purchase.
-     * @return Result indicating success or error.
-     */
-    suspend fun consumePurchase(purchaseToken: String): Result<Unit>
-
-    /**
-     * Queries for unconsumed purchases that haven't been consumed yet.
+     * Queries for unacknowledged purchases that haven't been validated by the server yet.
      *
      * Used to restore purchases or handle interrupted purchase flows where
      * credits weren't awarded.
      *
-     * @return Result containing list of unconsumed purchase info, or error.
+     * @return Result containing list of unacknowledged purchase info, or error.
      */
-    suspend fun queryUnconsumedPurchases(): Result<List<PurchaseInfo>>
+    suspend fun queryUnacknowledgedPurchases(): Result<List<PurchaseInfo>>
 
     /**
      * Checks whether a pending purchase (Ask-to-Buy) has been resolved.

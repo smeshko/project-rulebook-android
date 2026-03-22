@@ -220,3 +220,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When integrating refund status endpoint checks into the purchase flow
     - When implementing silent recovery patterns that don't block or crash app startup
     - When handling credit revocation for detected refunded purchases
+
+- `docs/features/remove-client-side-billing-consume.md` - Remove Client-Side Billing Consumption (RULE-260)
+  - Conditions:
+    - When migrating from interim client-side purchase consumption to server-side validation
+    - When updating code that references BillingRepository.consumePurchase() (removed method)
+    - When renaming queryUnconsumedPurchases() calls to queryUnacknowledgedPurchases()
+    - When implementing or updating fake BillingRepository implementations in tests
+    - When understanding the final cleanup step of Epic 10: Server-Side Receipt Validation

@@ -227,7 +227,7 @@ class ValidationRecoveryManagerTest {
     }
 
     @Test
-    fun `recover gracefully handles queryUnconsumedPurchases failure`() = runTest {
+    fun `recover gracefully handles queryUnacknowledgedPurchases failure`() = runTest {
         fakeBillingRepository.queryUnconsumedShouldFail = true
         fakePendingStore.entries.add(PendingValidation("token-1", "credits_3", timestamp = now(), retryCount = 0))
 
@@ -308,10 +308,7 @@ class FakeRecoveryBillingRepository : BillingRepository {
     override suspend fun launchPurchaseFlow(activity: Activity, productId: String): Result<Unit> =
         Result.success(Unit)
 
-    override suspend fun consumePurchase(purchaseToken: String): Result<Unit> =
-        Result.success(Unit)
-
-    override suspend fun queryUnconsumedPurchases(): Result<List<PurchaseInfo>> {
+    override suspend fun queryUnacknowledgedPurchases(): Result<List<PurchaseInfo>> {
         if (queryUnconsumedShouldFail) return Result.failure(RuntimeException("Query failed"))
         return Result.success(unconsumedPurchases.toList())
     }

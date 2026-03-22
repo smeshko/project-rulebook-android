@@ -99,76 +99,46 @@ class BillingRepositoryImplTest {
         assertTrue(products.isEmpty())
     }
 
-    // ==================== consumePurchase Tests ====================
+    // ==================== queryUnacknowledgedPurchases Tests ====================
 
     @Test
-    fun `consumePurchase returns success when wrapper succeeds`() = runTest {
-        fakeWrapper.consumeResult = Result.success(Unit)
-
-        val result = repository.consumePurchase("test_token")
-
-        assertTrue(result.isSuccess)
-    }
-
-    @Test
-    fun `consumePurchase returns failure when wrapper fails`() = runTest {
-        fakeWrapper.consumeResult = Result.failure(Exception("Consume failed"))
-
-        val result = repository.consumePurchase("test_token")
-
-        assertTrue(result.isFailure)
-        assertEquals("Consume failed", result.exceptionOrNull()?.message)
-    }
-
-    @Test
-    fun `consumePurchase delegates token to wrapper`() = runTest {
-        fakeWrapper.consumeResult = Result.success(Unit)
-
-        repository.consumePurchase("specific_purchase_token")
-
-        assertEquals("specific_purchase_token", fakeWrapper.lastConsumedToken)
-    }
-
-    // ==================== queryUnconsumedPurchases Tests ====================
-
-    @Test
-    fun `queryUnconsumedPurchases returns purchase list from wrapper`() = runTest {
+    fun `queryUnacknowledgedPurchases returns purchase list from wrapper`() = runTest {
         val purchases = listOf(
             PurchaseInfo("token_1", "credits_1", "order_1"),
             PurchaseInfo("token_2", "credits_3", "order_2")
         )
         fakeWrapper.purchasesResult = Result.success(purchases)
 
-        val result = repository.queryUnconsumedPurchases()
+        val result = repository.queryUnacknowledgedPurchases()
 
         assertTrue(result.isSuccess)
         assertEquals(purchases, result.getOrNull())
     }
 
     @Test
-    fun `queryUnconsumedPurchases returns empty list when no purchases`() = runTest {
+    fun `queryUnacknowledgedPurchases returns empty list when no purchases`() = runTest {
         fakeWrapper.purchasesResult = Result.success(emptyList())
 
-        val result = repository.queryUnconsumedPurchases()
+        val result = repository.queryUnacknowledgedPurchases()
 
         assertTrue(result.isSuccess)
         assertEquals(emptyList<PurchaseInfo>(), result.getOrNull())
     }
 
     @Test
-    fun `queryUnconsumedPurchases returns failure when wrapper fails`() = runTest {
+    fun `queryUnacknowledgedPurchases returns failure when wrapper fails`() = runTest {
         fakeWrapper.purchasesResult = Result.failure(Exception("Query failed"))
 
-        val result = repository.queryUnconsumedPurchases()
+        val result = repository.queryUnacknowledgedPurchases()
 
         assertTrue(result.isFailure)
     }
 
     @Test
-    fun `queryUnconsumedPurchases returns failure when connection fails`() = runTest {
+    fun `queryUnacknowledgedPurchases returns failure when connection fails`() = runTest {
         fakeWrapper.connectionResult = Result.failure(Exception("No connection"))
 
-        val result = repository.queryUnconsumedPurchases()
+        val result = repository.queryUnacknowledgedPurchases()
 
         assertTrue(result.isFailure)
         assertEquals("No connection", result.exceptionOrNull()?.message)
@@ -235,30 +205,7 @@ class BillingRepositoryImplTest {
     // ==================== Retry-on-Disconnect Tests ====================
 
     @Test
-    fun `consumePurchase retries when wrapper fails and connection is lost`() = runTest {
-        var callCount = 0
-        fakeWrapper = object : FakeBillingClientWrapper() {
-            override suspend fun consumePurchase(purchaseToken: String): Result<Unit> {
-                callCount++
-                return if (callCount == 1) {
-                    // Simulate disconnect mid-operation
-                    setConnectionState(false)
-                    Result.failure(Exception("Disconnected"))
-                } else {
-                    Result.success(Unit)
-                }
-            }
-        }
-        repository = BillingRepositoryImpl(fakeWrapper)
-
-        val result = repository.consumePurchase("token")
-
-        assertTrue(result.isSuccess)
-        assertEquals(2, callCount)
-    }
-
-    @Test
-    fun `queryUnconsumedPurchases retries when wrapper fails and connection is lost`() = runTest {
+    fun `queryUnacknowledgedPurchases retries when wrapper fails and connection is lost`() = runTest {
         val purchases = listOf(PurchaseInfo("t1", "credits_1", "o1"))
         var callCount = 0
         fakeWrapper = object : FakeBillingClientWrapper() {
@@ -274,7 +221,7 @@ class BillingRepositoryImplTest {
         }
         repository = BillingRepositoryImpl(fakeWrapper)
 
-        val result = repository.queryUnconsumedPurchases()
+        val result = repository.queryUnacknowledgedPurchases()
 
         assertTrue(result.isSuccess)
         assertEquals(purchases, result.getOrNull())
@@ -291,11 +238,8 @@ open class FakeBillingClientWrapper : BillingClientWrapper {
 
     var connectionResult: Result<Unit> = Result.success(Unit)
     var productsToReturn: Result<List<ProductInfo>> = Result.success(emptyList())
-    var consumeResult: Result<Unit> = Result.success(Unit)
     var purchasesResult: Result<List<PurchaseInfo>> = Result.success(emptyList())
     var allPurchasesResult: Result<List<PurchaseInfoWithState>> = Result.success(emptyList())
-
-    var lastConsumedToken: String? = null
 
     private val _connectionState = MutableStateFlow(true)
     override val connectionState: StateFlow<Boolean> = _connectionState
@@ -312,11 +256,6 @@ open class FakeBillingClientWrapper : BillingClientWrapper {
 
     override fun launchBillingFlow(activity: Activity, productId: String): Result<Unit> {
         return Result.success(Unit)
-    }
-
-    override suspend fun consumePurchase(purchaseToken: String): Result<Unit> {
-        lastConsumedToken = purchaseToken
-        return consumeResult
     }
 
     override suspend fun queryPurchases(): Result<List<PurchaseInfo>> = purchasesResult

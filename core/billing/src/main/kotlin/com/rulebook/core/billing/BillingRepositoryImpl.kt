@@ -48,24 +48,6 @@ class BillingRepositoryImpl(
         return wrapper.launchBillingFlow(activity, productId)
     }
 
-    override suspend fun consumePurchase(purchaseToken: String): Result<Unit> {
-        val connectResult = wrapper.ensureConnected()
-        if (connectResult.isFailure) {
-            return Result.failure(connectResult.exceptionOrNull()!!)
-        }
-
-        val result = wrapper.consumePurchase(purchaseToken)
-        // Retry once if disconnected mid-operation
-        if (result.isFailure && !wrapper.connectionState.value) {
-            val reconnectResult = wrapper.ensureConnected()
-            if (reconnectResult.isFailure) {
-                return Result.failure(reconnectResult.exceptionOrNull()!!)
-            }
-            return wrapper.consumePurchase(purchaseToken)
-        }
-        return result
-    }
-
     override suspend fun checkPendingPurchases(pendingToken: String): Result<PendingPurchaseResolution> {
         val connectResult = wrapper.ensureConnected()
         if (connectResult.isFailure) {
@@ -90,7 +72,7 @@ class BillingRepositoryImpl(
 
     override fun creditsForProduct(productId: String): Int? = SKU_CREDIT_MAP[productId]
 
-    override suspend fun queryUnconsumedPurchases(): Result<List<PurchaseInfo>> {
+    override suspend fun queryUnacknowledgedPurchases(): Result<List<PurchaseInfo>> {
         val connectResult = wrapper.ensureConnected()
         if (connectResult.isFailure) {
             return Result.failure(connectResult.exceptionOrNull()!!)

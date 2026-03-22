@@ -313,8 +313,7 @@ class FakeRefundSyncBillingRepository : BillingRepository {
 
     override suspend fun queryProducts() = Result.success(emptyList<ProductInfo>())
     override suspend fun launchPurchaseFlow(activity: Activity, productId: String) = Result.success(Unit)
-    override suspend fun consumePurchase(purchaseToken: String) = Result.success(Unit)
-    override suspend fun queryUnconsumedPurchases() = Result.success(emptyList<PurchaseInfo>())
+    override suspend fun queryUnacknowledgedPurchases() = Result.success(emptyList<PurchaseInfo>())
     override suspend fun checkPendingPurchases(pendingToken: String) =
         Result.success(PendingPurchaseResolution.NotFound)
 

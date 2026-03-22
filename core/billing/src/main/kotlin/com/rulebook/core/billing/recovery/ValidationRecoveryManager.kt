@@ -31,7 +31,7 @@ interface ValidationRecovery {
  * 1. **Pending store entries**: Purchases that failed validation due to transient network errors
  *    and were queued in [PendingValidationStore] (Story 10.3).
  * 2. **Orphaned purchases**: Purchases present in Google Play but absent from the pending
- *    store — caused by process death, crashes, or reinstallation (queryUnconsumedPurchases).
+ *    store — caused by process death, crashes, or reinstallation (queryUnacknowledgedPurchases).
  *
  * Recovery is non-blocking: call [recover] in a separate [kotlinx.coroutines.Dispatchers.IO]
  * coroutine so app startup is not delayed.
@@ -121,8 +121,8 @@ class ValidationRecoveryManager(
         }
 
         // Step 2: Handle orphaned purchases (process death, crash, reinstall)
-        // queryUnconsumedPurchases finds PURCHASED state purchases not yet consumed
-        billingRepository.queryUnconsumedPurchases()
+        // queryUnacknowledgedPurchases finds PURCHASED state purchases not yet validated by server
+        billingRepository.queryUnacknowledgedPurchases()
             .onSuccess { unconsumedPurchases ->
                 for (purchase in unconsumedPurchases) {
                     // Skip tokens already in the pending store (being processed above)
@@ -150,7 +150,7 @@ class ValidationRecoveryManager(
                 }
             }
             .onFailure { error ->
-                Log.w(TAG, "Failed to query unconsumed purchases during recovery — orphan recovery skipped", error)
+                Log.w(TAG, "Failed to query unacknowledged purchases during recovery — orphan recovery skipped", error)
             }
 
         // Step 3: Fire analytics
