@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:data"))
     implementation(project(":core:datastore"))
+    implementation(project(":core:analytics"))
 
     implementation(libs.play.billing)
     implementation(libs.androidx.core.ktx)
