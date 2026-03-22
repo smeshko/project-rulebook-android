@@ -17,6 +17,7 @@ import com.rulebook.core.datastore.RulebookPreferences
 import com.rulebook.core.datastore.ThemeMode
 import com.rulebook.core.designsystem.theme.RulebookTheme
 import com.rulebook.startup.RecoveryEvent
+import com.rulebook.startup.RefundEvent
 import com.rulebook.startup.StartupViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -63,6 +64,19 @@ class MainActivity : ComponentActivity() {
                     Toast.makeText(
                         this@MainActivity,
                         "${event.credits} credits from a previous purchase have been added!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+
+        // Collect refund events and show toast when credits are revoked due to a refund
+        lifecycleScope.launch {
+            startupViewModel.refundEvents.collect { event ->
+                if (event is RefundEvent.CreditsRevoked) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "A previous purchase was refunded. ${event.credits} credits removed.",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
