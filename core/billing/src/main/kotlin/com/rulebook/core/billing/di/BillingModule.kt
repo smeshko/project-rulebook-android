@@ -6,6 +6,8 @@ import com.rulebook.core.billing.BillingRepositoryImpl
 import com.rulebook.core.billing.PendingPurchaseChecker
 import com.rulebook.core.billing.history.PurchaseHistoryStore
 import com.rulebook.core.billing.history.PurchaseHistoryStoreImpl
+import com.rulebook.core.billing.pending.PendingValidationStore
+import com.rulebook.core.billing.pending.PendingValidationStoreImpl
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.billing.verification.PurchaseVerifier
 import com.rulebook.core.billing.verification.ServerSidePurchaseVerifier
@@ -26,5 +28,6 @@ val billingModule = module {
     single<BillingRepository> { BillingRepositoryImpl(get()) }
     single<PurchaseVerifier> { ServerSidePurchaseVerifier(get()) }
     single<PurchaseHistoryStore> { PurchaseHistoryStoreImpl.create(androidContext()) }
+    single<PendingValidationStore> { PendingValidationStoreImpl.create(androidContext()) }
     single { PendingPurchaseChecker(get(), get(), get(), get()) }
 }

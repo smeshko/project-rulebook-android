@@ -42,4 +42,12 @@ sealed class PurchaseEvent {
      * @property productId The product ID that was approved.
      */
     data class PendingPurchaseResolved(val creditsAdded: Int, val productId: String) : PurchaseEvent()
+
+    /**
+     * Server validation failed after all retry attempts due to a transient network error.
+     *
+     * The purchase token has been saved to [PendingValidationStore] for recovery on the next
+     * app launch (Story 10.4). Credits are NOT granted until validation succeeds.
+     */
+    data object ValidationPending : PurchaseEvent()
 }
