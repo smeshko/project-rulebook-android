@@ -8,6 +8,8 @@ import com.rulebook.core.analytics.AnalyticsManager
 import com.rulebook.core.billing.BillingResponseCode
 import com.rulebook.core.billing.PurchaseUpdate
 import com.rulebook.core.billing.history.PurchaseHistoryStore
+import com.rulebook.core.billing.pending.PendingValidation
+import com.rulebook.core.billing.pending.PendingValidationStore
 import com.rulebook.core.billing.repository.BillingRepository
 import com.rulebook.core.billing.verification.PurchaseValidationException
 import com.rulebook.core.billing.verification.PurchaseVerifier
@@ -32,6 +34,9 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "PurchaseViewModel"
 
+/** Maximum number of retry attempts after the initial validation failure. */
+private const val MAX_VALIDATION_RETRY_ATTEMPTS = 3
+
 /**
  * ViewModel for the Purchase (Paywall) screen.
  *
@@ -53,6 +58,7 @@ private const val TAG = "PurchaseViewModel"
  * @param purchaseVerifier Verifier that validates the purchase server-side and resolves credits.
  * @param pendingPurchasePrefs DataStore preferences for pending purchase token storage.
  * @param purchaseHistoryStore Store for persisting validated purchase tokens (Story 10.5 prerequisite).
+ * @param pendingValidationStore Store for persisting failed validations pending retry (Story 10.3).
  * @param source The navigation source that triggered the paywall (e.g., "scan_gate", "settings").
  */
 class PurchaseViewModel(
@@ -62,6 +68,7 @@ class PurchaseViewModel(
     private val purchaseVerifier: PurchaseVerifier,
     private val pendingPurchasePrefs: PendingPurchasePreferencesSource,
     private val purchaseHistoryStore: PurchaseHistoryStore,
+    private val pendingValidationStore: PendingValidationStore,
     private val source: String = "unknown"
 ) : ViewModel() {
 
@@ -230,70 +237,105 @@ class PurchaseViewModel(
                 _uiState.update { it.copy(purchaseState = PurchaseState.Validating(productId)) }
 
                 viewModelScope.launch {
-                    val verifyResult = purchaseVerifier.verifyAndConsume(purchaseToken, productId)
-                    verifyResult.onFailure { error ->
-                        Log.e(TAG, "Failed to verify purchase for $productId", error)
-                        val (errorCode, analyticsStatus) = if (error is PurchaseValidationException) {
-                            "VALIDATION_INVALID" to "invalid"
-                        } else {
-                            "CONSUME_FAILED" to "error"
+                    // Attempt validation with exponential backoff (2s, 4s, 8s) for transient errors.
+                    // PurchaseValidationException (server-side INVALID) is not retried.
+                    var lastTransientError: Exception? = null
+
+                    for (attempt in 0..MAX_VALIDATION_RETRY_ATTEMPTS) {
+                        if (attempt > 0) {
+                            // Delays: retry 1 = 2s, retry 2 = 4s, retry 3 = 8s
+                            delay(2000L * (1L shl (attempt - 1)))
                         }
-                        analyticsManager.trackPurchaseValidated(sku = productId, status = analyticsStatus)
-                        analyticsManager.trackPurchaseFailed(
-                            sku = productId,
-                            errorCode = errorCode,
-                            errorMessage = error.message ?: "Purchase verification failed"
-                        )
-                        _uiState.update {
-                            it.copy(purchaseState = PurchaseState.Error("Purchase verification failed"))
+
+                        val verifyResult = purchaseVerifier.verifyAndConsume(purchaseToken, productId)
+
+                        if (verifyResult.isSuccess) {
+                            val verification = verifyResult.getOrThrow()
+                            val credits = verification.credits
+                            val analyticsStatus = when (verification.status) {
+                                VerificationStatus.VALID -> "valid"
+                                VerificationStatus.ALREADY_PROCESSED -> "already_processed"
+                            }
+
+                            // For ALREADY_PROCESSED, skip credit delivery if already delivered locally
+                            val alreadyDelivered = verification.status == VerificationStatus.ALREADY_PROCESSED &&
+                                purchaseHistoryStore.getRecentTokens().contains(purchaseToken)
+
+                            if (!alreadyDelivered) {
+                                // Deliver credits only after successful server validation
+                                val creditsSaved = creditRepository.addCredits(credits)
+                                if (!creditsSaved) {
+                                    analyticsManager.trackPurchaseFailed(
+                                        sku = productId,
+                                        errorCode = "CREDIT_SAVE_FAILED",
+                                        errorMessage = "Credits could not be saved after successful purchase"
+                                    )
+                                    _uiState.update {
+                                        it.copy(purchaseState = PurchaseState.Error("Failed to save credits. Please restore purchases."))
+                                    }
+                                    return@launch
+                                }
+
+                                // Save to history store AFTER credits delivered (Story 10.5)
+                                purchaseHistoryStore.savePurchase(purchaseToken, productId)
+                            }
+
+                            val newBalance = creditRepository.creditBalance.first()
+
+                            analyticsManager.trackPurchaseValidated(sku = productId, status = analyticsStatus)
+                            analyticsManager.trackPurchaseCompleted(
+                                sku = productId,
+                                creditsAdded = credits,
+                                newBalance = newBalance
+                            )
+
+                            _uiState.update { it.copy(purchaseState = PurchaseState.Success(credits)) }
+
+                            // Auto-dismiss after success animation plays (1.5s)
+                            delay(1500)
+                            _events.send(PurchaseEvent.PurchaseSuccess(credits))
+                            return@launch
                         }
-                        return@launch
-                    }
 
-                    val verification = verifyResult.getOrThrow()
-                    val credits = verification.credits
-                    val analyticsStatus = when (verification.status) {
-                        VerificationStatus.VALID -> "valid"
-                        VerificationStatus.ALREADY_PROCESSED -> "already_processed"
-                    }
-
-                    // For ALREADY_PROCESSED, skip credit delivery if already delivered locally
-                    val alreadyDelivered = verification.status == VerificationStatus.ALREADY_PROCESSED &&
-                        purchaseHistoryStore.getRecentTokens().contains(purchaseToken)
-
-                    if (!alreadyDelivered) {
-                        // Deliver credits only after successful server validation
-                        val creditsSaved = creditRepository.addCredits(credits)
-                        if (!creditsSaved) {
+                        val error = verifyResult.exceptionOrNull()!!
+                        if (error is PurchaseValidationException) {
+                            // Server explicitly rejected this purchase — do NOT retry
+                            Log.e(TAG, "Purchase explicitly invalid for $productId", error)
+                            analyticsManager.trackPurchaseValidated(sku = productId, status = "invalid")
                             analyticsManager.trackPurchaseFailed(
                                 sku = productId,
-                                errorCode = "CREDIT_SAVE_FAILED",
-                                errorMessage = "Credits could not be saved after successful purchase"
+                                errorCode = "VALIDATION_INVALID",
+                                errorMessage = error.message ?: "Purchase verification failed"
                             )
                             _uiState.update {
-                                it.copy(purchaseState = PurchaseState.Error("Failed to save credits. Please restore purchases."))
+                                it.copy(purchaseState = PurchaseState.Error("Purchase verification failed"))
                             }
                             return@launch
                         }
 
-                        // Save to history store AFTER credits delivered (Story 10.5)
-                        purchaseHistoryStore.savePurchase(purchaseToken, productId)
+                        // Transient network/timeout error — retry with backoff
+                        lastTransientError = error
+                        Log.w(TAG, "Transient validation error on attempt $attempt for $productId, will retry", error)
                     }
 
-                    val newBalance = creditRepository.creditBalance.first()
-
-                    analyticsManager.trackPurchaseValidated(sku = productId, status = analyticsStatus)
-                    analyticsManager.trackPurchaseCompleted(
+                    // All retry attempts exhausted — save to pending queue for Story 10.4 recovery
+                    Log.e(TAG, "All validation retries exhausted for $productId, saving to pending queue", lastTransientError)
+                    analyticsManager.trackPurchaseValidated(sku = productId, status = "error")
+                    analyticsManager.trackPurchaseFailed(
                         sku = productId,
-                        creditsAdded = credits,
-                        newBalance = newBalance
+                        errorCode = "CONSUME_FAILED",
+                        errorMessage = lastTransientError?.message ?: "Purchase verification failed"
                     )
-
-                    _uiState.update { it.copy(purchaseState = PurchaseState.Success(credits)) }
-
-                    // Auto-dismiss after success animation plays (1.5s)
-                    delay(1500)
-                    _events.send(PurchaseEvent.PurchaseSuccess(credits))
+                    pendingValidationStore.save(
+                        PendingValidation(
+                            purchaseToken = purchaseToken,
+                            productId = productId,
+                            timestamp = System.currentTimeMillis(),
+                            retryCount = MAX_VALIDATION_RETRY_ATTEMPTS
+                        )
+                    )
+                    _events.send(PurchaseEvent.ValidationPending)
+                    _uiState.update { it.copy(purchaseState = null) }
                 }
             }
 
