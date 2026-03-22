@@ -204,3 +204,11 @@ This guide helps you find relevant documentation based on what you're working on
     - When implementing PurchaseHistoryStore for purchase token persistence and refund tracking
     - When creating purchase analytics events or tracking validation status (purchase_validated)
     - When building Validating UI overlays or timeout feedback for in-progress validations
+
+- `docs/features/pending-validation-queue.md` - Pending Validation Queue with Exponential Backoff Retry (RULE-257)
+  - Conditions:
+    - When implementing retry logic for transient validation failures in purchase flows
+    - When handling offline scenarios where server validation fails due to network errors
+    - When designing encrypted storage for sensitive financial data (purchase tokens)
+    - When applying exponential backoff patterns to other transient failure scenarios
+    - When implementing graceful degradation for user-facing features
